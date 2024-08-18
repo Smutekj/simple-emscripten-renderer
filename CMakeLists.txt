@@ -48,10 +48,14 @@ include_directories(SYSTEM external/stbimage)
 file(GLOB HDR
      "include/*.h"
      "include/Utils/*.h"
+     "include/Gui/*.h"
+     "include/Gui/backends/*.h"
 )
 file(GLOB SRC
      "src/*.cpp"
      "src/Utils/*.cpp"
+     "src/Gui/*.cpp"
+     "src/Gui/backends/*.cpp"
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/include  ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS} )
@@ -63,28 +67,19 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Utils>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui/backends>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/backends
 )
 
 if(BUILD_EXAMPLE)
 
-    ###### IMGUI ###### 
-  set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui-docking/)
-  set(gui_hdrs  imgui.h backends/imgui_impl_sdl2.h backends/imgui_impl_opengl3.h )
-  set(gui_objs imgui.cpp backends/imgui_impl_sdl2.cpp backends/imgui_impl_opengl3.cpp 
-              imgui_demo.cpp imgui_draw.cpp imgui_tables.cpp imgui_widgets.cpp) 
-  list(TRANSFORM gui_hdrs PREPEND ${IMGUI_DIR} )
-  list(TRANSFORM gui_objs PREPEND ${IMGUI_DIR} )
-
-include_directories(${IMGUI_DIR} ${IMGUI_DIR}/backends )
-
-
-
-
     add_executable(Example src/Example/main.cpp src/Example/Application.h src/Example/Application.cpp 
-      src/Example/ShaderUI.h src/Example/ShaderUI.cpp ${gui_hdrs} ${gui_objs})
+      src/Example/ShaderUI.h src/Example/ShaderUI.cpp )
     target_link_libraries(Example  ${PROJECT_NAME} GLESv2 ) ## DO NOT FORGET GLESv2!!!!
 endif()
 
