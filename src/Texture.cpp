@@ -56,7 +56,7 @@ void Texture::initialize()
     glCheckError();
 }
 
-void Texture::create(int width, int height, GLint internal_format = GL_RGBA, GLint format = GL_RGBA, GLint channel_format = GL_UNSIGNED_BYTE)
+void Texture::create(int width, int height, GLint internal_format, GLint format, GLint channel_format)
 {
     m_width = width;
     m_height = height;

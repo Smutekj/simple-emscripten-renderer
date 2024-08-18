@@ -19,7 +19,7 @@ class Texture
 
 public:
     void loadFromFile(std::string filename);
-    void create(int width, int height,  GLint internal_format, GLint format, GLint channel_format);
+    void create(int width, int height,  GLint internal_format = GL_RGBA, GLint format = GL_RGBA, GLint channel_format = GL_UNSIGNED_BYTE);
     void bind(int slot =0);
     Vec2 getSize()const;
     GLuint getHandle()const;
