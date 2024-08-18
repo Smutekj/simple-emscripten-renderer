@@ -15,10 +15,10 @@ namespace sf
 
 struct Particle
 {
-    cdt::Vector2f pos;
-    cdt::Vector2f vel;
-    cdt::Vector2f acc;
-    cdt::Vector2f scale;
+    utils::Vector2f pos;
+    utils::Vector2f vel;
+    utils::Vector2f acc;
+    utils::Vector2f scale;
     float angle = 0.f;
     Color color;
     float life_time;
@@ -27,7 +27,7 @@ struct Particle
     Particle() = default;
     virtual ~Particle() = default;
 
-    Particle(cdt::Vector2f init_pos, cdt::Vector2f init_vel, cdt::Vector2f acc = {0, 0}, cdt::Vector2f scale = {1,1},
+    Particle(utils::Vector2f init_pos, utils::Vector2f init_vel, utils::Vector2f acc = {0, 0}, utils::Vector2f scale = {1,1},
              Color color = {0,0,1,1}, float life_time = 69);
 };
 
@@ -44,7 +44,7 @@ public:
 
     virtual void draw(Renderer &target);
 
-    void setSpawnPos(cdt::Vector2f pos);
+    void setSpawnPos(utils::Vector2f pos);
     void setVel(float vel);
     void setInitColor(Color color);
     void setFinalColor(Color color);
@@ -54,7 +54,7 @@ public:
     void setRepeat(bool repeats);
     void setSize(float size);
     void setUpdater(std::function<void(Particle&)> new_updater);
-    void setEmitter(std::function<Particle(cdt::Vector2f)> new_emitter);
+    void setEmitter(std::function<Particle(utils::Vector2f)> new_emitter);
     void setOnParticleDeathCallback(std::function<void(Particle&)> new_updater);
     
 private:
@@ -65,13 +65,13 @@ private:
 protected:
     std::function<void(Particle&)> m_updater = [](Particle&){};
     std::function<void(Particle&)> m_on_particle_death = [](Particle&){};
-    std::function<Particle(cdt::Vector2f)> m_emitter = [](cdt::Vector2f){return Particle{};};
+    std::function<Particle(utils::Vector2f)> m_emitter = [](utils::Vector2f){return Particle{};};
 
     VectorMap<Particle> m_particle_pool;
 
     int m_spawn_period = 1;
     int m_spawn_timer = 0;
-    cdt::Vector2f m_spawn_pos;
+    utils::Vector2f m_spawn_pos;
 
     float m_particle_size = 0.5;
     float m_vel = 3;

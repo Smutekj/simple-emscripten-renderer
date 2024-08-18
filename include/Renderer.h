@@ -89,7 +89,7 @@ public:
         return m_shaders.get(id);
     }
 
-    cdt::Vector2f getMouseInWorld()
+    utils::Vector2f getMouseInWorld()
     {
         int mouse_coords[2];
 

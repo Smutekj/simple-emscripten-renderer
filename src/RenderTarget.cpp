@@ -5,7 +5,7 @@ RenderTarget::RenderTarget(int width, int height)
 {
 }
 
-cdt::Vector2i RenderTarget::getSize() const
+utils::Vector2i RenderTarget::getSize() const
 {
     return m_target_size;
 }

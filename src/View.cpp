@@ -21,12 +21,12 @@ void View::setCenter(float cx, float cy)
     m_needs_recompute = true;
 }
 
-cdt::Vector2f View::getCenter() const
+utils::Vector2f View::getCenter() const
 {
     return {m_center_x, m_center_y};
 }
 
-cdt::Vector2f View::getScale() const
+utils::Vector2f View::getScale() const
 {
     return {m_width, m_height};
 }

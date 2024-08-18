@@ -6,7 +6,7 @@
 #include <numeric>
 #include <numbers>
 
-namespace cdt
+namespace utils
 {
 
 
@@ -56,7 +56,7 @@ namespace cdt
         }
 
         template <class T1>
-        void operator+=(const cdt::Vector2<T1> &v)
+        void operator+=(const utils::Vector2<T1> &v)
         {
             x += v.x;
             y += v.y;
@@ -127,7 +127,7 @@ namespace cdt
     inline float dist(const T &a, const T &b) { return std::sqrt(dot(a - b, a - b)); }
 
     template <class T>
-    float inline cross(const cdt::Vector2<T> &a, const cdt::Vector2<T> &b)
+    float inline cross(const utils::Vector2<T> &a, const utils::Vector2<T> &b)
     {
         if constexpr (std::is_unsigned_v<T>)
         {
@@ -137,12 +137,12 @@ namespace cdt
     }
 
     template <class T>
-    float inline orient(const cdt::Vector2<T> &a, const cdt::Vector2<T> &b, const cdt::Vector2<T> &c)
+    float inline orient(const utils::Vector2<T> &a, const utils::Vector2<T> &b, const utils::Vector2<T> &c)
     {
         // if constexpr (std::is_unsigned_v<T>)
         // {
-        //     return cross(static_cast<cdt::Vector2f>(b) - static_cast<cdt::Vector2f>(a),
-        //                  static_cast<cdt::Vector2f>(c) - static_cast<cdt::Vector2f>(a));
+        //     return cross(static_cast<utils::Vector2f>(b) - static_cast<utils::Vector2f>(a),
+        //                  static_cast<utils::Vector2f>(c) - static_cast<utils::Vector2f>(a));
         // }
         return cross(b - a, c - a);
     }
@@ -154,9 +154,9 @@ namespace cdt
     }
 
     constexpr float TOLERANCE = 0.0001f;
-    inline bool vequal(const cdt::Vector2f &a, const cdt::Vector2f &b) { return dist(a, b) < TOLERANCE; }
+    inline bool vequal(const utils::Vector2f &a, const utils::Vector2f &b) { return dist(a, b) < TOLERANCE; }
 
-    bool inline segmentsIntersect(cdt::Vector2f a, cdt::Vector2f b, cdt::Vector2f c, cdt::Vector2f d, cdt::Vector2f &hit_point)
+    bool inline segmentsIntersect(utils::Vector2f a, utils::Vector2f b, utils::Vector2f c, utils::Vector2f d, utils::Vector2f &hit_point)
     {
         float oa = orient(c, d, a),
               ob = orient(c, d, b),
@@ -202,7 +202,7 @@ namespace cdt
     }
 
     template <class VecType>
-    bool inline segmentsIntersectOrTouch(const VecType &a, const VecType &b, const VecType &c, const VecType &d, cdt::Vector2f &hit_point)
+    bool inline segmentsIntersectOrTouch(const VecType &a, const VecType &b, const VecType &c, const VecType &d, utils::Vector2f &hit_point)
     {
         float oa = orient(c, d, a),
               ob = orient(c, d, b),
@@ -220,7 +220,7 @@ namespace cdt
         return false;
     }
 
-    inline cdt::Vector2f angle2dir(float angle)
+    inline utils::Vector2f angle2dir(float angle)
     {
         const auto to_radains = std::numbers::pi_v<float> / 180.f;
         return {std::cos(angle * to_radains), std::sin(angle*to_radains)};
@@ -228,4 +228,4 @@ namespace cdt
 
 }
 
-inline cdt::Vector2f asFloat(const cdt::Vector2i &r) { return static_cast<cdt::Vector2f>(r); }
+inline utils::Vector2f asFloat(const utils::Vector2i &r) { return static_cast<utils::Vector2f>(r); }
