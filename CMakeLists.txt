@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 
 
-project(project)
-
+project(renderer)
+option(BUILD_EXAMPLE OFF)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
@@ -63,10 +63,11 @@ file(GLOB SRC
 
 add_library(${PROJECT_NAME} STATIC)
 target_sources(${PROJECT_NAME} PRIVATE ${SRC})
-target_link_libraries(${PROJECT_NAME} glm GLESv2 ${SDL2_LIBRARIES} )
+target_link_libraries(${PROJECT_NAME} glm GLESv2 ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES})
 target_include_directories(${PROJECT_NAME}
     PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Utils>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
@@ -75,7 +76,7 @@ target_include_directories(${PROJECT_NAME}
 if(BUILD_EXAMPLE)
     add_executable(Example src/Example/main.cpp src/Example/Application.h src/Example/Application.cpp 
       src/Example/ShaderUI.h src/Example/ShaderUI.cpp ${gui_hdrs} ${gui_objs})
-    target_link_libraries(Example ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES} ${PROJECT_NAME} glm GLESv2  ) ## DO NOT FORGET GLESv2!!!!
+    target_link_libraries(Example  ${PROJECT_NAME} GLESv2 ) ## DO NOT FORGET GLESv2!!!!
 endif()
 
 
