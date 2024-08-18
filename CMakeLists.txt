@@ -21,14 +21,6 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm)
 
-###### IMGUI ###### 
-set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui-docking/)
-set(gui_hdrs  imgui.h backends/imgui_impl_sdl2.h backends/imgui_impl_opengl3.h )
-set(gui_objs imgui.cpp backends/imgui_impl_sdl2.cpp backends/imgui_impl_opengl3.cpp 
-             imgui_demo.cpp imgui_draw.cpp imgui_tables.cpp imgui_widgets.cpp) 
-list(TRANSFORM gui_hdrs PREPEND ${IMGUI_DIR} )
-list(TRANSFORM gui_objs PREPEND ${IMGUI_DIR} )
-
 
 add_subdirectory(SDL)
 
@@ -46,10 +38,7 @@ else()
     find_package(Freetype REQUIRED)
 endif()
 
-include_directories(${CMAKE_SOURCE_DIR}/include  ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS}
-${IMGUI_DIR} ${IMGUI_DIR}/backends )
 include_directories(SYSTEM external/stbimage)
-include_directories(SYSTEM external/magic_enum)
 
 
 file(GLOB HDR
@@ -61,6 +50,7 @@ file(GLOB SRC
      "src/Utils/*.cpp"
 )
 
+include_directories(${CMAKE_SOURCE_DIR}/include  ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS} )
 add_library(${PROJECT_NAME} STATIC)
 target_sources(${PROJECT_NAME} PRIVATE ${SRC})
 target_link_libraries(${PROJECT_NAME} glm GLESv2 ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES})
@@ -74,6 +64,20 @@ target_include_directories(${PROJECT_NAME}
 )
 
 if(BUILD_EXAMPLE)
+
+    ###### IMGUI ###### 
+  set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui-docking/)
+  set(gui_hdrs  imgui.h backends/imgui_impl_sdl2.h backends/imgui_impl_opengl3.h )
+  set(gui_objs imgui.cpp backends/imgui_impl_sdl2.cpp backends/imgui_impl_opengl3.cpp 
+              imgui_demo.cpp imgui_draw.cpp imgui_tables.cpp imgui_widgets.cpp) 
+  list(TRANSFORM gui_hdrs PREPEND ${IMGUI_DIR} )
+  list(TRANSFORM gui_objs PREPEND ${IMGUI_DIR} )
+
+include_directories(${IMGUI_DIR} ${IMGUI_DIR}/backends )
+include_directories(SYSTEM external/magic_enum)
+
+
+
     add_executable(Example src/Example/main.cpp src/Example/Application.h src/Example/Application.cpp 
       src/Example/ShaderUI.h src/Example/ShaderUI.cpp ${gui_hdrs} ${gui_objs})
     target_link_libraries(Example  ${PROJECT_NAME} GLESv2 ) ## DO NOT FORGET GLESv2!!!!
