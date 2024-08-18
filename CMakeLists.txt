@@ -75,7 +75,7 @@ target_include_directories(${PROJECT_NAME}
 if(BUILD_EXAMPLE)
     add_executable(Example src/Example/main.cpp src/Example/Application.h src/Example/Application.cpp 
       src/Example/ShaderUI.h src/Example/ShaderUI.cpp ${gui_hdrs} ${gui_objs})
-    target_link_libraries(Example ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES} ${PROJECT_NAME} glm GLESv2  ) ## DO NOT FORGET GLESv2!!!!
+    target_link_libraries(Example ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES} ${PROJECT_NAME} GLESv2  ) ## DO NOT FORGET GLESv2!!!!
 endif()
 
 
