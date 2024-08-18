@@ -21,8 +21,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm)
 
-
-add_subdirectory(SDL)
+FetchContent_Declare(
+  SDL2
+  GIT_REPOSITORY https://github.com/libsdl-org/SDL
+  GIT_TAG SDL2
+)
+FetchContent_MakeAvailable(SDL2)
 
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 set(USE_FLAGS "-s USE_SDL=2 -s USE_FREETYPE=1 -s FULL_ES3=1 -s OFFSCREEN_FRAMEBUFFER=1")
@@ -51,6 +55,7 @@ file(GLOB SRC
 )
 
 include_directories(${CMAKE_SOURCE_DIR}/include  ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS} )
+include_directories(SYSTEM external/magic_enum)
 add_library(${PROJECT_NAME} STATIC)
 target_sources(${PROJECT_NAME} PRIVATE ${SRC})
 target_link_libraries(${PROJECT_NAME} glm GLESv2 ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES})
@@ -74,7 +79,7 @@ if(BUILD_EXAMPLE)
   list(TRANSFORM gui_objs PREPEND ${IMGUI_DIR} )
 
 include_directories(${IMGUI_DIR} ${IMGUI_DIR}/backends )
-include_directories(SYSTEM external/magic_enum)
+
 
 
 
