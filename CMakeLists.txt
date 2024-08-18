@@ -21,16 +21,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glm)
 
-###### IMGUI ###### 
-set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/imgui-docking/)
-set(gui_hdrs  imgui.h backends/imgui_impl_sdl2.h backends/imgui_impl_opengl3.h )
-set(gui_objs imgui.cpp backends/imgui_impl_sdl2.cpp backends/imgui_impl_opengl3.cpp 
-             imgui_demo.cpp imgui_draw.cpp imgui_tables.cpp imgui_widgets.cpp) 
-list(TRANSFORM gui_hdrs PREPEND ${IMGUI_DIR} )
-list(TRANSFORM gui_objs PREPEND ${IMGUI_DIR} )
-
-
-add_subdirectory(SDL)
+FetchContent_Declare(
+  SDL2
+  GIT_REPOSITORY https://github.com/libsdl-org/SDL
+  GIT_TAG SDL2
+)
+FetchContent_MakeAvailable(SDL2)
 
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 set(USE_FLAGS "-s USE_SDL=2 -s USE_FREETYPE=1 -s FULL_ES3=1 -s OFFSCREEN_FRAMEBUFFER=1")
@@ -46,21 +42,24 @@ else()
     find_package(Freetype REQUIRED)
 endif()
 
-include_directories(${CMAKE_SOURCE_DIR}/include  ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS}
-${IMGUI_DIR} ${IMGUI_DIR}/backends )
 include_directories(SYSTEM external/stbimage)
-include_directories(SYSTEM external/magic_enum)
 
 
 file(GLOB HDR
      "include/*.h"
      "include/Utils/*.h"
+     "include/Gui/*.h"
+     "include/Gui/backends/*.h"
 )
 file(GLOB SRC
      "src/*.cpp"
      "src/Utils/*.cpp"
+     "src/Gui/*.cpp"
+     "src/Gui/backends/*.cpp"
 )
 
+include_directories(${CMAKE_SOURCE_DIR}/include  ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS} )
+include_directories(SYSTEM external/magic_enum)
 add_library(${PROJECT_NAME} STATIC)
 target_sources(${PROJECT_NAME} PRIVATE ${SRC})
 target_link_libraries(${PROJECT_NAME} glm GLESv2 ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES})
@@ -68,14 +67,19 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Utils>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui/backends>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/backends
 )
 
 if(BUILD_EXAMPLE)
+
     add_executable(Example src/Example/main.cpp src/Example/Application.h src/Example/Application.cpp 
-      src/Example/ShaderUI.h src/Example/ShaderUI.cpp ${gui_hdrs} ${gui_objs})
+      src/Example/ShaderUI.h src/Example/ShaderUI.cpp )
     target_link_libraries(Example  ${PROJECT_NAME} GLESv2 ) ## DO NOT FORGET GLESv2!!!!
 endif()
 
