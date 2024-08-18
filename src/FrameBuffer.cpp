@@ -11,7 +11,7 @@
         glViewport(0, 0, width, height);
         glCheckError();
 
-        m_texture.create(width, height, GL_RGB16F, GL_RGB, GL_FLOAT);
+        m_texture.create(width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT) ;
         m_texture.bind();
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture.getHandle(), 0); // texture, 0);//

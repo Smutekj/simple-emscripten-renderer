@@ -76,10 +76,10 @@ Application::Application(int width, int height) : m_window(width, height),
     int n_slots_x = 2;
     int n_slots_y = 2;
     m_slots.reserve(n_slots_x * n_slots_y);
-    for (int i = 0; i < n_slots_x * n_slots_y; ++i)
-    {
-        m_slots.emplace_back(width / n_slots_x, height / n_slots_y);
-    }
+    // for (int i = 0; i < n_slots_x * n_slots_y; ++i)
+    // {
+    //     m_slots.emplace_back(width / n_slots_x, height / n_slots_y);
+    // }
 
     std::filesystem::path path{"../Resources/"};
     auto shader_filenames = extractNamesInDirectory(path, ".frag");
@@ -132,7 +132,7 @@ Application::Application(int width, int height) : m_window(width, height),
     m_window_renderer.m_view = m_view;
 
     m_ui = std::make_unique<UI>(m_window, m_textures, m_slots);
-    initializeSimulation();
+    // initializeSimulation();
 
     m_particles = std::make_unique<Particles>(2000);
     m_particles->setLifetime(2.f);
@@ -340,7 +340,7 @@ void Application::doBloom(Texture &source, Renderer &target)
     m_bloom_renderer2.drawSprite(screen_sprite, "brightness", GL_DYNAMIC_DRAW);
     m_bloom_renderer2.drawAll();
 
-    for (int pass = 0; pass < 5; ++pass)
+    for (int pass = 0; pass < 2; ++pass)
     {
         m_bloom_renderer1.clear({0, 0, 0, 1});
         screen_sprite.setTexture(m_bloom_pass2.getTexture());
@@ -375,8 +375,8 @@ void Application::update(float dt)
 
     m_window.clear({0, 0, 0, 1});
 
-    auto &shader_slot = m_slots.at(0);
-    auto slot_size = shader_slot.getSize();
+    // auto &shader_slot = m_slots.at(0);
+    // auto slot_size = shader_slot.getSize();
 
     if (m_ui->simulationRunning())
     {
