@@ -203,7 +203,7 @@ void Renderer::drawAll()
     {
         for (auto &batch : batches)
         {
-            batch->flush2(m_view);
+            batch->flush(m_view);
         }
         //! clear dynamic batches
         if (config.draw_type != GL_STATIC_DRAW)

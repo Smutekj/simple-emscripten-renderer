@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Window.h"
-#include "Shader.h"
-#include "Texture.h"
+#include <Window.h>
+#include <Shader.h>
+#include <Texture.h>
 #include "ShaderUI.h"
 
 #include <chrono>
@@ -11,12 +11,12 @@
 #include <unordered_map>
 #include <memory>
 
-#include "Rectangle.h"
-#include "VertexArray.h"
-#include "View.h"
-#include "FrameBuffer.h"
-#include "Renderer.h"
-#include "Particles.h"
+#include <Rectangle.h>
+#include <VertexArray.h>
+#include <View.h>
+#include <FrameBuffer.h>
+#include <Renderer.h>
+#include <Particles.h>
 
 void gameLoop(void *mainLoopArg);
 

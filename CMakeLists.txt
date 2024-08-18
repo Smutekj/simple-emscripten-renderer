@@ -1,11 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 
 
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-project(project-web)
-else()
 project(project)
-endif()
 
 
 set(CMAKE_CXX_STANDARD 20)
@@ -56,15 +52,33 @@ include_directories(SYSTEM external/stbimage)
 include_directories(SYSTEM external/magic_enum)
 
 
+file(GLOB HDR
+     "include/*.h"
+     "include/Utils/*.h"
+)
 file(GLOB SRC
-     "src/*.h"
      "src/*.cpp"
-     "src/Utils/*.h"
      "src/Utils/*.cpp"
 )
 
-# message(${SDL2_LIBRARIES})
-add_executable(${CMAKE_PROJECT_NAME} ${SRC} ${gui_objs} ${gui_hdrs})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES} glm GLESv2  ) ## DO NOT FORGET GLESv2!!!!
+add_library(${PROJECT_NAME} STATIC)
+target_sources(${PROJECT_NAME} PRIVATE ${SRC})
+target_link_libraries(${PROJECT_NAME} glm GLESv2 ${SDL2_LIBRARIES} )
+target_include_directories(${PROJECT_NAME}
+    PUBLIC 
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+if(BUILD_EXAMPLE)
+    add_executable(Example src/Example/main.cpp src/Example/Application.h src/Example/Application.cpp 
+      src/Example/ShaderUI.h src/Example/ShaderUI.cpp ${gui_hdrs} ${gui_objs})
+    target_link_libraries(Example ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES} ${PROJECT_NAME} glm GLESv2  ) ## DO NOT FORGET GLESv2!!!!
+endif()
+
+
+
 
 
