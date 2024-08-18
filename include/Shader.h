@@ -3,12 +3,6 @@
 #include "IncludesGl.h"
 #include "ShaderLoader.h"
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/matrix_transform_2d.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -20,6 +14,14 @@
 
 #include <magic_enum.hpp>
 #include <magic_enum_utility.hpp>
+
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_transform_2d.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 
 // helper type for the visitor (stolen from cpp_reference)
 template <class... Ts>
@@ -52,21 +54,11 @@ public:
     Shader(const std::string vertex_path, const std::string fragment_path);
     Shader(const std::string vertex_path, const std::string fragment_path, std::string shader_name);
 
-    VariablesData &getVariables()
-    {
-        return m_variables;
-    }
-
+    VariablesData &getVariables();
     GLuint getId() const;
     void recompile();
-    const std::string &getFragmentPath()
-    {
-        return m_fragment_path;
-    }
-    const std::string &getVertexPath()
-    {
-        return m_vertex_path;
-    }
+    const std::string &getFragmentPath();
+    const std::string &getVertexPath();
     // use/activate the shader
     void use();
 
@@ -84,100 +76,19 @@ public:
     void setMat3(const std::string &name, const glm::mat3 &mat) const;
     void setMat4(const std::string &name, const glm::mat4 &mat) const;
 
-    void setUniforms()
-    {
-        for (auto &[name, value] : m_variables.uniforms)
-        {
-            setUniform2(name, value);
-        }
-        for (auto &[name, value] : m_variables.textures)
-        {
-        }
-        glCheckError();
-    }
+    void setUniforms();
 
     template <class ValueType>
-    constexpr void setUniform(const std::string &name, const ValueType &value)
-    {
+    constexpr void setUniform(const std::string &name, const ValueType &value);
 
-        if constexpr (std::is_same_v<ValueType, float>)
-        {
-            setFloat(name, value);
-        }
-        else if constexpr (std::is_same_v<ValueType, bool>)
-        {
-            setBool(name, value);
-        }
-        else if constexpr (std::is_same_v<ValueType, int>)
-        {
-            setInt(name, value);
-        }
-        else if constexpr (std::is_same_v<ValueType, glm::vec2>)
-        {
-            setVec2(name, value);
-        }
-        else if constexpr (std::is_same_v<ValueType, glm::vec3>)
-        {
-            setVec3(name, value);
-        }
-        else if constexpr (std::is_same_v<ValueType, glm::vec4>)
-        {
-            setVec4(name, value);
-        }
-        else if constexpr (std::is_same_v<ValueType, glm::mat2>)
-        {
-            setMat2(name, value);
-        }
-        else if (std::is_same_v<ValueType, glm::mat3>)
-        {
-            setMat3(name, value);
-        }
-        else if (std::is_same_v<ValueType, glm::mat4>)
-        {
-            setMat4(name, value);
-        }
-        else
-        {
-        }
-    }
+    const std::string &getName() const;
 
-    const std::string &getName() const
-    {
-        return m_shader_name;
-    }
-
-    void activateTexture(int slot)
-    {
-        for (auto &[name, handle] : m_variables.textures)
-        {
-            setInt(name, handle.slot);
-        }
-    }
+    void activateTexture(int slot);
 
 public:
-    void setUniform2(std::string uniform_name, UniformType uniform_value)
-    {
-        std::visit([&uniform_name, this](auto &&t)
-                   {
-            using T = std::decay_t<decltype(t)>;
-            setUniform<T>(uniform_name, t); }, uniform_value);
-        glCheckErrorMsg((uniform_name + " does not exist in the shader").c_str());
+    void setUniform2(std::string uniform_name, UniformType uniform_value);
 
-        if (m_variables.uniforms.count(uniform_name) > 0)
-        {
-            m_variables.uniforms.at(uniform_name) = uniform_value;
-        }
-        else
-        {
-            m_variables.uniforms[uniform_name] = uniform_value;
-        }
-    }
-
-    void saveUniformValue(std::string uniform_name, UniformType uniform_value)
-    {
-
-        m_variables.uniforms.at(uniform_name) = uniform_value;
-    }
+    void saveUniformValue(std::string uniform_name, UniformType uniform_value);
 
     friend ShaderHolder;
 
