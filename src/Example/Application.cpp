@@ -353,8 +353,8 @@ void Application::doBloom(Texture &source, Renderer &target)
         m_bloom_renderer2.drawAll();
     }
 
-    screen_sprite.setTexture(m_bloom_pass2.getTexture());
-    screen_sprite.m_texture_handles.at(1) = m_bloom_pass2.getHandle();
+    screen_sprite.setTexture(0, source);
+    screen_sprite.setTexture(1, m_bloom_pass2.getTexture());
     target.drawSprite(screen_sprite, "combineBloom", GL_DYNAMIC_DRAW);
     target.drawAll();
 }

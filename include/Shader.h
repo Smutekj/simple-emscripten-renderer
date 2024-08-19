@@ -44,6 +44,17 @@ struct VariablesData
 {
     std::unordered_map<std::string, UniformType> uniforms;
     std::unordered_map<std::string, TextureGlData> textures;
+
+    std::string setTexture(int slot, GLuint handle)
+    {
+        auto name = std::find_if(textures.begin(), textures.end(), [slot](auto& tex_data)
+        {
+            return tex_data.second.slot == slot;
+        })->first;
+
+        textures.at(name) = {slot, handle};
+        return name;
+    }
 };
 
 class Shader
@@ -83,7 +94,7 @@ public:
 
     const std::string &getName() const;
 
-    void activateTexture(int slot);
+    void activateTexture(std::array<GLuint, 2> handles);
 
 public:
     void setUniform2(std::string uniform_name, UniformType uniform_value);
@@ -398,10 +409,8 @@ void inline extractTextureNames(VariablesData &shader_data, std::string filename
             std::string texture_var_name = split_line[2];
 
             //! remove ; at the end
-            if (texture_var_name.back() == ';')
-            {
-                texture_var_name.pop_back();
-            }
+            auto colon_pos = texture_var_name.find_last_of(';');
+            texture_var_name = texture_var_name.substr(0, colon_pos);
             // shader_data.p_program->setUniform2(texture_var_name, texture_shader_id);
             shader_data.textures[texture_var_name] = {slot, 0};
             slot++;

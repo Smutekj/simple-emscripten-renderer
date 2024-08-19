@@ -172,7 +172,7 @@ void SpriteBatch::createBuffers()
         m_shader.use();
         m_shader.setMat4("u_view_projection", view.getMatrix());
         m_shader.setUniforms();
-        m_shader.activateTexture(0);
+        m_shader.activateTexture(m_config.texture_ids);
         
         for (int slot = 0; slot < m_config.texture_ids.size(); ++slot)
         {
@@ -191,14 +191,8 @@ void SpriteBatch::createBuffers()
         glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, m_end);
         glCheckError();
 
+        //! reset instance count
         m_end = 0;
-
-        // glDisableVertexAttribArray(0);
-        // glDisableVertexAttribArray(1);
-        // glDisableVertexAttribArray(2);
-        // glDisableVertexAttribArray(3);
-        // glDisableVertexAttribArray(4);
-        // glDisableVertexAttribArray(5);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
