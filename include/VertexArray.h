@@ -66,7 +66,7 @@ private:
 
     bool m_is_initialized = false;
 
-    std::array<GLuint, N_MAX_TEXTURES> m_textures;
+    std::array<GLuint, N_MAX_TEXTURES> m_textures = {0,0};
 
     std::vector<Vertex> m_vertices;
 
