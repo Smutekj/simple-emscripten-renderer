@@ -74,6 +74,11 @@ public:
         return m_shaders;
     }
 
+    bool hasShader(std::string id)
+    {
+        return m_shaders.getShaders().count(id) > 0;
+    }
+
     void clear(Color c)
     {
         m_target.clear(c);
