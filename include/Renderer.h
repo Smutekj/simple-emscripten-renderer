@@ -36,7 +36,7 @@ struct Sprite2 : public Rectangle2
         m_texture_handles.at(slot) = texture.getHandle();
     }
     Texture* m_texture = nullptr;
-    std::array<GLuint, N_MAX_TEXTURES> m_texture_handles;
+    std::array<GLuint, N_MAX_TEXTURES> m_texture_handles = {0,0};
     Rect<int> m_tex_rect;
 };
 
