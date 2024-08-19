@@ -44,8 +44,8 @@ private:
     Window m_window;
     View m_view;
 
-    cdt::Vector2f m_old_view_center = m_view.getCenter();
-    cdt::Vector2f m_mouse_click_position = m_view.getCenter();
+    utils::Vector2f m_old_view_center = m_view.getCenter();
+    utils::Vector2f m_mouse_click_position = m_view.getCenter();
 
     Shader shader = {"../Resources/basic.vert", "../Resources/fullpass.frag"};
     Shader shadertex = {"../Resources/basictex.vert", "../Resources/texture.frag"};

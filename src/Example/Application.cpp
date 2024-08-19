@@ -27,7 +27,7 @@ void Application::initializeSimulation()
     auto &simulation_pixels = m_slots.at(0).m_pixels;
     //! draw initial condition to buffer 2
     Sprite2 buffer_sprite2(b1.getTexture());
-    cdt::Vector2f slot_size = {simulation_pixels.getSize().x, simulation_pixels.getSize().y};
+    utils::Vector2f slot_size = {simulation_pixels.getSize().x, simulation_pixels.getSize().y};
     buffer_sprite2.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
     buffer_sprite2.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
     simulation_canvas.m_view.setCenter(buffer_sprite2.getPosition().x, buffer_sprite2.getPosition().y);
@@ -142,13 +142,13 @@ Application::Application(int width, int height) : m_window(width, height),
                                 p.acc = {0, 0};
                                 p.vel += p.time *p.acc;
                                 p.pos += p.vel * 0.016f;
-                                p.scale += cdt::Vector2f{0.5f};
+                                p.scale += utils::Vector2f{0.5f};
                                 p.angle += randf(0, 3.); 
                                 });
-    m_particles->setEmitter([](cdt::Vector2f spawn_pos)
+    m_particles->setEmitter([](utils::Vector2f spawn_pos)
                             {
                                 Particle p;
-                                p.pos = spawn_pos + cdt::Vector2f{randf(-50,50), randf(0, 10.f)};
+                                p.pos = spawn_pos + utils::Vector2f{randf(-50,50), randf(0, 10.f)};
                                 p.vel = {30+randf(-20, 20), randf(40, 50)};
                                 p.scale = {10.2, 10.2};
                                 return p; });
@@ -163,10 +163,10 @@ Application::Application(int width, int height) : m_window(width, height),
                                 p.acc = {0, 1.0};
                                 p.vel += p.time *p.acc;
                                 p.pos += p.vel * 0.016f; });
-    m_particles2->setEmitter([](cdt::Vector2f spawn_pos)
+    m_particles2->setEmitter([](utils::Vector2f spawn_pos)
                              {
                                 Particle p;
-                                p.pos = spawn_pos + cdt::Vector2f{randf(-50,50), randf(0, 10.f)};
+                                p.pos = spawn_pos + utils::Vector2f{randf(-50,50), randf(0, 10.f)};
                                 p.vel = {0., 1.};
                                 p.angle = 45.;
                                 p.scale = {1.2, 1.2};
@@ -181,10 +181,10 @@ Application::Application(int width, int height) : m_window(width, height),
                                 p.acc = {0, 0.5};
                                 p.vel += p.time *p.acc;
                                 p.pos += p.vel * 0.016f; });
-    m_particles3->setEmitter([](cdt::Vector2f spawn_pos)
+    m_particles3->setEmitter([](utils::Vector2f spawn_pos)
                              {
                                 Particle p;
-                                p.pos = spawn_pos + cdt::Vector2f{randf(-50,50), randf(0, 10.f)};
+                                p.pos = spawn_pos + utils::Vector2f{randf(-50,50), randf(0, 10.f)};
                                 p.vel = {0., 100};
                                 p.angle = 45.;
                                 p.scale = {10.2, 10.2};
@@ -313,7 +313,7 @@ void Application::onKeyRelease(SDL_Keycode key)
     }
 }
 
-void moveView(cdt::Vector2f dr, Renderer &target)
+void moveView(utils::Vector2f dr, Renderer &target)
 {
     auto &view = target.m_view;
     auto old_view_center = view.getCenter();
@@ -366,7 +366,7 @@ void Application::update(float dt)
     {
         auto mouse_coords = m_window_renderer.getMouseInWorld();
         auto dr = mouse_coords - m_mouse_click_position;
-        if (cdt::norm(dr) > 0.5f)
+        if (utils::norm(dr) > 0.5f)
         {
             moveView(dr, m_window_renderer);
             m_view = m_window_renderer.m_view;
