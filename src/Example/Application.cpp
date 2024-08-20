@@ -114,7 +114,7 @@ Application::Application(int width, int height) : m_window(width, height),
     {
         auto pos_right = texture_filename.find_last_of('.');
         std::string texture_name = texture_filename.substr(0, pos_right);
-        m_textures.add(texture_name, "../Resources/" + texture_filename);
+        // auto status = m_textures.add(texture_name, "../Resources/" + texture_filename);
     }
     int slot_id = 0;
     for (auto &slot : m_slots)
