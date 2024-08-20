@@ -117,7 +117,7 @@ namespace utils
     {
         return v * i;
     }
-    template <class T, class Scalar>
+    template <class T>
     constexpr Vector2<T> inline operator-(const Vector2<T> &v)
     {
         return {-v.x, -v.y};
