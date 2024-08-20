@@ -24,9 +24,9 @@ void RenderTarget::bind()
 void RenderTarget::clear(Color color)
 {
     bind();
+    glClearColor(color.r, color.g, color.b, color.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glCheckErrorMsg("Hello");
-    glClearColor(color.r, color.g, color.b, color.a);
-    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glCheckError();
 }
