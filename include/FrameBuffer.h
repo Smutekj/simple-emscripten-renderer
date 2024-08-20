@@ -16,6 +16,9 @@ public:
 
 private:
     Texture m_texture;
+    GLint m_internal_format = GL_RGB16F;
+    GLint m_format = GL_RGBA;
+    GLint m_channel_format = GL_HALF_FLOAT;
 };
 
 struct ColorByte

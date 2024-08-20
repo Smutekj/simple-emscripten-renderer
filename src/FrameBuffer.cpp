@@ -46,10 +46,10 @@
     int height = buffer.getSize().y;
     Image image(width, height);
     buffer.bind();
-    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
+    glReadPixels(0, 0, width, height, GL_RGBA, GL_HALF_FLOAT, image.data());
 
     auto full_path = (path.string() + filename);
-    int check = stbi_write_png(full_path.c_str(), width, height, 4, image.data(), 4 * width);
+    int check = stbi_write_png(full_path.c_str(), width, height, 4, image.data(), 8 * width);
     if (check == 0)
     {
         std::cout << "ERROR WRITING FILE: " << full_path << "\n";
