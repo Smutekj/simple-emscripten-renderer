@@ -47,14 +47,6 @@ void setUniforms(Shader &program, ShaderUniform<UniformType> &...values)
     (program.setUniform(values.name, values.value), ...);
 }
 
-struct ColorByte
-{
-    unsigned char r;
-    unsigned char g;
-    unsigned char b;
-    unsigned char a;
-};
-
 void drawProgramToTexture(Sprite2 &rect, Renderer &target, std::string program)
 {
     target.clear({1, 1, 1, 1});

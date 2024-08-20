@@ -11,57 +11,12 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "../external/stbimage/stb_image_write.h"
 
 #include <magic_enum.hpp>
 #include <magic_enum_utility.hpp>
 
 UIWindow::UIWindow(std::string name) : name(name)
 {
-}
-
-struct ColorByte
-{
-    unsigned char r = 0;
-    unsigned char g = 0;
-    unsigned char b = 0;
-    unsigned char a = 0;
-};
-
-struct Image
-{
-
-    Image(int x, int y)
-        : x_size(x), y_size(y), pixels(x * y)
-    {
-    }
-
-    ColorByte *data()
-    {
-        return pixels.data();
-    }
-
-    int x_size;
-    int y_size;
-
-    std::vector<ColorByte> pixels;
-};
-
-void writeTextureToFile(std::filesystem::path path, std::string filename, FrameBuffer &buffer)
-{
-    int width = buffer.getSize().x;
-    int height = buffer.getSize().y;
-    Image image(width, height);
-    buffer.bind();
-    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image.data());
-
-    auto full_path = (path.string() + filename);
-    int check = stbi_write_png(full_path.c_str(), width, height, 4, image.data(), 4 * width);
-    if (check == 0)
-    {
-        std::cout << "ERROR WRITING FILE: " << full_path << "\n";
-    }
 }
 
 UI::UI(Window &window,TextureHolder &textures,
