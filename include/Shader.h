@@ -15,13 +15,11 @@
 #include <magic_enum.hpp>
 #include <magic_enum_utility.hpp>
 
-
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
 
 // helper type for the visitor (stolen from cpp_reference)
 template <class... Ts>
@@ -47,10 +45,9 @@ struct VariablesData
 
     std::string setTexture(int slot, GLuint handle)
     {
-        auto name = std::find_if(textures.begin(), textures.end(), [slot](auto& tex_data)
-        {
-            return tex_data.second.slot == slot;
-        })->first;
+        auto name = std::find_if(textures.begin(), textures.end(), [slot](auto &tex_data)
+                                 { return tex_data.second.slot == slot; })
+                        ->first;
 
         textures.at(name) = {slot, handle};
         return name;
@@ -351,6 +348,10 @@ void inline extractUniformNames(VariablesData &shader_data, const std::string &f
 {
     const auto tmp_filename = filename + ".tmp";
     std::ifstream file(filename);
+    if (!file.is_open())
+    {
+        throw std::runtime_error("File not found: " + filename);
+    }
 
     shader_data.uniforms.clear();
 
@@ -384,6 +385,7 @@ void inline extractUniformNames(VariablesData &shader_data, const std::string &f
             shader_data.uniforms[uniform_name] = value;
         }
     }
+
     file.close();
 }
 
@@ -391,7 +393,11 @@ void inline extractTextureNames(VariablesData &shader_data, std::string filename
 {
     const auto tmp_filename = filename + ".tmp";
     std::ifstream file(filename);
-
+    if (!file.is_open())
+    {
+        throw std::runtime_error("File not found: " + filename);
+    }
+    
     GLuint texture_shader_id = 0;
     int slot = 0;
     std::string line;
