@@ -13,6 +13,17 @@ class Transform
     
 public:
     void setPosition(float x, float y);
+    template <class VecType>
+    void setPosition(VecType new_pos)
+    {
+        setPosition(new_pos.x, new_pos.y);
+    }
+    template <class VecType>
+    void setScale(VecType s)
+    {
+        setScale(s.x, s.y);
+    }
+
     void setScale(float sx, float sy);
     void setRotation(float angle);
 
@@ -31,8 +42,19 @@ public:
 
     void rotate(float angle);
     void move(float tx, float ty);
+    template <class VecType>
+    void move(VecType new_pos)
+    {
+        move(new_pos.x, new_pos.y);
+    }
+
     void scale(float sx, float sy);
-    
+    template <class VecType>
+    void scale(VecType new_pos)
+    {
+        scale(new_pos.x, new_pos.y);
+    }
+
     glm::mat4 &getMatrix();
 
     void transform(Vec2& pos)
