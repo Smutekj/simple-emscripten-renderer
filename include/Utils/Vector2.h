@@ -63,6 +63,13 @@ namespace utils
         }
 
         template <class T1>
+        constexpr void operator-=(const utils::Vector2<T1> &v)
+        {
+            x -= v.x;
+            y -= v.y;
+        }
+
+        template <class T1>
         constexpr void operator/=(T1 i)
         {
             x /= i;
@@ -109,6 +116,11 @@ namespace utils
     constexpr Vector2<T> inline operator*(Scalar i, const Vector2<T> &v)
     {
         return v * i;
+    }
+    template <class T, class Scalar>
+    constexpr Vector2<T> inline operator-(const Vector2<T> &v)
+    {
+        return {-v.x, -v.y};
     }
 
     using Vector2f = Vector2<float>;
