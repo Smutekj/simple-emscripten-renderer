@@ -11,6 +11,49 @@ Renderer::Renderer(RenderTarget &target)
 {
 }
 
+    auto Renderer::getTargetSize()const
+    {
+        return m_target.getSize();
+    }
+
+    ShaderHolder &Renderer::getShaders()
+    {
+        return m_shaders;
+    }
+
+    bool Renderer::hasShader(std::string id)
+    {
+        return m_shaders.getShaders().count(id) > 0;
+    }
+
+    void Renderer::clear(Color c)
+    {
+        m_target.clear(c);
+    }
+
+    void Renderer::addShader(std::string id, std::string vertex_path, std::string fragment_path)
+    {
+        m_shaders.load(id, vertex_path, fragment_path);
+    }
+
+    Shader &Renderer::getShader(std::string id)
+    {
+        return m_shaders.get(id);
+    }
+
+    utils::Vector2f Renderer::getMouseInWorld()
+    {
+        int mouse_coords[2];
+
+        auto m = glm::inverse(m_view.getMatrix());
+        auto button = SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
+        glm::vec4 world_coords = m * glm::vec4(
+                                         2. * mouse_coords[0] / m_target.getSize().x - 1.,
+                                         -2. * mouse_coords[1] / m_target.getSize().y + 1.f, 0, 1);
+        return {world_coords.x, world_coords.y};
+    }
+
+
 void Renderer::drawSprite(Sprite2 &sprite,  std::string shader_id, GLenum draw_type)
 {
     // drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(),
@@ -307,3 +350,32 @@ Renderer::BatchPtr Renderer::createBatch(const BatchConfig &config, Shader &shad
 {
     return std::make_unique<Batch>(config, shader, draw_type);
 }
+
+
+
+    Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, GLenum draw_type, int num_vertices_inserted)
+    {
+        auto &batches = m_config2batches.at(config);
+        for (auto &batch : batches)
+        {
+            if (batch->getFreeVerts() >= num_vertices_inserted)
+            {
+                return *batch;
+            }
+        }
+        //! there is no free batch so we create a new one;
+        batches.push_back(createBatch(config, shader, draw_type));
+        return *batches.back();
+    }
+    SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, GLenum draw_type)
+    {
+        auto &batches = m_config2sprite_batches.at(config);
+        auto it = std::find_if(batches.begin(), batches.end(), [](auto &batch)
+                               { return batch->getFreeVerts() >= 1; });
+        if (it != batches.end())
+        {
+            return **it;
+        }
+        m_config2sprite_batches.at(config).push_back(std::make_unique<SpriteBatch>(config, shader));
+        return *batches.back();
+    }

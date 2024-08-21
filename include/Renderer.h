@@ -44,10 +44,7 @@ class Renderer
 {
     using BatchPtr = std::unique_ptr<Batch>;
     using SpriteBatchPtr = std::unique_ptr<SpriteBatch>;
-
 public:
-    // Renderer();
-    // Renderer(int width, int height, bool offscreen = false);
     Renderer(RenderTarget &target);
 
     void drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
@@ -63,48 +60,17 @@ public:
     void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 51);
 
     void drawAll();
+    
+    auto getTargetSize()const;
 
-    auto getTargetSize()const
-    {
-        return m_target.getSize();
-    }
+    ShaderHolder &getShaders();
 
-    ShaderHolder &getShaders()
-    {
-        return m_shaders;
-    }
+    bool hasShader(std::string id);
+    void clear(Color c);
 
-    bool hasShader(std::string id)
-    {
-        return m_shaders.getShaders().count(id) > 0;
-    }
-
-    void clear(Color c)
-    {
-        m_target.clear(c);
-    }
-
-    void addShader(std::string id, std::string vertex_path, std::string fragment_path)
-    {
-        m_shaders.load(id, vertex_path, fragment_path);
-    }
-
-    Shader &getShader(std::string id)
-    {
-        return m_shaders.get(id);
-    }
-
-    utils::Vector2f getMouseInWorld()
-    {
-        int mouse_coords[2];
-
-        auto m = glm::inverse(m_view.getMatrix());
-        auto button = SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
-        glm::vec4 world_coords = m * glm::vec4(
-                                         2. * mouse_coords[0] / m_target.getSize().x - 1.,
-                                         -2. * mouse_coords[1] / m_target.getSize().y + 1.f, 0, 1);
-        return {world_coords.x, world_coords.y};
-    }
+    void addShader(std::string id, std::string vertex_path, std::string fragment_path);
+    Shader &getShader(std::string id);
+    utils::Vector2f getMouseInWorld();
 
 public:
     View m_view;
@@ -118,43 +84,16 @@ private:
     SpriteBatch &findSpriteBatch(GLuint texture_id, Shader &shader, GLenum draw_type);
     SpriteBatch &findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, GLenum draw_type);
 
-    Batch &findFreeBatch(BatchConfig config, Shader &shader, GLenum draw_type, int num_vertices_inserted)
-    {
-        auto &batches = m_config2batches.at(config);
-        for (auto &batch : batches)
-        {
-            if (batch->getFreeVerts() >= num_vertices_inserted)
-            {
-                return *batch;
-            }
-        }
-        //! there is no free batch so we create a new one;
-        batches.push_back(createBatch(config, shader, draw_type));
-        return *batches.back();
-    }
-    SpriteBatch &findFreeSpriteBatch(BatchConfig config, Shader &shader, GLenum draw_type)
-    {
-        auto &batches = m_config2sprite_batches.at(config);
-        auto it = std::find_if(batches.begin(), batches.end(), [](auto &batch)
-                               { return batch->getFreeVerts() >= 1; });
-        if (it != batches.end())
-        {
-            return **it;
-        }
-        m_config2sprite_batches.at(config).push_back(std::make_unique<SpriteBatch>(config, shader));
-        return *batches.back();
-    }
+    Batch &findFreeBatch(BatchConfig config, Shader &shader, GLenum draw_type, int num_vertices_inserted);
+    SpriteBatch &findFreeSpriteBatch(BatchConfig config, Shader &shader, GLenum draw_type);
 
     BatchPtr createBatch(const BatchConfig &config, Shader &shader, GLenum draw_type);
 
     ShaderHolder m_shaders;
-    // TextureHolder m_textures;
 
     std::unordered_map<BatchConfig, int> m_config2next_free_batch;
     std::unordered_map<BatchConfig, std::vector<BatchPtr>> m_config2batches;
     std::unordered_map<BatchConfig, std::vector<SpriteBatchPtr>> m_config2sprite_batches;
 
     RenderTarget &m_target;
-
-    Texture t_test;
 };
