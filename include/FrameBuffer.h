@@ -42,8 +42,8 @@ struct Image
         return pixels.data();
     }
 
-    int x_size;
-    int y_size;
+    int x_size = 0;
+    int y_size = 0;
 
     std::vector<ColorByte> pixels;
 };
