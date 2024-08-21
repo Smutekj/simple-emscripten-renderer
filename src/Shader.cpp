@@ -46,6 +46,9 @@ void static extractUniformNames(VariablesData &shader_data, const std::string &f
     file.close();
 }
 
+
+
+
 void static extractTextureNames(VariablesData &shader_data, std::string filename)
 {
     const auto tmp_filename = filename + ".tmp";
@@ -81,6 +84,47 @@ void static extractTextureNames(VariablesData &shader_data, std::string filename
     }
     file.close();
 }
+
+
+    Shader &ShaderHolder::get(std::string id)
+    {
+        return *m_shaders.at(id);
+    }
+
+    void ShaderHolder::use(std::string id)
+    {
+        m_shaders.at(id)->use();
+    }
+
+    void ShaderHolder::load(std::string name, std::string vertex_path, std::string fragment_path)
+    {
+
+        m_shaders[name] = std::make_unique<Shader>(vertex_path, fragment_path);
+        auto &shader = m_shaders.at(name);
+        shader->m_shader_name = name;
+        m_shader_data.insert({name, *shader});
+        shader->use();
+        extractUniformNames(m_shader_data.at(name).variables, shader->getFragmentPath());
+    }
+
+
+
+    ShaderUIData &ShaderHolder::getData(std::string name)
+    {
+        return m_shader_data.at(name);
+    }
+
+    void ShaderHolder::initializeUniforms()
+    {
+        for (auto &[shader_name, shader] : m_shaders)
+        {
+            m_shader_data.insert({shader_name, *shader});
+
+            extractUniformNames(m_shader_data.at(shader_name).variables, shader->getFragmentPath());
+        }
+    }
+
+
 
 void Shader::setUniforms()
 {

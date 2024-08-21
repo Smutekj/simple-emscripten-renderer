@@ -60,8 +60,8 @@ public:
     void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 51);
 
     void drawAll();
-    
-    auto getTargetSize()const;
+
+    utils::Vector2i getTargetSize()const;
 
     ShaderHolder &getShaders();
 

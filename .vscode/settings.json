@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "type_traits": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "cwchar": "cpp"
     }
 }

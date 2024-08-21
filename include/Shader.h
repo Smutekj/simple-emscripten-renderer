@@ -189,56 +189,29 @@ struct ShaderUIData
     VariablesData &variables;
 };
 
-void inline extractUniformNames(VariablesData &shader_data, const std::string &filename);
-
 class ShaderHolder
 {
 
 public:
-    Shader &get(std::string id)
-    {
-        return *m_shaders.at(id);
-    }
+    Shader &get(std::string id);
 
-    void use(std::string id)
-    {
-        m_shaders.at(id)->use();
-    }
+    void use(std::string id);
 
-    void load(std::string name, std::string vertex_path, std::string fragment_path)
-    {
-
-        m_shaders[name] = std::make_unique<Shader>(vertex_path, fragment_path);
-        auto &shader = m_shaders.at(name);
-        shader->m_shader_name = name;
-        m_shader_data.insert({name, *shader});
-        shader->use();
-        extractUniformNames(m_shader_data.at(name).variables, shader->getFragmentPath());
-    }
+    void load(std::string name, std::string vertex_path, std::string fragment_path);
 
     const auto &getShaders() const
     {
         return m_shaders;
     }
 
-    ShaderUIData &getData(std::string name)
-    {
-        return m_shader_data.at(name);
-    }
+    ShaderUIData &getData(std::string name);
     auto &getAllData()
     {
         return m_shader_data;
     }
 
-    void initializeUniforms()
-    {
-        for (auto &[shader_name, shader] : m_shaders)
-        {
-            m_shader_data.insert({shader_name, *shader});
 
-            extractUniformNames(m_shader_data.at(shader_name).variables, shader->getFragmentPath());
-        }
-    }
+    void initializeUniforms();
 
 private:
     std::unordered_map<std::string, std::unique_ptr<Shader>> m_shaders;
@@ -342,85 +315,4 @@ inline UniformType extractValue(std::string type_string, std::string initial_val
         }
     }
     return value;
-}
-
-void inline extractUniformNames(VariablesData &shader_data, const std::string &filename)
-{
-    const auto tmp_filename = filename + ".tmp";
-    std::ifstream file(filename);
-    if (!file.is_open())
-    {
-        throw std::runtime_error("File not found: " + filename);
-    }
-
-    shader_data.uniforms.clear();
-
-    std::string line;
-    while (std::getline(file, line))
-    {
-        std::stringstream iss(line);
-        auto split_line = separateLine(line, ' ');
-        if (split_line.size() < 3)
-        {
-            continue;
-        } //! try only lines that have some words on them
-        if (split_line[0] == "uniform")
-        {
-            if (split_line[1] == "sampler2D")
-            {
-                continue;
-            }
-            auto initial_value = separateLine(line, '=');
-            std::string initial_value_string = "";
-            initial_value_string = initial_value.size() > 1 ? initial_value[1] : "";
-
-            std::string uniform_name = split_line[2];
-            const auto &type_string = split_line[1];
-            auto value = extractValue(type_string, initial_value_string);
-            //! remove ; at the end
-            if (uniform_name.back() == ';')
-            {
-                uniform_name.pop_back();
-            }
-            shader_data.uniforms[uniform_name] = value;
-        }
-    }
-
-    file.close();
-}
-
-void inline extractTextureNames(VariablesData &shader_data, std::string filename)
-{
-    const auto tmp_filename = filename + ".tmp";
-    std::ifstream file(filename);
-    if (!file.is_open())
-    {
-        throw std::runtime_error("File not found: " + filename);
-    }
-    
-    GLuint texture_shader_id = 0;
-    int slot = 0;
-    std::string line;
-    while (std::getline(file, line))
-    {
-        std::stringstream iss(line);
-        auto split_line = separateLine(line, ' ');
-        if (split_line.size() < 3) //! try only lines that have some words on them
-        {
-            continue;
-        }
-        if (split_line[0] == "uniform" && split_line[1] == "sampler2D")
-        {
-
-            std::string texture_var_name = split_line[2];
-
-            //! remove ; at the end
-            auto colon_pos = texture_var_name.find_last_of(';');
-            texture_var_name = texture_var_name.substr(0, colon_pos);
-            // shader_data.p_program->setUniform2(texture_var_name, texture_shader_id);
-            shader_data.textures[texture_var_name] = {slot, 0};
-            slot++;
-        }
-    }
-    file.close();
 }
