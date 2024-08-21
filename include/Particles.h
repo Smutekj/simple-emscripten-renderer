@@ -87,15 +87,6 @@ protected:
     float m_frequency = 10.f;
 };
 
-class ColoredParticles : public Particles
-{
-};
-
-namespace sf
-{
-    class Texture;
-}
-
 class TexturedParticles : public Particles
 {
 
