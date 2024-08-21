@@ -1,5 +1,87 @@
 #include "Shader.h"
 
+
+void static extractUniformNames(VariablesData &shader_data, const std::string &filename)
+{
+    const auto tmp_filename = filename + ".tmp";
+    std::ifstream file(filename);
+    if (!file.is_open())
+    {
+        throw std::runtime_error("File not found: " + filename);
+    }
+
+    shader_data.uniforms.clear();
+
+    std::string line;
+    while (std::getline(file, line))
+    {
+        std::stringstream iss(line);
+        auto split_line = separateLine(line, ' ');
+        if (split_line.size() < 3)
+        {
+            continue;
+        } //! try only lines that have some words on them
+        if (split_line[0] == "uniform")
+        {
+            if (split_line[1] == "sampler2D")
+            {
+                continue;
+            }
+            auto initial_value = separateLine(line, '=');
+            std::string initial_value_string = "";
+            initial_value_string = initial_value.size() > 1 ? initial_value[1] : "";
+
+            std::string uniform_name = split_line[2];
+            const auto &type_string = split_line[1];
+            auto value = extractValue(type_string, initial_value_string);
+            //! remove ; at the end
+            if (uniform_name.back() == ';')
+            {
+                uniform_name.pop_back();
+            }
+            shader_data.uniforms[uniform_name] = value;
+        }
+    }
+
+    file.close();
+}
+
+void static extractTextureNames(VariablesData &shader_data, std::string filename)
+{
+    const auto tmp_filename = filename + ".tmp";
+    std::ifstream file(filename);
+    if (!file.is_open())
+    {
+        throw std::runtime_error("File not found: " + filename);
+    }
+    
+    GLuint texture_shader_id = 0;
+    int slot = 0;
+    std::string line;
+    while (std::getline(file, line))
+    {
+        std::stringstream iss(line);
+        auto split_line = separateLine(line, ' ');
+        if (split_line.size() < 3) //! try only lines that have some words on them
+        {
+            continue;
+        }
+        if (split_line[0] == "uniform" && split_line[1] == "sampler2D")
+        {
+
+            std::string texture_var_name = split_line[2];
+
+            //! remove ; at the end
+            auto colon_pos = texture_var_name.find_last_of(';');
+            texture_var_name = texture_var_name.substr(0, colon_pos);
+            // shader_data.p_program->setUniform2(texture_var_name, texture_shader_id);
+            shader_data.textures[texture_var_name] = {slot, 0};
+            slot++;
+        }
+    }
+    file.close();
+}
+
 void Shader::setUniforms()
 {
     for (auto &[name, value] : m_variables.uniforms)
