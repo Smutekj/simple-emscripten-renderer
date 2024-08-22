@@ -8,6 +8,8 @@ void View::setSize(float width, float height)
     m_needs_recompute = true;
 }
 
+
+
 void View::zoom(float factor)
 {
     setSize(m_width * factor, m_height * factor);

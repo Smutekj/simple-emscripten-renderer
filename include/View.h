@@ -15,7 +15,18 @@ public:
     View() = default;
 
     void setSize(float width, float height);
+    template <class VecType>
+    void setSize(VecType new_size)
+    {
+        setSize(new_size.x, new_size.y);
+    }
+
     void setCenter(float cx, float cy);
+    template <class VecType>
+    void setCenter(VecType new_center)
+    {
+        setCenter(new_center.x, new_center.y);
+    }
 
     utils::Vector2f getCenter()const;
     utils::Vector2f getScale()const;
@@ -24,7 +35,6 @@ public:
 
     glm::mat4 &getMatrix();
 
-    utils::Vector2i m_lower_left = {0,0};
 private:
     void recomputeMatrix();
 
