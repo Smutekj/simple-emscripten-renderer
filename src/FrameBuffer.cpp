@@ -17,7 +17,7 @@
         glCheckError();
 
         TextureOptions options;
-        m_texture.create(width, height) ;
+        m_texture.create(width, height, options) ;
         m_texture.bind();
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture.getHandle(), 0); // texture, 0);//

@@ -37,8 +37,8 @@ enum class TexWrapParam
 
 struct TextureOptions
 {
-    TextureFormat format = TextureFormat::RGBA16F;
-    TextureFormat internal_format = TextureFormat::RGBA;
+    TextureFormat format = TextureFormat::RGBA;
+    TextureFormat internal_format = TextureFormat::RGBA16F;
     TextureDataTypes data_type = TextureDataTypes::Float;
     TexMappingParam mag_param = TexMappingParam::Linear;
     TexMappingParam min_param = TexMappingParam::Linear;
