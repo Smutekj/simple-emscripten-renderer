@@ -2,6 +2,11 @@
     "files.associations": {
         "type_traits": "cpp",
         "memory": "cpp",
-        "cwchar": "cpp"
+        "cwchar": "cpp",
+        "*.tcc": "cpp",
+        "chrono": "cpp",
+        "string_view": "cpp",
+        "variant": "cpp",
+        "functional": "cpp"
     }
 }
