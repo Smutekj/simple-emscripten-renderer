@@ -19,11 +19,12 @@ struct Rectangle2 : public Transform
 struct Sprite2 : public Rectangle2
 {
 
-    Sprite2(Texture &texture) 
-    :
-     m_texture(&texture),
-     m_tex_rect(0, 0, (int)texture.getSize().x, (int)texture.getSize().y)
-      { m_texture_handles.at(0) = texture.getHandle(); }
+    Sprite2(Texture &texture)
+        : m_texture(&texture),
+          m_tex_rect(0, 0, (int)texture.getSize().x, (int)texture.getSize().y)
+    {
+        m_texture_handles.at(0) = texture.getHandle();
+    }
 
     void setTexture(Texture &texture)
     {
@@ -34,9 +35,10 @@ struct Sprite2 : public Rectangle2
     {
         m_texture = &texture;
         m_texture_handles.at(slot) = texture.getHandle();
+        m_tex_rect = {0, 0, (int)texture.getSize().x, (int)texture.getSize().y};
     }
-    Texture* m_texture = nullptr;
-    std::array<GLuint, N_MAX_TEXTURES> m_texture_handles = {0,0};
+    Texture *m_texture = nullptr;
+    std::array<GLuint, N_MAX_TEXTURES> m_texture_handles = {0, 0};
     Rect<int> m_tex_rect;
 };
 
@@ -44,6 +46,7 @@ class Renderer
 {
     using BatchPtr = std::unique_ptr<Batch>;
     using SpriteBatchPtr = std::unique_ptr<SpriteBatch>;
+
 public:
     Renderer(RenderTarget &target);
 
@@ -61,7 +64,7 @@ public:
 
     void drawAll();
 
-    utils::Vector2i getTargetSize()const;
+    utils::Vector2i getTargetSize() const;
 
     ShaderHolder &getShaders();
 
