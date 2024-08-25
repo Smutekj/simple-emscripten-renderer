@@ -60,7 +60,9 @@ public:
 
     void drawRectangle(Rectangle2 &r, Color color, GLenum draw_type);
     void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color, GLenum draw_type = GL_DYNAMIC_DRAW);
-    void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 51);
+    void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts=51);
+    void drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts = 51);
+    void drawVertices(VertexArray& verts, GLenum draw_type = GL_DYNAMIC_DRAW, std::shared_ptr<Texture> p_texture = nullptr);
 
     void drawAll();
 

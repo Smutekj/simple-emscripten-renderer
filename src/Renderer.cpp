@@ -202,6 +202,9 @@ void Renderer::drawRectangle(Rectangle2 &r, Color color, GLenum draw_type)
 
     batch.pushVertexArray(verts);
 }
+
+
+
 void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_verts)
 {
     auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), GL_DYNAMIC_DRAW, n_verts);
@@ -230,6 +233,47 @@ void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_v
     }
 }
 
+void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts)
+{
+    auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), GL_DYNAMIC_DRAW, n_verts);
+
+    auto pi = std::numbers::pi_v<float>;
+
+    auto n_verts_circumference = n_verts - 1;
+    batch.pushVertex({center, color, {0, 0}});
+    for (int i = 0; i < n_verts_circumference; ++i)
+    {
+        float x = std::cos(2.f * i * pi / n_verts_circumference + angle);
+        float y = std::sin(2.f * i * pi / n_verts_circumference + angle);
+        Vertex v = {{center.x + x * radius_a, center.y + y * radius_b}, color, {x, y}};
+        batch.pushVertex(v);
+    }
+
+    auto &indices = batch.m_indices;
+    indices.resize(indices.size() - n_verts); //! get rid of indices just created by pushVertex
+    auto last_index = batch.getLastInd() - n_verts;
+    //! make triangles by specifying indices
+    for (IndexType i = 0; i < n_verts_circumference; ++i)
+    {
+        indices.push_back(last_index);
+        indices.push_back((i) % n_verts_circumference + last_index + 1);
+        indices.push_back((i + 1) % n_verts_circumference + last_index + 1);
+    }
+}
+
+void Renderer::drawVertices(VertexArray& verts, GLenum draw_type, std::shared_ptr<Texture> p_texture)
+{
+    GLuint texture_id = p_texture ? p_texture->getHandle() : 0; 
+    auto &batch = findBatch(texture_id, *verts.m_shader, draw_type, static_cast<int>(verts.size()));
+
+    auto pi = std::numbers::pi_v<float>;
+    auto n_verts = verts.size();
+
+    for (int i = 0; i < n_verts; ++i)
+    {
+        batch.pushVertex(verts[i]);
+    }
+}
 void Renderer::drawAll()
 {
     m_target.bind(); //! binds the corresponding opengl framebuffer (or window)

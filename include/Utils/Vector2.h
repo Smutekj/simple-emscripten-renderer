@@ -36,6 +36,14 @@ namespace utils
         constexpr Vector2(T1 x, T2 y)
             : x(x), y(y) {}
 
+        template <class VecType>
+        constexpr Vector2<T> operator=(VecType& other_vec)
+        {
+            x = other_vec.x;
+            y = other_vec.y;
+            return {other_vec.x, other_vec.y}; 
+        }
+
         template <class T1>
         constexpr Vector2(const struct Vector2<T1> &coords) : x(coords.x), y(coords.y) {}
         template <class T1>

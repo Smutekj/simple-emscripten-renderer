@@ -79,6 +79,7 @@ void VertexArray::draw(View &view, const std::vector<IndexType> &indices)
         m_shader->use();
         m_shader->setMat4("u_view_projection", view.getMatrix());
         m_shader->activateTexture(m_textures);
+        m_shader->setUniforms();
     }
 
     for (int slot = 0; slot < N_MAX_TEXTURES; ++slot)
@@ -113,6 +114,17 @@ void VertexArray::draw(View &view)
         m_shader->setMat4("u_view_projection", view.getMatrix());
         m_shader->activateTexture(m_textures);
     }
+
+    std::cout << "START!" <<"\n";
+    auto m = view.getMatrix();
+    int i = 0;
+    for(auto& v : m_vertices){
+        auto pos = m * glm::vec4(v.pos.x, v.pos.y, 0., 1.);
+        std::cout << i  << " " << pos.x << " " <<  pos.y << "\n";
+        i++;
+    }
+    std::cout << "END!" <<"\n";
+
 
     for (int slot = 0; slot < N_MAX_TEXTURES; ++slot)
     {

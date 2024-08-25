@@ -23,7 +23,9 @@ void Texture::loadFromFile(std::string filename, TextureOptions options)
     {
         //! generate name and bind texture
         initialize(options);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glCheckError();
+        auto format = channels_count == 4 ? GL_RGBA : GL_RGB;
+        glTexImage2D(GL_TEXTURE_2D, 0, format, m_width, m_height, 0, format, GL_UNSIGNED_BYTE, data);
         glCheckError();
         glGenerateMipmap(GL_TEXTURE_2D);
         glCheckError();
