@@ -9,6 +9,7 @@ Batch::Batch(const BatchConfig &config, Shader &shader, GLenum draw_type)
     : m_config(config),
       m_verts(shader, draw_type, m_capacity)
 {
+    m_indices.reserve(m_capacity*3);
     std::for_each(config.texture_ids.begin(), config.texture_ids.end(), [&config, this](auto &id)
                   {
         int slot = &id - config.texture_ids.begin();
