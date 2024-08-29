@@ -15,16 +15,26 @@ public:
     View() = default;
 
     void setSize(float width, float height);
-    void setCenter(float cx, float cy);
+    template <class VecType>
+    void setSize(VecType new_size)
+    {
+        setSize(new_size.x, new_size.y);
+    }
 
-    cdt::Vector2f getCenter()const;
-    cdt::Vector2f getScale()const;
+    void setCenter(float cx, float cy);
+    template <class VecType>
+    void setCenter(VecType new_center)
+    {
+        setCenter(new_center.x, new_center.y);
+    }
+
+    utils::Vector2f getCenter()const;
+    utils::Vector2f getScale()const;
 
     void zoom(float factor);
 
     glm::mat4 &getMatrix();
 
-    cdt::Vector2i m_lower_left = {0,0};
 private:
     void recomputeMatrix();
 

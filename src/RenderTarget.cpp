@@ -1,11 +1,11 @@
 #include "RenderTarget.h"
 
-RenderTarget::RenderTarget(int width, int height)
+RenderTarget:: RenderTarget(int width, int height)
     : m_target_size(width, height)
 {
 }
 
-cdt::Vector2i RenderTarget::getSize() const
+utils::Vector2i RenderTarget::getSize() const
 {
     return m_target_size;
 }
@@ -24,9 +24,9 @@ void RenderTarget::bind()
 void RenderTarget::clear(Color color)
 {
     bind();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glCheckErrorMsg("Hello");
     glClearColor(color.r, color.g, color.b, color.a);
-    // glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glCheckErrorMsg("DEPTH BUFFER clear MAY NOT BE SUPPORTED?");
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glCheckError();
 }

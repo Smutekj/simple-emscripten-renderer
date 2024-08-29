@@ -43,6 +43,10 @@ void VertexArray::resize(int n_verts)
     glCheckError();
     glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * n_verts, m_vertices.data(), m_draw_type);
     glCheckError();
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo); 
+    glCheckError();
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3*sizeof(IndexType) * n_verts, NULL, m_draw_type);
+    glCheckError();
 }
 
 void VertexArray::init()
@@ -57,6 +61,7 @@ void VertexArray::init()
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * m_vertices.size(), m_vertices.data());
         glCheckError();
     }
+
 
     if (m_draw_type == GL_STATIC_DRAW) //! for static draw we assume we do not need to change the data
     {
@@ -78,7 +83,8 @@ void VertexArray::draw(View &view, const std::vector<IndexType> &indices)
     {
         m_shader->use();
         m_shader->setMat4("u_view_projection", view.getMatrix());
-        m_shader->activateTexture(0);
+        m_shader->activateTexture(m_textures);
+        m_shader->setUniforms();
     }
 
     for (int slot = 0; slot < N_MAX_TEXTURES; ++slot)
@@ -94,7 +100,7 @@ void VertexArray::draw(View &view, const std::vector<IndexType> &indices)
 
     init();
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(IndexType) * indices.size(), indices.data(), m_draw_type);
+    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(IndexType) * indices.size(), indices.data());
     glCheckError();
 
     glDrawElements(m_primitives, indices.size(), GL_UNSIGNED_SHORT, 0);
@@ -111,8 +117,19 @@ void VertexArray::draw(View &view)
     {
         m_shader->use();
         m_shader->setMat4("u_view_projection", view.getMatrix());
-        m_shader->activateTexture(0);
+        m_shader->activateTexture(m_textures);
     }
+
+    std::cout << "START!" <<"\n";
+    auto m = view.getMatrix();
+    int i = 0;
+    for(auto& v : m_vertices){
+        auto pos = m * glm::vec4(v.pos.x, v.pos.y, 0., 1.);
+        std::cout << i  << " " << pos.x << " " <<  pos.y << "\n";
+        i++;
+    }
+    std::cout << "END!" <<"\n";
+
 
     for (int slot = 0; slot < N_MAX_TEXTURES; ++slot)
     {

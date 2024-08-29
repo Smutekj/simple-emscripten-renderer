@@ -51,7 +51,7 @@ inline void hashloop(int n, std::invocable<int> auto &&hash_combiner)
     }
 }
 
-inline void hash_combine(std::size_t &seed) {}
+inline void hash_combine([[maybe_unused]] std::size_t &seed) {}
 
 template <typename T, typename... Rest>
 inline void hash_combine(std::size_t &seed, const T &v, Rest... rest)

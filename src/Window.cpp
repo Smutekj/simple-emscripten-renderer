@@ -33,7 +33,7 @@ Window::Window(int width, int height)
     // glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
 
     // Get actual GL window size in pixels, in case of high dpi scaling
-    cdt::Vector2i size_check;
+    utils::Vector2i size_check;
     SDL_GL_GetDrawableSize(m_handle, &size_check.x, &size_check.y);
     printf("INFO: GL window size = %dx%d\n", size_check.x, size_check.y);
     printf("INFO: Desired Window size = %dx%d\n", width, height);

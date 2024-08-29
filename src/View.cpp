@@ -8,6 +8,8 @@ void View::setSize(float width, float height)
     m_needs_recompute = true;
 }
 
+
+
 void View::zoom(float factor)
 {
     setSize(m_width * factor, m_height * factor);
@@ -21,12 +23,12 @@ void View::setCenter(float cx, float cy)
     m_needs_recompute = true;
 }
 
-cdt::Vector2f View::getCenter() const
+utils::Vector2f View::getCenter() const
 {
     return {m_center_x, m_center_y};
 }
 
-cdt::Vector2f View::getScale() const
+utils::Vector2f View::getScale() const
 {
     return {m_width, m_height};
 }

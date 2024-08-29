@@ -31,7 +31,7 @@ struct ShaderSlot
     {
     }
 
-    cdt::Vector2i getSize()
+    utils::Vector2i getSize()
     {
         return m_pixels.getSize();
     }
@@ -192,7 +192,7 @@ private:
     bool m_simulation_on = false;
     bool m_reset = false;
     float value;
-    cdt::Vector2f m_mouse_coords_on_click;
+    utils::Vector2f m_mouse_coords_on_click;
     Color m_particle_init_color = {1,0,0,1};
     Color m_particle_end_color = {1,0,0,1};
     std::unordered_map<UIWindowType, UIWindowData> m_window_data;

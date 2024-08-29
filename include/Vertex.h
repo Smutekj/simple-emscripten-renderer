@@ -1,10 +1,8 @@
 #pragma once
 
-struct Vec2
-{
-    float x;
-    float y;
-};
+#include "Utils/Vector2.h"
+
+using Vec2 = utils::Vector2f;
 
 struct Color
 {

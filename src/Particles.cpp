@@ -3,7 +3,7 @@
 #include "Utils/RandomTools.h"
 #include "Renderer.h"
 
-Particle::Particle(cdt::Vector2f init_pos, cdt::Vector2f init_vel, cdt::Vector2f acc, cdt::Vector2f scale,
+Particle::Particle(utils::Vector2f init_pos, utils::Vector2f init_vel, utils::Vector2f acc, utils::Vector2f scale,
                    Color color, float life_time)
     : pos(init_pos), vel(init_vel), acc(acc), scale(scale), color(color), life_time(life_time)
 {
@@ -14,7 +14,7 @@ Particles::Particles(int n_max_particles)
 {
 }
 
-void Particles::setSpawnPos(cdt::Vector2f pos)
+void Particles::setSpawnPos(utils::Vector2f pos)
 {
     m_spawn_pos = pos;
 }
@@ -123,7 +123,7 @@ void Particles::setUpdater(std::function<void(Particle &)> new_updater)
 {
     m_updater = new_updater;
 }
-void Particles::setEmitter(std::function<Particle(cdt::Vector2f)> new_emitter)
+void Particles::setEmitter(std::function<Particle(utils::Vector2f)> new_emitter)
 {
     m_emitter = new_emitter;
 }
@@ -162,7 +162,7 @@ void TexturedParticles::draw(Renderer &renderer)
     auto &particles = m_particle_pool.getData();
     auto n_particles = m_particle_pool.size();
 
-    // cdt::Vector2f texture_size = asFloat(m_texture->getSize());
+    // utils::Vector2f texture_size = asFloat(m_texture->getSize());
     Sprite2 sprite(*m_texture);
 
     for (int p_ind = 0; p_ind < n_particles; ++p_ind)

@@ -11,12 +11,58 @@ Renderer::Renderer(RenderTarget &target)
 {
 }
 
-void Renderer::drawSprite(Sprite2 &sprite,  std::string shader_id, GLenum draw_type)
+utils::Vector2i Renderer::getTargetSize() const
+{
+    return m_target.getSize();
+}
+
+ShaderHolder &Renderer::getShaders()
+{
+    return m_shaders;
+}
+
+bool Renderer::hasShader(std::string id)
+{
+    return m_shaders.getShaders().count(id) > 0;
+}
+
+void Renderer::clear(Color c)
+{
+    m_target.clear(c);
+}
+
+void Renderer::addShader(std::string id, std::string vertex_path, std::string fragment_path)
+{
+    m_shaders.load(id, vertex_path, fragment_path);
+}
+
+Shader &Renderer::getShader(std::string id)
+{
+    return m_shaders.get(id);
+}
+
+utils::Vector2f Renderer::getMouseInWorld()
+{
+    int mouse_coords[2];
+
+    auto m = glm::inverse(m_view.getMatrix());
+    auto button = SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
+    glm::vec4 world_coords = m * glm::vec4(
+                                     2. * mouse_coords[0] / m_target.getSize().x - 1.,
+                                     -2. * mouse_coords[1] / m_target.getSize().y + 1.f, 0, 1);
+    return {world_coords.x, world_coords.y};
+}
+
+void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_type)
 {
     // drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(),
     //            sprite.m_tex_rect, sprite.m_texture, shader_id, draw_type);
+    // if(sprite.m_texture)
+    // {
+        // sprite.m_tex_size = sprite.m_texture->getSize();
+    // }
     drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(),
-               sprite.m_tex_rect, sprite.m_texture->getSize(), sprite.m_texture_handles, shader_id, draw_type);
+               sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
 }
 
 void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
@@ -49,14 +95,14 @@ void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_re
 }
 
 void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
-                          Vec2 texture_size, std::array<GLuint, N_MAX_TEXTURES>& texture_handles,
-                            std::string shader_id, GLenum draw_type)
+                          Vec2 texture_size, std::array<GLuint, N_MAX_TEXTURES> &texture_handles,
+                          std::string shader_id, GLenum draw_type)
 {
     auto &shader = m_shaders.get(shader_id);
 
     if (draw_type == GL_STATIC_DRAW)
     {
-        std::cout <<"STATIC DRAW NOT SUPPORTED YET!!!";
+        std::cout << "STATIC DRAW NOT SUPPORTED YET!!!";
         return;
     }
 
@@ -160,6 +206,9 @@ void Renderer::drawRectangle(Rectangle2 &r, Color color, GLenum draw_type)
 
     batch.pushVertexArray(verts);
 }
+
+
+
 void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_verts)
 {
     auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), GL_DYNAMIC_DRAW, n_verts);
@@ -188,6 +237,47 @@ void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_v
     }
 }
 
+void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts)
+{
+    auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), GL_DYNAMIC_DRAW, n_verts);
+
+    auto pi = std::numbers::pi_v<float>;
+
+    auto n_verts_circumference = n_verts - 1;
+    batch.pushVertex({center, color, {0, 0}});
+    for (int i = 0; i < n_verts_circumference; ++i)
+    {
+        float x = std::cos(2.f * i * pi / n_verts_circumference + angle);
+        float y = std::sin(2.f * i * pi / n_verts_circumference + angle);
+        Vertex v = {{center.x + x * radius_a, center.y + y * radius_b}, color, {x, y}};
+        batch.pushVertex(v);
+    }
+
+    auto &indices = batch.m_indices;
+    indices.resize(indices.size() - n_verts); //! get rid of indices just created by pushVertex
+    auto last_index = batch.getLastInd() - n_verts;
+    //! make triangles by specifying indices
+    for (IndexType i = 0; i < n_verts_circumference; ++i)
+    {
+        indices.push_back(last_index);
+        indices.push_back((i) % n_verts_circumference + last_index + 1);
+        indices.push_back((i + 1) % n_verts_circumference + last_index + 1);
+    }
+}
+
+void Renderer::drawVertices(VertexArray& verts, GLenum draw_type, std::shared_ptr<Texture> p_texture)
+{
+    GLuint texture_id = p_texture ? p_texture->getHandle() : 0; 
+    auto &batch = findBatch(texture_id, *verts.m_shader, draw_type, static_cast<int>(verts.size()));
+
+    auto pi = std::numbers::pi_v<float>;
+    auto n_verts = verts.size();
+
+    for (int i = 0; i < n_verts; ++i)
+    {
+        batch.pushVertex(verts[i]);
+    }
+}
 void Renderer::drawAll()
 {
     m_target.bind(); //! binds the corresponding opengl framebuffer (or window)
@@ -242,10 +332,9 @@ void Renderer::drawAll()
     }
 }
 
-
 Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, GLenum draw_type, int num_vertices_inserted)
 {
-   BatchConfig config = {texture_ids, shader.getId(), draw_type};
+    BatchConfig config = {texture_ids, shader.getId(), draw_type};
     if (m_config2batches.count(config) != 0) //! batch with config exists
     {
         return findFreeBatch(config, shader, draw_type, num_vertices_inserted);
@@ -306,4 +395,31 @@ SpriteBatch &Renderer::findSpriteBatch(GLuint texture_id, Shader &shader, GLenum
 Renderer::BatchPtr Renderer::createBatch(const BatchConfig &config, Shader &shader, GLenum draw_type)
 {
     return std::make_unique<Batch>(config, shader, draw_type);
+}
+
+Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, GLenum draw_type, int num_vertices_inserted)
+{
+    auto &batches = m_config2batches.at(config);
+    for (auto &batch : batches)
+    {
+        if (batch->getFreeVerts() >= num_vertices_inserted)
+        {
+            return *batch;
+        }
+    }
+    //! there is no free batch so we create a new one;
+    batches.push_back(createBatch(config, shader, draw_type));
+    return *batches.back();
+}
+SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, GLenum draw_type)
+{
+    auto &batches = m_config2sprite_batches.at(config);
+    auto it = std::find_if(batches.begin(), batches.end(), [](auto &batch)
+                           { return batch->getFreeVerts() >= 1; });
+    if (it != batches.end())
+    {
+        return **it;
+    }
+    m_config2sprite_batches.at(config).push_back(std::make_unique<SpriteBatch>(config, shader));
+    return *batches.back();
 }

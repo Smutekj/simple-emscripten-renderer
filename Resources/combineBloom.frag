@@ -28,6 +28,6 @@ void main(void)
 
     // gamma correction    
     result = pow(result, vec3(1.0 / gamma));
-    FragColor = vec4(result, 1.0);
+    FragColor = vec4(result, source_alpha);
 
 }

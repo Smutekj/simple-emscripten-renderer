@@ -4,10 +4,11 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../external/stbimage/stb_image.h"
+
 #include <cassert>
 #include <iostream>
 
-void Texture::loadFromFile(std::string filename)
+void Texture::loadFromFile(std::string filename, TextureOptions options)
 {
     auto it = filename.find_last_of('.');
     auto format = filename.substr(it, filename.length());
@@ -21,8 +22,10 @@ void Texture::loadFromFile(std::string filename)
     if (data)
     {
         //! generate name and bind texture
-        initialize();
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, m_width, m_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        initialize(options);
+        glCheckError();
+        auto format = channels_count == 4 ? GL_RGBA : GL_RGB;
+        glTexImage2D(GL_TEXTURE_2D, 0, format, m_width, m_height, 0, format, GL_UNSIGNED_BYTE, data);
         glCheckError();
         glGenerateMipmap(GL_TEXTURE_2D);
         glCheckError();
@@ -40,7 +43,7 @@ void Texture::invalidate()
     glDeleteTextures(1, &m_texture_handle);
     glCheckError();
 }
-void Texture::initialize()
+void Texture::initialize(TextureOptions options)
 {
 
     glGenTextures(1, &m_texture_handle);
@@ -48,20 +51,28 @@ void Texture::initialize()
     glCheckError();
 
     // Set filtering
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // glCheckError();
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(options.wrap_x));
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(options.wrap_y));
+    glCheckError();
+
+    assert(options.mag_param == TexMappingParam::Linear || options.mag_param == TexMappingParam::Nearest);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(options.min_param));
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(options.mag_param));
     glCheckError();
 }
 
-void Texture::create(int width, int height, GLint internal_format, GLint format, GLint channel_format)
+void Texture::create(int width, int height, TextureOptions options)
 {
+    m_options = options;
     m_width = width;
     m_height = height;
-    initialize();
-    glTexImage2D(GL_TEXTURE_2D, 0, internal_format, width, height, 0, format, channel_format, NULL);
+    initialize(options);
+    glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(options.internal_format),
+                 width, height, 0,
+                 static_cast<GLint>(options.format),
+                 static_cast<GLint>(options.data_type),
+                 NULL);
     glCheckError();
 }
 
