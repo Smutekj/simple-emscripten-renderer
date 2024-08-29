@@ -10,13 +10,15 @@ class FrameBuffer : public RenderTarget
 {
 
 public:
+    FrameBuffer();
     FrameBuffer(int width, int height);
     FrameBuffer(int width, int height, TextureOptions options);
     Texture &getTexture();
+    void setTexture(Texture& new_texture);
     GLuint getHandle() const;
 
 private:
-    Texture m_texture;
+    std::shared_ptr<Texture> m_texture = nullptr;
     TextureOptions m_options;
 };
 

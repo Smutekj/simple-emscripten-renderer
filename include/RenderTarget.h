@@ -9,6 +9,7 @@ class RenderTarget
 
 protected:
     RenderTarget(int width, int height);
+    RenderTarget() = default;
 
 public:
     utils::Vector2i getSize()const;
@@ -19,5 +20,5 @@ public:
 
 protected:
     GLuint m_target_handle = 0; //! gl id of the target (default is the window)
-    utils::Vector2i m_target_size; 
+    utils::Vector2i m_target_size = {0,0}; 
 };
