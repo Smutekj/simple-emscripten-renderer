@@ -28,6 +28,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(SDL2)
 
+find_package(Freetype REQUIRED)
+
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 set(USE_FLAGS "-s USE_SDL=2 -s USE_FREETYPE=1 -s FULL_ES3=1 -s OFFSCREEN_FRAMEBUFFER=1")
 set(USE_FLAGS "${USE_FLAGS} -s MIN_WEBGL_VERSION=1 -s MAX_WEBGL_VERSION=2")
@@ -39,7 +41,6 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
 set(CMAKE_EXECUTABLE_SUFFIX .html)
 else()
     find_package(SDL2 REQUIRED)
-    find_package(Freetype REQUIRED)
 endif()
 
 include_directories(SYSTEM external/stbimage)

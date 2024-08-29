@@ -57,8 +57,12 @@ void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_ty
 {
     // drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(),
     //            sprite.m_tex_rect, sprite.m_texture, shader_id, draw_type);
+    // if(sprite.m_texture)
+    // {
+        // sprite.m_tex_size = sprite.m_texture->getSize();
+    // }
     drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(),
-               sprite.m_tex_rect, sprite.m_texture->getSize(), sprite.m_texture_handles, shader_id, draw_type);
+               sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
 }
 
 void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,

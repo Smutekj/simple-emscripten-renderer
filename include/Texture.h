@@ -26,6 +26,7 @@ enum class TextureDataTypes
 enum class TextureFormat
 {
     RGBA = GL_RGBA,
+    Red = GL_RED,
     RGBA16F = GL_RGBA16F,
 };
 

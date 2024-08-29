@@ -64,7 +64,7 @@ void Texture::initialize(TextureOptions options)
 
 void Texture::create(int width, int height, TextureOptions options)
 {
-
+    m_options = options;
     m_width = width;
     m_height = height;
     initialize(options);

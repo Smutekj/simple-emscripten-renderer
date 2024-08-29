@@ -1,6 +1,6 @@
 #include "RenderTarget.h"
 
-RenderTarget::RenderTarget(int width, int height)
+RenderTarget:: RenderTarget(int width, int height)
     : m_target_size(width, height)
 {
 }

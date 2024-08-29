@@ -24,6 +24,7 @@ struct Sprite2 : public Rectangle2
           m_tex_rect(0, 0, (int)texture.getSize().x, (int)texture.getSize().y)
     {
         m_texture_handles.at(0) = texture.getHandle();
+        m_tex_size = texture.getSize();
     }
 
     void setTexture(Texture &texture)
@@ -36,10 +37,13 @@ struct Sprite2 : public Rectangle2
         m_texture = &texture;
         m_texture_handles.at(slot) = texture.getHandle();
         m_tex_rect = {0, 0, (int)texture.getSize().x, (int)texture.getSize().y};
+        m_tex_size = texture.getSize();
     }
     Texture *m_texture = nullptr;
     std::array<GLuint, N_MAX_TEXTURES> m_texture_handles = {0, 0};
+    utils::Vector2i m_tex_size = {0,0}; 
     Rect<int> m_tex_rect;
+
 };
 
 class Renderer
@@ -55,6 +59,7 @@ public:
     void drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_type);
     void drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect, Vec2 texture_size,
                     std::array<GLuint, N_MAX_TEXTURES> &textures, std::string shader_id, GLenum draw_type);
+    void drawText(std::string text, Vec2 center, Vec2 scale, float angle, Font& font, std::string shader_id, GLenum draw_type);
 
     void drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color);
 
