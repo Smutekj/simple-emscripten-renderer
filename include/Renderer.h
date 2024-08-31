@@ -41,9 +41,25 @@ struct Sprite2 : public Rectangle2
     }
     Texture *m_texture = nullptr;
     std::array<GLuint, N_MAX_TEXTURES> m_texture_handles = {0, 0};
-    utils::Vector2i m_tex_size = {0,0}; 
+    utils::Vector2i m_tex_size = {0, 0};
     Rect<int> m_tex_rect;
+};
 
+class Font;
+
+class Text : public Transform
+{
+
+public:
+    Text(std::string text = "");
+    void setFont(std::shared_ptr<Font> new_font);
+    std::shared_ptr<Font> getFont();
+    void setText(const std::string &new_text);
+    const std::string &getText() const;
+
+private:
+    std::weak_ptr<Font> m_font;
+    std::string m_text = "";
 };
 
 class Renderer
@@ -59,15 +75,17 @@ public:
     void drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_type);
     void drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect, Vec2 texture_size,
                     std::array<GLuint, N_MAX_TEXTURES> &textures, std::string shader_id, GLenum draw_type);
-    void drawText(std::string text, Vec2 center, Vec2 scale, float angle, Font& font, std::string shader_id, GLenum draw_type);
+    void drawText(std::string text, Vec2 center, Vec2 scale, float angle, Font &font,
+                  std::string shader_id, GLenum draw_type);
+    void drawText(Text &text, std::string shader_id, GLenum draw_type);
 
     void drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color);
 
     void drawRectangle(Rectangle2 &r, Color color, GLenum draw_type);
     void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color, GLenum draw_type = GL_DYNAMIC_DRAW);
-    void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts=51);
+    void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 51);
     void drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts = 51);
-    void drawVertices(VertexArray& verts, GLenum draw_type = GL_DYNAMIC_DRAW, std::shared_ptr<Texture> p_texture = nullptr);
+    void drawVertices(VertexArray &verts, GLenum draw_type = GL_DYNAMIC_DRAW, std::shared_ptr<Texture> p_texture = nullptr);
 
     void drawAll();
 
