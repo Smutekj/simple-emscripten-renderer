@@ -93,7 +93,7 @@ Application::Application(int width, int height) : m_window(width, height),
     }
 
     m_window_renderer.addShader("Instanced", "../Resources/basicinstanced.vert", "../Resources/texture.frag");
-    m_window_renderer.addShader("Instanced2", "../Resources/basicinstanced2.vert", "../Resources/texture.frag");
+    m_window_renderer.addShader("Text", "../Resources/basicinstanced2.vert", "../Resources/text2.frag");
     m_window_renderer.addShader("VertexArrayDefault", "../Resources/basictex.vert", "../Resources/fullpass.frag");
     m_window_renderer.addShader("brightness", "../Resources/basicinstanced.vert", "../Resources/brightness.frag");
     m_window_renderer.addShader("combineBloom", "../Resources/basicinstanced.vert", "../Resources/combineBloom.frag");
@@ -464,16 +464,18 @@ void Application::update(float dt)
     test_text.setFont(m_test_font);
     test_text.setPosition(400, 300);
     test_text.setScale(1, 1);
+    test_text.setColor({255, 0,0,255});
 
     auto mouse_coords = m_window_renderer.getMouseInWorld();
     Sprite2 test_sprite(*m_textures.get("arrow"));
+    test_sprite.m_color = {255, 0, 0, 255};
     test_sprite.setScale(400, 300);
     test_sprite.setPosition(400, 300);
     m_window.clear({1, 1, 1, 1});
-    // m_window_renderer.drawSprite(test_sprite, "Instanced", GL_DYNAMIC_DRAW);
-    m_window_renderer.drawText(test_text, "Instanced2", GL_DYNAMIC_DRAW);
+    m_window_renderer.drawSprite(test_sprite, "Text", GL_DYNAMIC_DRAW);
+    // m_window_renderer.drawText(test_text, "Instanced2", GL_DYNAMIC_DRAW);
     test_text.setPosition(mouse_coords);
-    m_window_renderer.drawText(test_text, "Instanced2", GL_DYNAMIC_DRAW);
+    m_window_renderer.drawText(test_text, "Text", GL_DYNAMIC_DRAW);
     m_window_renderer.drawAll();
 
     // m_window_renderer.drawAll();

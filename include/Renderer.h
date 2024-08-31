@@ -43,6 +43,7 @@ struct Sprite2 : public Rectangle2
     std::array<GLuint, N_MAX_TEXTURES> m_texture_handles = {0, 0};
     utils::Vector2i m_tex_size = {0, 0};
     Rect<int> m_tex_rect;
+    ColorByte m_color = {255, 255, 255, 255};
 };
 
 class Font;
@@ -56,10 +57,13 @@ public:
     std::shared_ptr<Font> getFont();
     void setText(const std::string &new_text);
     const std::string &getText() const;
+    void setColor(ColorByte new_color );
+    const ColorByte &getColor() const;
 
 private:
     std::weak_ptr<Font> m_font;
     std::string m_text = "";
+    ColorByte m_color = {255, 255, 255, 255};
 };
 
 class Renderer
@@ -70,10 +74,10 @@ class Renderer
 public:
     Renderer(RenderTarget &target);
 
-    void drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
+    void drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
                     Texture &texture, std::string shader_id, GLenum draw_type);
     void drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_type);
-    void drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect, Vec2 texture_size,
+    void drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect, Vec2 texture_size,
                     std::array<GLuint, N_MAX_TEXTURES> &textures, std::string shader_id, GLenum draw_type);
     void drawText(std::string text, Vec2 center, Vec2 scale, float angle, Font &font,
                   std::string shader_id, GLenum draw_type);

@@ -56,7 +56,7 @@ utils::Vector2f Renderer::getMouseInWorld()
 
 void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_type)
 {
-    drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(),
+    drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(), sprite.m_color,
                sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
 }
 
@@ -82,7 +82,7 @@ void Renderer::drawText(Text &text, std::string shader_id, GLenum draw_type)
     auto center_pos = text.getPosition();
     auto upper_left_pos = center_pos;
     utils::Vector2f glyph_pos = center_pos;
-    for (int glyph_ind = 0; glyph_ind < string.size(); ++glyph_ind)
+    for (std::size_t glyph_ind = 0; glyph_ind < string.size(); ++glyph_ind)
     {
         auto character = font->m_characters.at(string.at(glyph_ind));
 
@@ -100,22 +100,23 @@ void Renderer::drawText(Text &text, std::string shader_id, GLenum draw_type)
         glyph_pos += utils::Vector2f{width, height - 4.*dy} / 2.f; //! the 4 is weird :(
         glyph_sprite.setPosition(glyph_pos);
         glyph_sprite.setScale(width / 2., height / 2.);
+        glyph_sprite.m_color = text.getColor();
 
         upper_left_pos.x += (character.advance >> 6) * text_scale.x;
         drawSprite(glyph_sprite, shader_id, draw_type);
     }
 }
 
-void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
+void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
                           Texture &texture, std::string shader_id, GLenum draw_type)
 {
     std::array<GLuint, N_MAX_TEXTURES> texture_handles;
     texture_handles.fill(0);
     texture_handles[0] = texture.getHandle();
-    drawSprite(center, scale, angle, tex_rect, texture.getSize(), texture_handles, shader_id, draw_type);
+    drawSprite(center, scale, angle, color, tex_rect, texture.getSize(), texture_handles, shader_id, draw_type);
 }
 
-void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
+void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
                           Vec2 texture_size, std::array<GLuint, N_MAX_TEXTURES> &texture_handles,
                           std::string shader_id, GLenum draw_type)
 {
@@ -131,6 +132,7 @@ void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_re
     t.angle = angle;
     t.trans = center;
     t.scale = scale;
+    t.color = color;
 
     //! normalize the texture rectangle to be between [0,1] just as OpenGL likes it
     auto tex_size = texture_size;
@@ -465,4 +467,14 @@ void Text::setText(const std::string &new_text)
 const std::string &Text::getText() const
 {
     return m_text;
+}
+
+void Text::setColor(ColorByte new_color)
+{
+    m_color = new_color;
+}
+
+const ColorByte& Text::getColor() const
+{
+    return m_color;
 }
