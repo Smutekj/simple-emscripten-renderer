@@ -56,12 +56,6 @@ utils::Vector2f Renderer::getMouseInWorld()
 
 void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_type)
 {
-    // drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(),
-    //            sprite.m_tex_rect, sprite.m_texture, shader_id, draw_type);
-    // if(sprite.m_texture)
-    // {
-    // sprite.m_tex_size = sprite.m_texture->getSize();
-    // }
     drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(),
                sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
 }
@@ -86,22 +80,25 @@ void Renderer::drawText(Text &text, std::string shader_id, GLenum draw_type)
 
     auto text_scale = text.getScale();
     auto center_pos = text.getPosition();
-    auto upper_left_pos = center_pos - text_scale / 2.f;
+    auto upper_left_pos = center_pos;
     utils::Vector2f glyph_pos = center_pos;
-    glyph_pos.x = center_pos.x - text_scale.x / 2.f;
     for (int glyph_ind = 0; glyph_ind < string.size(); ++glyph_ind)
     {
         auto character = font->m_characters.at(string.at(glyph_ind));
 
+        float dy = character.size.y- character.bearing.y;
         glyph_pos.x = upper_left_pos.x + character.bearing.x * text_scale.x;
-        glyph_pos.y = upper_left_pos.y + (character.size.y - character.bearing.y) * text_scale.y;
+        glyph_pos.y = upper_left_pos.y + dy * text_scale.y;
 
         float width = character.size.x * text_scale.x;
         float height = character.size.y * text_scale.y;
 
         glyph_sprite.m_tex_rect = {character.tex_coords.x, character.tex_coords.y,
                                    character.size.x, character.size.y};
-        glyph_sprite.setPosition(glyph_pos + utils::Vector2f{width, -height} / 2.f);
+
+        //! setPosition sets center of the sprite not the corner position. so we must correct for that
+        glyph_pos += utils::Vector2f{width, height - 4.*dy} / 2.f; //! the 4 is weird :(
+        glyph_sprite.setPosition(glyph_pos);
         glyph_sprite.setScale(width / 2., height / 2.);
 
         upper_left_pos.x += (character.advance >> 6) * text_scale.x;

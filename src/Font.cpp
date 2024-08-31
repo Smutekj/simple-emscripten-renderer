@@ -1,6 +1,7 @@
 #include "Font.h"
-
 #include "IncludesGl.h"
+
+#include <Renderer.h>
 
 void Font::initialize()
 {
@@ -10,11 +11,12 @@ Font::Font(std::string font_filename)
 {
     TextureOptions options;
     options.data_type = TextureDataTypes::UByte;
-    options.format = TextureFormat::Red;
-    options.internal_format = TextureFormat::Red;
+    options.format = TextureFormat::RGBA;
+    options.internal_format = TextureFormat::RGBA;
     m_pixels = std::make_unique<FrameBuffer>(400, 400, options);
     m_canvas = std::make_unique<Renderer>(*m_pixels);
-    m_canvas->addShader("Text", "../Resources/basicinstanced.vert", "../Resources/text.frag");
+    m_canvas->addShader("Text", "../Resources/basicinstanced2.vert", "../Resources/text.frag");
+    m_pixels->clear({0, 0, 0, 1});
     if (!loadFromFile(font_filename))
     {
         // spdlog::error("FONT FILE " + font_filename + " NOT FOUND!");
@@ -81,7 +83,7 @@ bool Font::loadFromFile(std::string font_filename)
     auto &main_texture = m_pixels->getTexture();
     m_canvas->m_view.setCenter(main_texture.getSize() / 2.f);
     m_canvas->m_view.setSize(main_texture.getSize());
-    m_canvas->clear({1, 1, 1, 1});
+    m_canvas->clear({1, 1, 1, 0});
 
     utils::Vector2i glyph_pos = {0, 0};
     for (unsigned char c = 0; c < 128; c++)
@@ -111,7 +113,6 @@ bool Font::loadFromFile(std::string font_filename)
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        // printBuffer(face);
 
         Character character =
             {
@@ -126,9 +127,9 @@ bool Font::loadFromFile(std::string font_filename)
         glyph_sprite.m_tex_rect = {0, 0, face->glyph->bitmap.width, face->glyph->bitmap.rows};
         glyph_sprite.m_texture_handles[0] = texture;
         glyph_sprite.m_tex_size = character.size;
-        glyph_sprite.setPosition(glyph_pos + character.size/2);
-        glyph_sprite.setScale(utils::Vector2f{face->glyph->bitmap.width,
-                                              face->glyph->bitmap.rows} /  2.f);
+        glyph_sprite.setPosition(glyph_pos + (character.size+1) / 2.f);
+        glyph_sprite.setScale(face->glyph->bitmap.width/2.f,
+                              -static_cast<float>(face->glyph->bitmap.rows) / 2.f); //! MINUS FOR Y COORD IS IMPORTANT!!!!!!
         m_canvas->drawSprite(glyph_sprite, "Text", GL_DYNAMIC_DRAW);
 
         glyph_pos.x += face->glyph->bitmap.width;
@@ -139,12 +140,19 @@ bool Font::loadFromFile(std::string font_filename)
         }
         //! delete helper texture
     }
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     m_canvas->drawAll();
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
     // glDeleteTextures(128, texture_ids);
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 4); //! set back to deafult value
 
     return true;
+}
+
+Texture &Font::getTexture()
+{
+    return m_pixels->getTexture();
 }

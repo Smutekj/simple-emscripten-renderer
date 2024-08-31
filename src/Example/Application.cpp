@@ -65,6 +65,9 @@ Application::Application(int width, int height) : m_window(width, height),
                                                   m_bloom_renderer1(m_bloom_pass1),
                                                   m_bloom_renderer2(m_bloom_pass2)
 {
+
+    m_test_font = std::make_shared<Font>("arial.ttf");
+
     int n_slots_x = 2;
     int n_slots_y = 2;
     m_slots.reserve(n_slots_x * n_slots_y);
@@ -90,6 +93,7 @@ Application::Application(int width, int height) : m_window(width, height),
     }
 
     m_window_renderer.addShader("Instanced", "../Resources/basicinstanced.vert", "../Resources/texture.frag");
+    m_window_renderer.addShader("Instanced2", "../Resources/basicinstanced2.vert", "../Resources/texture.frag");
     m_window_renderer.addShader("VertexArrayDefault", "../Resources/basictex.vert", "../Resources/fullpass.frag");
     m_window_renderer.addShader("brightness", "../Resources/basicinstanced.vert", "../Resources/brightness.frag");
     m_window_renderer.addShader("combineBloom", "../Resources/basicinstanced.vert", "../Resources/combineBloom.frag");
@@ -101,12 +105,14 @@ Application::Application(int width, int height) : m_window(width, height),
     m_bloom_renderer2.addShader("gaussHoriz", "../Resources/basicinstanced.vert", "../Resources/gaussHoriz.frag");
     m_bloom_renderer2.addShader("brightness", "../Resources/basicinstanced.vert", "../Resources/brightness.frag");
 
+    m_swirl_renderer1.addShader("Instanced", "../Resources/basicinstanced.vert", "../Resources/texture.frag");
+
     auto texture_filenames = extractNamesInDirectory(path, ".png");
     for (auto &texture_filename : texture_filenames)
     {
         auto pos_right = texture_filename.find_last_of('.');
         std::string texture_name = texture_filename.substr(0, pos_right);
-        // auto status = m_textures.add(texture_name, "../Resources/" + texture_filename);
+        auto status = m_textures.add(texture_name, "../Resources/" + texture_filename);
     }
     int slot_id = 0;
     for (auto &slot : m_slots)
@@ -135,8 +141,7 @@ Application::Application(int width, int height) : m_window(width, height),
                                 p.vel += p.time *p.acc;
                                 p.pos += p.vel * 0.016f;
                                 p.scale += utils::Vector2f{0.5f};
-                                p.angle += randf(0, 3.); 
-                                });
+                                p.angle += randf(0, 3.); });
     m_particles->setEmitter([](utils::Vector2f spawn_pos)
                             {
                                 Particle p;
@@ -167,7 +172,7 @@ Application::Application(int width, int height) : m_window(width, height),
 
     m_particles3 = std::make_unique<Particles>(100);
     m_particles3->setLifetime(5.f);
-    m_particles3->setFrequency(100/5.*0.01f);
+    m_particles3->setFrequency(100 / 5. * 0.01f);
     m_particles3->setUpdater([this](Particle &p)
                              {
                                 p.acc = {0, 0.5};
@@ -365,7 +370,6 @@ void Application::update(float dt)
         }
     }
 
-    m_window.clear({0, 0, 0, 1});
 
     // auto &shader_slot = m_slots.at(0);
     // auto slot_size = shader_slot.getSize();
@@ -420,69 +424,85 @@ void Application::update(float dt)
 
     m_time += 0.016f;
 
-    int slot_ind = 0;
-    for (auto &shader_slot : m_slots)
-    {
-        // if (slot_ind == m_ui->getSimulationSlot())
-        // {
-        // slot_ind++;
-        // continue;
-        // }
-        auto slot_size = shader_slot.getSize();
+    // int slot_ind = 0;
+    // for (auto &shader_slot : m_slots)
+    // {
+    //     // if (slot_ind == m_ui->getSimulationSlot())
+    //     // {
+    //     // slot_ind++;
+    //     // continue;
+    //     // }
+    //     auto slot_size = shader_slot.getSize();
 
-        Sprite2 test_sprite(shader_slot.m_pixels.getTexture());
-        test_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
-        test_sprite.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
-        if (!shader_slot.m_selected_shader.empty())
-        {
-            auto &shader = shader_slot.m_canvas.getShader(shader_slot.m_selected_shader);
-            shader.setUniform2("u_time", m_time);
-            for (auto &[texture_name, texture_data] : shader.getVariables().textures)
-            {
-                test_sprite.m_texture_handles.at(texture_data.slot) = texture_data.handle;
-            }
-            shader_slot.m_canvas.m_view.setCenter(test_sprite.getPosition().x, test_sprite.getPosition().y);
-            shader_slot.m_canvas.m_view.setSize(slot_size.x, slot_size.y);
-            shader_slot.draw(test_sprite);
-        }
-        slot_ind++;
-    }
+    //     Sprite2 test_sprite(shader_slot.m_pixels.getTexture());
+    //     test_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
+    //     test_sprite.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
+    //     if (!shader_slot.m_selected_shader.empty())
+    //     {
+    //         auto &shader = shader_slot.m_canvas.getShader(shader_slot.m_selected_shader);
+    //         shader.setUniform2("u_time", m_time);
+    //         for (auto &[texture_name, texture_data] : shader.getVariables().textures)
+    //         {
+    //             test_sprite.m_texture_handles.at(texture_data.slot) = texture_data.handle;
+    //         }
+    //         shader_slot.m_canvas.m_view.setCenter(test_sprite.getPosition().x, test_sprite.getPosition().y);
+    //         shader_slot.m_canvas.m_view.setSize(slot_size.x, slot_size.y);
+    //         shader_slot.draw(test_sprite);
+    //     }
+    //     slot_ind++;
+    // }
 
-    m_swirl_renderer1.clear({0, 0, 0, 1});
-    m_swirl_renderer1.m_view = m_view;
+    // m_swirl_renderer1.clear({0, 0, 0, 1});
+    // m_swirl_renderer1.m_view = m_view;
+    // m_particles->setSpawnPos({mouse_coords.x, mouse_coords.y});
+    // m_particles->update(0.01f);
+    // m_particles->setInitColor(m_ui->getParticleInitColor());
+    // m_particles->setFinalColor(m_ui->getParticleEndColor());
+    // m_particles->draw(m_swirl_renderer1);
+
+    Text test_text("brown fox jumps over the lazy dog");
+    test_text.setFont(m_test_font);
+    test_text.setPosition(400, 300);
+    test_text.setScale(1, 1);
+
     auto mouse_coords = m_window_renderer.getMouseInWorld();
-    m_particles->setSpawnPos({mouse_coords.x, mouse_coords.y});
-    m_particles->update(0.01f);
-    m_particles->setInitColor(m_ui->getParticleInitColor());
-    m_particles->setFinalColor(m_ui->getParticleEndColor());
-    m_particles->draw(m_swirl_renderer1);
-    m_swirl_renderer1.drawAll();
-    doBloom(b1.getTexture(), m_window_renderer);
+    Sprite2 test_sprite(*m_textures.get("arrow"));
+    test_sprite.setScale(400, 300);
+    test_sprite.setPosition(400, 300);
+    m_window.clear({1, 1, 1, 1});
+    // m_window_renderer.drawSprite(test_sprite, "Instanced", GL_DYNAMIC_DRAW);
+    m_window_renderer.drawText(test_text, "Instanced2", GL_DYNAMIC_DRAW);
+    test_text.setPosition(mouse_coords);
+    m_window_renderer.drawText(test_text, "Instanced", GL_DYNAMIC_DRAW);
+    m_window_renderer.drawAll();
 
-    int row = 0;
-    int col = 0;
-    float left_margin = 0;
-    float top_margin = 0;
+    // m_window_renderer.drawAll();
+    // doBloom(b1.getTexture(), m_window_renderer);
 
-    for (auto &shader_slot : m_slots)
-    {
-        auto slot_size = shader_slot.getSize();
+    // int row = 0;
+    // int col = 0;
+    // float left_margin = 0;
+    // float top_margin = 0;
 
-        Sprite2 screen_sprite(shader_slot.m_pixels.getTexture());
-        screen_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
-        screen_sprite.setPosition(left_margin + slot_size.x / 2.f, top_margin + slot_size.y / 2.f);
-        // m_window_renderer.drawSprite(screen_sprite, "Instanced", GL_DYNAMIC_DRAW);
+    // for (auto &shader_slot : m_slots)
+    // {
+    //     auto slot_size = shader_slot.getSize();
 
-        left_margin += slot_size.x;
-        row++;
-        if (row == 2)
-        {
-            row = 0;
-            col++;
-            left_margin = 0;
-            top_margin += slot_size.y;
-        }
-    }
+    //     Sprite2 screen_sprite(shader_slot.m_pixels.getTexture());
+    //     screen_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
+    //     screen_sprite.setPosition(left_margin + slot_size.x / 2.f, top_margin + slot_size.y / 2.f);
+    //     // m_window_renderer.drawSprite(screen_sprite, "Instanced", GL_DYNAMIC_DRAW);
+
+    //     left_margin += slot_size.x;
+    //     row++;
+    //     if (row == 2)
+    //     {
+    //         row = 0;
+    //         col++;
+    //         left_margin = 0;
+    //         top_margin += slot_size.y;
+    //     }
+    // }
     m_window_renderer.m_view = m_view;
     // m_window_renderer.drawAll();
 

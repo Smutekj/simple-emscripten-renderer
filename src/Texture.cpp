@@ -13,7 +13,7 @@ void Texture::loadFromFile(std::string filename, TextureOptions options)
     auto it = filename.find_last_of('.');
     auto format = filename.substr(it, filename.length());
 
-    // stbi_set_flip_vertically_on_load(false);
+    stbi_set_flip_vertically_on_load(true);
     //! load texture from file
     int channels_count;
     unsigned char *data = stbi_load(filename.c_str(), &m_width, &m_height, &channels_count, 0);

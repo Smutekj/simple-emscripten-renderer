@@ -121,9 +121,10 @@ void SpriteBatch::createBuffers()
         return true;
     };
 
+    //! TODO: I should probably start using VAOs... since we can use GLES 3.0
     void SpriteBatch::bindAttributes()
     {
-
+        
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec2), (void *)(0 * sizeof(float)));

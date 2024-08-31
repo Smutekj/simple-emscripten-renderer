@@ -1,8 +1,6 @@
 #pragma once
 
-#include <Window.h>
-#include <Shader.h>
-#include <Texture.h>
+
 #include "ShaderUI.h"
 
 #include <chrono>
@@ -11,12 +9,16 @@
 #include <unordered_map>
 #include <memory>
 
+#include <Window.h>
+#include <Shader.h>
+#include <Texture.h>
 #include <Rectangle.h>
 #include <VertexArray.h>
 #include <View.h>
 #include <FrameBuffer.h>
 #include <Renderer.h>
 #include <Particles.h>
+#include <Font.h>
 
 void gameLoop(void *mainLoopArg);
 
@@ -86,6 +88,6 @@ private:
     Renderer m_bloom_renderer2;
     FrameBuffer m_bloom_pass1;
     FrameBuffer m_bloom_pass2;
-    
+    std::shared_ptr<Font> m_test_font;  
 
 };

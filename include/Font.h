@@ -1,12 +1,12 @@
 #pragma once
 
 #include <unordered_map>
+#include <memory>
 #include <string>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
 #include <Utils/Vector2.h>
-#include <Renderer.h>
 #include <FrameBuffer.h>
 
 struct Character
@@ -18,11 +18,14 @@ struct Character
     unsigned int advance;    // Offset to advance to next glyph
 };
 
+class Renderer;
+
 class Font
 {
 public:
     Font(std::string font_filename);
     bool loadFromFile(std::string font_filename);
+    Texture& getTexture();
 
 private:
     void initialize();
@@ -30,7 +33,7 @@ private:
 public:
     std::unique_ptr<FrameBuffer> m_pixels;
     Texture m_texture;
-private:
     std::unordered_map<char, Character> m_characters;
+private:
     std::unique_ptr<Renderer> m_canvas;
 };

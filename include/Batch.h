@@ -137,7 +137,7 @@ public:
     BatchConfig m_config;
 
 private:
-    static constexpr Vec2 m_prototype[6] = {{-1, -1},
+    static constexpr Vec2 m_prototype[4] = {{-1, -1},
                                             {-1, 1},
                                             {1, -1},
                                             {1, 1}};
