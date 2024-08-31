@@ -473,7 +473,7 @@ void Application::update(float dt)
     // m_window_renderer.drawSprite(test_sprite, "Instanced", GL_DYNAMIC_DRAW);
     m_window_renderer.drawText(test_text, "Instanced2", GL_DYNAMIC_DRAW);
     test_text.setPosition(mouse_coords);
-    m_window_renderer.drawText(test_text, "Instanced", GL_DYNAMIC_DRAW);
+    m_window_renderer.drawText(test_text, "Instanced2", GL_DYNAMIC_DRAW);
     m_window_renderer.drawAll();
 
     // m_window_renderer.drawAll();

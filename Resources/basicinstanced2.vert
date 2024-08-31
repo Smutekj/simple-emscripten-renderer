@@ -11,6 +11,7 @@ layout(location = 2) in vec2 a_scale;
 layout(location = 3) in float a_angle; 
 layout(location = 4) in vec2 a_tex_coord;
 layout(location = 5) in vec2 a_tex_dim;
+layout(location = 6) in vec4 a_color;
 
 out vec2 v_tex_coord;      
 out vec4 v_color;      
@@ -26,9 +27,9 @@ void main()
     gl_Position = u_view_projection*vec4(a_scale * transformed_pos + a_translation, 0., 1.0);    
     
     //
-    float id_f = float(gl_VertexID); 
-    float ix = float(gl_VertexID/2);
-    float iy = mod(id_f, 2.);
+    float id_f  = float(gl_VertexID); 
+    float ix    = float(gl_VertexID/2);
+    float iy    = mod(id_f, 2.);
     v_tex_coord = vec2(a_tex_coord.x + a_tex_dim.x*ix, a_tex_coord.y + a_tex_dim.y*iy) ;
-    v_color     = vec4(1,1,1,1);      
+    v_color     = a_color;      
 }                                             

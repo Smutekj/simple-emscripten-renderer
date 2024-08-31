@@ -114,6 +114,7 @@ struct Trans
     float angle = 0;
     Vec2 tex_coords = {0, 0};
     Vec2 tex_size = {0, 0};
+    ColorByte color = {255, 255, 255, 255};
 };
 
 class SpriteBatch

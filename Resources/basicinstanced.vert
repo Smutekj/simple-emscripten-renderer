@@ -11,6 +11,7 @@ layout(location = 2) in vec2 a_scale;
 layout(location = 3) in float a_angle; 
 layout(location = 4) in vec2 a_tex_coord;
 layout(location = 5) in vec2 a_tex_dim;
+layout(location = 6) in vec4 a_color;
 
 out vec2 v_tex_coord;      
 out vec4 v_color;      
