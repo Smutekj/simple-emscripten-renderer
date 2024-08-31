@@ -15,7 +15,14 @@ Font::Font(std::string font_filename)
     options.internal_format = TextureFormat::RGBA;
     m_pixels = std::make_unique<FrameBuffer>(400, 400, options);
     m_canvas = std::make_unique<Renderer>(*m_pixels);
-    m_canvas->addShader("Text", "../Resources/basicinstanced2.vert", "../Resources/text.frag");
+
+    using Path = std::filesystem::path;
+    Path shaders_path(__FILE__);
+    shaders_path.remove_filename();
+    shaders_path += "../Resources/";
+    Path vertex_path = shaders_path.string() + "basicinstanced.vert";
+    Path fragment_path = shaders_path.string() + "text.frag";
+    m_canvas->addShader("Text", vertex_path, fragment_path);
     m_pixels->clear({0, 0, 0, 1});
     if (!loadFromFile(font_filename))
     {
@@ -127,8 +134,8 @@ bool Font::loadFromFile(std::string font_filename)
         glyph_sprite.m_tex_rect = {0, 0, face->glyph->bitmap.width, face->glyph->bitmap.rows};
         glyph_sprite.m_texture_handles[0] = texture;
         glyph_sprite.m_tex_size = character.size;
-        glyph_sprite.setPosition(glyph_pos + (character.size+1) / 2.f);
-        glyph_sprite.setScale(face->glyph->bitmap.width/2.f,
+        glyph_sprite.setPosition(glyph_pos + (character.size + 1) / 2.f);
+        glyph_sprite.setScale(face->glyph->bitmap.width / 2.f,
                               -static_cast<float>(face->glyph->bitmap.rows) / 2.f); //! MINUS FOR Y COORD IS IMPORTANT!!!!!!
         m_canvas->drawSprite(glyph_sprite, "Text", GL_DYNAMIC_DRAW);
 

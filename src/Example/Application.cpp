@@ -93,7 +93,7 @@ Application::Application(int width, int height) : m_window(width, height),
     }
 
     m_window_renderer.addShader("Instanced", "../Resources/basicinstanced.vert", "../Resources/texture.frag");
-    m_window_renderer.addShader("Text", "../Resources/basicinstanced2.vert", "../Resources/text2.frag");
+    m_window_renderer.addShader("Text", "../Resources/basicinstanced.vert", "../Resources/text2.frag");
     m_window_renderer.addShader("VertexArrayDefault", "../Resources/basictex.vert", "../Resources/fullpass.frag");
     m_window_renderer.addShader("brightness", "../Resources/basicinstanced.vert", "../Resources/brightness.frag");
     m_window_renderer.addShader("combineBloom", "../Resources/basicinstanced.vert", "../Resources/combineBloom.frag");
