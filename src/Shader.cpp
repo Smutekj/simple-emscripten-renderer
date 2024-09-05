@@ -126,6 +126,7 @@ void static extractTextureNames(VariablesData &shader_data, std::string filename
 
 
 
+
 void Shader::setUniforms()
 {
     for (auto &[name, value] : m_variables.uniforms)
@@ -134,6 +135,11 @@ void Shader::setUniforms()
     }
     for (auto &[name, value] : m_variables.textures)
     {
+        //! ???
+    }
+    if(m_variables.uniforms.contains("u_time"))
+    {
+        m_variables.uniforms.at("u_time") = Shader::m_time;
     }
     glCheckError();
 }

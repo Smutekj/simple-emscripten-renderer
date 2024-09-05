@@ -109,7 +109,11 @@ private:
     std::string m_shader_name = "default_name";
 
     VariablesData m_variables;
+
+public:
+    inline static float m_time;
 };
+
 
 void inline bindVertexAttributes(GLuint buffer, std::vector<int> sizes)
 {
@@ -127,42 +131,6 @@ void inline bindVertexAttributes(GLuint buffer, std::vector<int> sizes)
         offset += sizes.at(i);
     }
 }
-
-class ShaderS
-{
-
-public:
-    ShaderS() = default;
-    ShaderS(const char *vertexPath, const char *fragmentPath);
-
-    GLuint getId() const;
-    void recompile();
-
-    // use/activate the shader
-    void use();
-
-    // utility uniform functions
-    void setBool(const std::string &name, bool value) const;
-    void setInt(const std::string &name, int value) const;
-    void setFloat(const std::string &name, float value) const;
-    void setVec2(const std::string &name, const glm::vec2 &value) const;
-    void setVec2(const std::string &name, float x, float y) const;
-    void setVec3(const std::string &name, const glm::vec3 &value) const;
-    void setVec3(const std::string &name, float x, float y, float z) const;
-    void setVec4(const std::string &name, const glm::vec4 &value) const;
-    void setVec4(const std::string &name, float x, float y, float z, float w) const;
-    void setMat2(const std::string &name, const glm::mat2 &mat) const;
-    void setMat3(const std::string &name, const glm::mat3 &mat) const;
-    void setMat4(const std::string &name, const glm::mat4 &mat) const;
-
-private:
-    void retrieveCode(const char *code_path, std::string &code);
-
-    unsigned int m_id; // the program ID
-    std::string m_fragment_path;
-    std::string m_vertex_path;
-    std::string m_shader_name = "default_name";
-};
 
 enum class ShaderID
 {
@@ -209,7 +177,6 @@ public:
     {
         return m_shader_data;
     }
-
 
     void initializeUniforms();
 
