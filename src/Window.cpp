@@ -54,3 +54,13 @@ SDL_GLContext *Window::getContext()
 {
     return &m_gl_context;
 }
+
+void Window::setSize(int width, int height)
+{
+    // std::cout << "old size: " << m_target_size.x << " ";
+    SDL_GetWindowSize(m_handle, &m_target_size.x, &m_target_size.y);
+    // std::cout << "new size: " << m_target_size.x << "\n";
+    auto surface = SDL_GetWindowSurface(m_handle);
+    // SDL_BlitSurface(image, NULL, surface, NULL);
+    SDL_UpdateWindowSurface(m_handle);
+}

@@ -19,6 +19,8 @@ public:
         SDL_Quit();
     }
 
+    void setSize(int width, int height);
+
 private:
     bool m_should_close = false;
     SDL_Window *m_handle;
