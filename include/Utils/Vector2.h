@@ -121,7 +121,8 @@ namespace utils
             }
         }
 
-        friend std::ostream &operator<<(std::ostream &os, const Vector2<T> &vec);
+        template <class X>
+        friend std::ostream &operator<<(std::ostream &os, const Vector2<X> &vec);
     };
 
     template <class T>
