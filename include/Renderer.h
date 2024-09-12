@@ -18,17 +18,26 @@ enum class BlendFactor
     SrcColor = GL_SRC_COLOR,
 };
 
+//! \struct holds info for color blending for OpenGL
+//! \brief the order of parameters corresponds to the order in 
+//! \brief glBlendFunSeparate(...); 
+//! \brief https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glBlendFuncSeparate.xhtml
 struct BlendParams
 {
     BlendFactor src_factor = BlendFactor::One;
-    BlendFactor src_alpha = BlendFactor::One;
     BlendFactor dst_factor = BlendFactor::OneMinusSrcAlpha;
+    BlendFactor src_alpha = BlendFactor::One;
     BlendFactor dst_alpha = BlendFactor::OneMinusSrcAlpha;
+
+    BlendParams() = default;
+    BlendParams(BlendFactor src_fact, BlendFactor dst_fact)
+        : src_factor(src_fact), dst_factor(dst_fact)
+    {
+    }
 };
 
 struct Rectangle2 : public Transform
 {
-
     float width = 1;
     float height = 1;
 };
