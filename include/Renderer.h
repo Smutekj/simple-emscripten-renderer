@@ -34,6 +34,10 @@ struct BlendParams
         : src_factor(src_fact), dst_factor(dst_fact)
     {
     }
+    BlendParams(BlendFactor src_fact, BlendFactor dst_fact, BlendFactor src_a, BlendFactor dst_a)
+        : src_factor(src_fact), dst_factor(dst_fact), src_alpha(src_a), dst_alpha(dst_a)
+    {
+    }
 };
 
 struct Rectangle2 : public Transform
