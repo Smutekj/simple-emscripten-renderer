@@ -127,11 +127,11 @@ bool Font::loadFromFile(std::string font_filename)
                 glyph_pos,
                 {face->glyph->bitmap.width, face->glyph->bitmap.rows},
                 {face->glyph->bitmap_left, face->glyph->bitmap_top},
-                face->glyph->advance.x};
+                (int)face->glyph->advance.x};
         m_characters.insert(std::pair<char, Character>(c, character));
 
         Sprite2 glyph_sprite(main_texture);
-        glyph_sprite.m_tex_rect = {0, 0, face->glyph->bitmap.width, face->glyph->bitmap.rows};
+        glyph_sprite.m_tex_rect = {0, 0, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows};
         glyph_sprite.m_texture_handles[0] = texture;
         glyph_sprite.m_tex_size = character.size;
         glyph_sprite.setPosition(glyph_pos + (character.size + 1) / 2.f);
