@@ -9,6 +9,23 @@
 #include <memory>
 #include <set>
 
+enum class BlendFactor
+{
+    One = GL_ONE,
+    Zero = GL_ZERO,
+    SrcAlpha = GL_SRC_ALPHA,
+    OneMinusSrcAlpha = GL_ONE_MINUS_SRC_ALPHA,
+    SrcColor = GL_SRC_COLOR,
+};
+
+struct BlendParams
+{
+    BlendFactor src_factor = BlendFactor::One;
+    BlendFactor src_alpha = BlendFactor::One;
+    BlendFactor dst_factor = BlendFactor::OneMinusSrcAlpha;
+    BlendFactor dst_alpha = BlendFactor::OneMinusSrcAlpha;
+};
+
 struct Rectangle2 : public Transform
 {
 
@@ -57,7 +74,7 @@ public:
     std::shared_ptr<Font> getFont();
     void setText(const std::string &new_text);
     const std::string &getText() const;
-    void setColor(ColorByte new_color );
+    void setColor(ColorByte new_color);
     const ColorByte &getColor() const;
 
 private:
@@ -107,6 +124,7 @@ public:
 public:
     View m_view;
     Rect<float> m_viewport;
+    BlendParams m_blend_factors;
 
 private:
     void drawSpriteStatic(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,

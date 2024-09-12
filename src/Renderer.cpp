@@ -86,7 +86,7 @@ void Renderer::drawText(Text &text, std::string shader_id, GLenum draw_type)
     {
         auto character = font->m_characters.at(string.at(glyph_ind));
 
-        float dy = character.size.y- character.bearing.y;
+        float dy = character.size.y - character.bearing.y;
         glyph_pos.x = upper_left_pos.x + character.bearing.x * text_scale.x;
         glyph_pos.y = upper_left_pos.y + dy * text_scale.y;
 
@@ -97,7 +97,7 @@ void Renderer::drawText(Text &text, std::string shader_id, GLenum draw_type)
                                    character.size.x, character.size.y};
 
         //! setPosition sets center of the sprite not the corner position. so we must correct for that
-        glyph_pos += utils::Vector2f{width, height - 4.*dy} / 2.f; //! the 4 is weird :(
+        glyph_pos += utils::Vector2f{width, height - 4. * dy} / 2.f; //! the 4 is weird :(
         glyph_sprite.setPosition(glyph_pos);
         glyph_sprite.setScale(width / 2., height / 2.);
         glyph_sprite.m_color = text.getColor();
@@ -232,30 +232,7 @@ void Renderer::drawRectangle(Rectangle2 &r, Color color, GLenum draw_type)
 
 void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_verts)
 {
-    auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), GL_DYNAMIC_DRAW, n_verts);
-
-    auto pi = std::numbers::pi_v<float>;
-
-    auto n_verts_circumference = n_verts - 1;
-    batch.pushVertex({center, color, {0, 0}});
-    for (int i = 0; i < n_verts_circumference; ++i)
-    {
-        float x = std::cos(2.f * i * pi / 50.f);
-        float y = std::sin(2.f * i * pi / 50.f);
-        Vertex v = {{center.x + x * radius, center.y + y * radius}, color, {x, y}};
-        batch.pushVertex(v);
-    }
-
-    auto &indices = batch.m_indices;
-    indices.resize(indices.size() - n_verts); //! get rid of indices just created by pushVertex
-    auto last_index = batch.getLastInd() - n_verts;
-    //! make triangles by specifying indices
-    for (IndexType i = 0; i < n_verts_circumference; ++i)
-    {
-        indices.push_back(last_index);
-        indices.push_back((i) % n_verts_circumference + last_index + 1);
-        indices.push_back((i + 1) % n_verts_circumference + last_index + 1);
-    }
+    drawCricleBatched(center, 0., radius, radius, color, n_verts);
 }
 
 void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts)
@@ -268,8 +245,8 @@ void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float
     batch.pushVertex({center, color, {0, 0}});
     for (int i = 0; i < n_verts_circumference; ++i)
     {
-        float x = std::cos(2.f * i * pi / n_verts_circumference + angle);
-        float y = std::sin(2.f * i * pi / n_verts_circumference + angle);
+        float x = std::cos(2.f * i * pi / n_verts_circumference + glm::radians(angle));
+        float y = std::sin(2.f * i * pi / n_verts_circumference + glm::radians(angle));
         Vertex v = {{center.x + x * radius_a, center.y + y * radius_b}, color, {x, y}};
         batch.pushVertex(v);
     }
@@ -299,8 +276,22 @@ void Renderer::drawVertices(VertexArray &verts, GLenum draw_type, std::shared_pt
         batch.pushVertex(verts[i]);
     }
 }
+
+static void setBlendFunc(BlendParams params = {})
+{
+    auto df = static_cast<GLuint>(params.dst_factor);
+    auto da = static_cast<GLuint>(params.dst_alpha);
+    auto sf = static_cast<GLuint>(params.src_factor);
+    auto sa = static_cast<GLuint>(params.src_alpha);
+
+    glBlendFuncSeparate(sf, df, sa, da);
+}
+
 void Renderer::drawAll()
 {
+
+    setBlendFunc(m_blend_factors);
+
     m_target.bind(); //! binds the corresponding opengl framebuffer (or window)
     //! set proper view
 
@@ -474,7 +465,7 @@ void Text::setColor(ColorByte new_color)
     m_color = new_color;
 }
 
-const ColorByte& Text::getColor() const
+const ColorByte &Text::getColor() const
 {
     return m_color;
 }
