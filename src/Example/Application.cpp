@@ -275,60 +275,10 @@ void Application::update(float dt)
         }
     }
 
+    m_time += 0.016f;
 
     // auto &shader_slot = m_slots.at(0);
     // auto slot_size = shader_slot.getSize();
-
-    if (m_ui->simulationRunning())
-    {
-        // auto &simulation_canvas = m_slots.at(m_ui->getSimulationSlot()).m_canvas;
-        // auto &simulation_pixels = m_slots.at(m_ui->getSimulationSlot()).m_pixels;
-        // Sprite2 buffer_sprite1(simulation_pixels.getTexture());
-        // auto &swirl_shader = simulation_canvas.getShader("swirl");
-        // for (auto &[texture_name, texture_data] : swirl_shader.getVariables().textures)
-        // {
-        //     buffer_sprite1.m_texture_handles.at(texture_data.slot) = texture_data.handle;
-        // }
-
-        // buffer_sprite1.m_texture_handles.at(1) = m_textures.get("VelInit")->getHandle();
-        // buffer_sprite1.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
-        // buffer_sprite1.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
-
-        // m_swirl_renderer1.m_view.setCenter(buffer_sprite1.getPosition().x, buffer_sprite1.getPosition().y);
-        // m_swirl_renderer1.m_view.setSize(slot_size.x, slot_size.y);
-        // m_swirl_renderer1.drawSprite(buffer_sprite1, "swirl", GL_DYNAMIC_DRAW);
-        // m_swirl_renderer1.drawAll();
-
-        // Sprite2 buffer_sprite2(b1.getTexture());
-        // for (auto &[texture_name, texture_data] : swirl_shader.getVariables().textures)
-        // {
-        //     buffer_sprite2.m_texture_handles.at(texture_data.slot) = texture_data.handle;
-        // }
-
-        // buffer_sprite2.m_texture_handles.at(1) = m_textures.get("VelInit")->getHandle();
-        // buffer_sprite2.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
-        // buffer_sprite2.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
-        // simulation_canvas.m_view.setCenter(buffer_sprite2.getPosition().x, buffer_sprite2.getPosition().y);
-        // simulation_canvas.m_view.setSize(slot_size.x, slot_size.y);
-        // simulation_canvas.drawSprite(buffer_sprite2, "swirl", GL_DYNAMIC_DRAW);
-        // simulation_canvas.drawAll();
-    }
-
-    if (m_ui->resetSimulation())
-    {
-        // auto &simulation_canvas = m_slots.at(m_ui->getSimulationSlot()).m_canvas;
-        // Sprite2 buffer_sprite1(b1.getTexture());
-        // buffer_sprite1.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
-        // buffer_sprite1.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
-
-        // simulation_canvas.m_view.setCenter(buffer_sprite1.getPosition().x, buffer_sprite1.getPosition().y);
-        // simulation_canvas.m_view.setSize(slot_size.x, slot_size.y);
-        // simulation_canvas.drawSprite(buffer_sprite1, "rhoFieldInit", GL_DYNAMIC_DRAW);
-        // simulation_canvas.drawAll();
-    }
-
-    m_time += 0.016f;
-
     // int slot_ind = 0;
     // for (auto &shader_slot : m_slots)
     // {
@@ -369,14 +319,16 @@ void Application::update(float dt)
     test_text.setFont(m_test_font);
     test_text.setPosition(400, 300);
     test_text.setScale(1, 1);
-    test_text.setColor({255, 0,0,255});
+    test_text.setColor({255, 0,255,255});
 
     auto mouse_coords = m_window_renderer.getMouseInWorld();
-    Sprite2 test_sprite(*m_textures.get("arrow"));
-    test_sprite.m_color = {255, 0, 0, 255};
+    Sprite2 test_sprite(m_test_font->getTexture());//*m_textures.get("arrow"));
+    test_sprite.m_color = {0, 0, 0, 255};
     test_sprite.setScale(400, 300);
     test_sprite.setPosition(400, 300);
     m_window.clear({1, 1, 1, 1});
+    m_window_renderer.getShader("Text").use();
+    m_window_renderer.getShader("Text").setUniform2("u_time", m_time);
     m_window_renderer.drawSprite(test_sprite, "Text", GL_DYNAMIC_DRAW);
     // m_window_renderer.drawText(test_text, "Instanced2", GL_DYNAMIC_DRAW);
     test_text.setPosition(mouse_coords);

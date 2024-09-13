@@ -10,6 +10,7 @@ uniform sampler2D u_texture;
 
 void main()                                  
 {               
-    float glyph_region = texture(u_texture, v_tex_coord).r;                             
-    FragColor = vec4(v_color.rgb * vec3(1.-glyph_region),glyph_region); //vec4(vec3(1. - glyph_region), 1.); 
+    float glyph_region = texture(u_texture, v_tex_coord).r; 
+    float x = smoothstep(0., 0.9, glyph_region); 
+    FragColor = vec4(vec3(1.-x), glyph_region); //vec4(vec3(1. - glyph_region), 1.); 
 }                                            

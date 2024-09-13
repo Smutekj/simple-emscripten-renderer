@@ -5,6 +5,7 @@
 
 void Font::initialize()
 {
+
 }
 
 Font::Font(std::string font_filename)
@@ -13,7 +14,9 @@ Font::Font(std::string font_filename)
     options.data_type = TextureDataTypes::UByte;
     options.format = TextureFormat::RGBA;
     options.internal_format = TextureFormat::RGBA;
-    m_pixels = std::make_unique<FrameBuffer>(400, 400, options);
+    options.wrap_x = TexWrapParam::ClampEdge;
+    options.wrap_y = TexWrapParam::ClampEdge;
+    m_pixels = std::make_unique<FrameBuffer>(1000, 1000, options);
     m_canvas = std::make_unique<Renderer>(*m_pixels);
 
     using Path = std::filesystem::path;
@@ -23,14 +26,13 @@ Font::Font(std::string font_filename)
     Path vertex_path = shaders_path.string() + "basicinstanced.vert";
     Path fragment_path = shaders_path.string() + "text.frag";
     m_canvas->addShader("Text", vertex_path, fragment_path);
-    m_pixels->clear({0, 0, 0, 1});
     if (!loadFromFile(font_filename))
     {
         // spdlog::error("FONT FILE " + font_filename + " NOT FOUND!");
     }
 }
 
-void inline printBuffer(const FT_Face &face)
+void static printBuffer(const FT_Face &face)
 {
     auto w = face->glyph->bitmap.width;
     auto h = face->glyph->bitmap.rows;
@@ -65,7 +67,9 @@ bool Font::loadFromFile(std::string font_filename)
         // spdlog::error("FREETYPE: Failed to load font");
         return false;
     }
-    FT_Set_Pixel_Sizes(face, 0, 48);
+    FT_Set_Pixel_Sizes(face, 0, 32);
+
+    FT_GlyphSlot slot = face->glyph; 
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
     glCheckError();
@@ -84,13 +88,18 @@ bool Font::loadFromFile(std::string font_filename)
         max_height = std::max(face->glyph->bitmap.rows, max_height);
     }
 
-    // GLuint texture_ids[128];
-    // glGenTextures(128, texture_ids);
+
+    unsigned int textures[128];
+    glGenTextures(128, textures);
+
+    int safety_pixels_x = 3;
+    int safety_pixels_y = 10;
 
     auto &main_texture = m_pixels->getTexture();
     m_canvas->m_view.setCenter(main_texture.getSize() / 2.f);
     m_canvas->m_view.setSize(main_texture.getSize());
     m_canvas->clear({1, 1, 1, 0});
+    m_canvas->m_blend_factors = {BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha}; 
 
     utils::Vector2i glyph_pos = {0, 0};
     for (unsigned char c = 0; c < 128; c++)
@@ -102,9 +111,9 @@ bool Font::loadFromFile(std::string font_filename)
             continue;
         }
 
-        unsigned int texture;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
+        FT_Render_Glyph(slot, FT_RENDER_MODE_SDF); 
+
+        glBindTexture(GL_TEXTURE_2D, textures[c]);
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
@@ -132,26 +141,25 @@ bool Font::loadFromFile(std::string font_filename)
 
         Sprite2 glyph_sprite(main_texture);
         glyph_sprite.m_tex_rect = {0, 0, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows};
-        glyph_sprite.m_texture_handles[0] = texture;
+        glyph_sprite.m_texture_handles[0] = textures[c];
         glyph_sprite.m_tex_size = character.size;
+
         glyph_sprite.setPosition(glyph_pos + (character.size + 1) / 2.f);
         glyph_sprite.setScale(face->glyph->bitmap.width / 2.f,
                               -static_cast<float>(face->glyph->bitmap.rows) / 2.f); //! MINUS FOR Y COORD IS IMPORTANT!!!!!!
         m_canvas->drawSprite(glyph_sprite, "Text", GL_DYNAMIC_DRAW);
 
-        glyph_pos.x += face->glyph->bitmap.width;
+        glyph_pos.x += face->glyph->bitmap.width + safety_pixels_x;
         if (glyph_pos.x + max_width >= main_texture.getSize().x) //! if we reach right side of the main texture
         {
-            glyph_pos.y += max_height;
+            glyph_pos.y += max_height + safety_pixels_y;
             glyph_pos.x = 0;
         }
-        //! delete helper texture
     }
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     m_canvas->drawAll();
-    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-    // glDeleteTextures(128, texture_ids);
+    //! delete helper texture
+    glDeleteTextures(128, textures);
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4); //! set back to deafult value

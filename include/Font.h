@@ -5,9 +5,9 @@
 #include <string>
 #include <ft2build.h>
 #include FT_FREETYPE_H
-#include FT_GLYPH_H   //optional glyph management component
-#include FT_OUTLINE_H //scalable outline management
-#include FT_STROKER_H //functions to stroke outline paths
+// #include FT_GLYPH_H   //optional glyph management component
+// #include FT_OUTLINE_H //scalable outline management
+// #include FT_STROKER_H //functions to stroke outline paths
 
 #include <Utils/Vector2.h>
 #include <FrameBuffer.h>
