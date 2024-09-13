@@ -18,28 +18,28 @@ struct ShaderUniform
     UniformType value;
 };
 
-void Application::initializeSimulation()
-{
-    m_swirl_renderer1.addShader("swirl", "../Resources/basicinstanced.vert", "../Resources/swirl.frag");
-    m_vel_initializer.addShader("SwirlInit", "../Resources/basicinstanced.vert", "../Resources/velFieldInit.frag");
+// void Application::initializeSimulation()
+// {
+//     m_swirl_renderer1.addShader("swirl", "../Resources/basicinstanced.vert", "../Resources/swirl.frag");
+//     m_vel_initializer.addShader("SwirlInit", "../Resources/basicinstanced.vert", "../Resources/velFieldInit.frag");
 
-    auto &simulation_canvas = m_slots.at(0).m_canvas;
-    auto &simulation_pixels = m_slots.at(0).m_pixels;
-    //! draw initial condition to buffer 2
-    Sprite2 buffer_sprite2(b1.getTexture());
-    utils::Vector2f slot_size = {simulation_pixels.getSize().x, simulation_pixels.getSize().y};
-    buffer_sprite2.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
-    buffer_sprite2.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
-    simulation_canvas.m_view.setCenter(buffer_sprite2.getPosition().x, buffer_sprite2.getPosition().y);
-    simulation_canvas.m_view.setSize(slot_size.x, slot_size.y);
-    simulation_canvas.drawSprite(buffer_sprite2, "rhoFieldInit", GL_DYNAMIC_DRAW);
-    simulation_canvas.drawAll();
+//     auto &simulation_canvas = m_slots.at(0).m_canvas;
+//     auto &simulation_pixels = m_slots.at(0).m_pixels;
+//     //! draw initial condition to buffer 2
+//     Sprite2 buffer_sprite2(b1.getTexture());
+//     utils::Vector2f slot_size = {simulation_pixels.getSize().x, simulation_pixels.getSize().y};
+//     buffer_sprite2.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
+//     buffer_sprite2.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
+//     simulation_canvas.m_view.setCenter(buffer_sprite2.getPosition().x, buffer_sprite2.getPosition().y);
+//     simulation_canvas.m_view.setSize(slot_size.x, slot_size.y);
+//     simulation_canvas.drawSprite(buffer_sprite2, "rhoFieldInit", GL_DYNAMIC_DRAW);
+//     simulation_canvas.drawAll();
 
-    m_vel_initializer.m_view.setCenter(buffer_sprite2.getPosition().x, buffer_sprite2.getPosition().y);
-    m_vel_initializer.m_view.setSize(slot_size.x, slot_size.y);
-    m_vel_initializer.drawSprite(buffer_sprite2, "SwirlInit", GL_DYNAMIC_DRAW);
-    m_vel_initializer.drawAll();
-}
+//     m_vel_initializer.m_view.setCenter(buffer_sprite2.getPosition().x, buffer_sprite2.getPosition().y);
+//     m_vel_initializer.m_view.setSize(slot_size.x, slot_size.y);
+//     m_vel_initializer.drawSprite(buffer_sprite2, "SwirlInit", GL_DYNAMIC_DRAW);
+//     m_vel_initializer.drawAll();
+// }
 
 template <class... UniformType>
 void setUniforms(Shader &program, ShaderUniform<UniformType> &...values)
@@ -55,15 +55,7 @@ void drawProgramToTexture(Sprite2 &rect, Renderer &target, std::string program)
 }
 
 Application::Application(int width, int height) : m_window(width, height),
-                                                  m_window_renderer(m_window),
-                                                  b1(width, height),
-                                                  m_swirl_renderer1(b1),
-                                                  m_vel_init_texture(width / 2, height / 2),
-                                                  m_vel_initializer(m_vel_init_texture),
-                                                  m_bloom_pass1(width, height),
-                                                  m_bloom_pass2(width, height),
-                                                  m_bloom_renderer1(m_bloom_pass1),
-                                                  m_bloom_renderer2(m_bloom_pass2)
+                                                  m_window_renderer(m_window)
 {
 
     m_test_font = std::make_shared<Font>("arial.ttf");
@@ -95,17 +87,7 @@ Application::Application(int width, int height) : m_window(width, height),
     m_window_renderer.addShader("Instanced", "../Resources/basicinstanced.vert", "../Resources/texture.frag");
     m_window_renderer.addShader("Text", "../Resources/basicinstanced.vert", "../Resources/text2.frag");
     m_window_renderer.addShader("VertexArrayDefault", "../Resources/basictex.vert", "../Resources/fullpass.frag");
-    m_window_renderer.addShader("brightness", "../Resources/basicinstanced.vert", "../Resources/brightness.frag");
-    m_window_renderer.addShader("combineBloom", "../Resources/basicinstanced.vert", "../Resources/combineBloom.frag");
 
-    m_swirl_renderer1.addShader("VertexArrayDefault", "../Resources/basictex.vert", "../Resources/fullpass.frag");
-    m_bloom_renderer1.addShader("combineBloom", "../Resources/basicinstanced.vert", "../Resources/combineBloom.frag");
-    m_bloom_renderer1.addShader("VertexArrayDefault", "../Resources/basictex.vert", "../Resources/fullpass.frag");
-    m_bloom_renderer1.addShader("gaussVert", "../Resources/basicinstanced.vert", "../Resources/gaussVert.frag");
-    m_bloom_renderer2.addShader("gaussHoriz", "../Resources/basicinstanced.vert", "../Resources/gaussHoriz.frag");
-    m_bloom_renderer2.addShader("brightness", "../Resources/basicinstanced.vert", "../Resources/brightness.frag");
-
-    m_swirl_renderer1.addShader("Instanced", "../Resources/basicinstanced.vert", "../Resources/texture.frag");
 
     auto texture_filenames = extractNamesInDirectory(path, ".png");
     for (auto &texture_filename : texture_filenames)
@@ -120,9 +102,6 @@ Application::Application(int width, int height) : m_window(width, height),
         m_textures.add("Slot: " + std::to_string(slot_id), slot.m_pixels.getTexture());
         slot_id++;
     }
-    m_textures.add("Buffer1", b1.getTexture());
-    m_textures.add("VelInit", m_vel_init_texture.getTexture());
-    m_textures.add("BloomImage", m_bloom_pass1.getTexture());
 
     //! set view and add it to renderers
     m_view.setSize(m_window.getSize().x, m_window.getSize().y);
@@ -130,7 +109,6 @@ Application::Application(int width, int height) : m_window(width, height),
     m_window_renderer.m_view = m_view;
 
     m_ui = std::make_unique<UI>(m_window, m_textures, m_slots);
-    // initializeSimulation();
 
     m_particles = std::make_unique<Particles>(2000);
     m_particles->setLifetime(2.f);
@@ -151,42 +129,7 @@ Application::Application(int width, int height) : m_window(width, height),
                                 return p; });
     m_particles->setRepeat(true);
 
-    m_particles2 = std::make_unique<Particles>(50);
-    m_particles2->setLifetime(5.f);
 
-    m_particles2->setUpdater([this](Particle &p)
-                             {
-                                auto t_left = p.life_time - p.time;
-                                p.acc = {0, 1.0};
-                                p.vel += p.time *p.acc;
-                                p.pos += p.vel * 0.016f; });
-    m_particles2->setEmitter([](utils::Vector2f spawn_pos)
-                             {
-                                Particle p;
-                                p.pos = spawn_pos + utils::Vector2f{randf(-50,50), randf(0, 10.f)};
-                                p.vel = {0., 1.};
-                                p.angle = 45.;
-                                p.scale = {1.2, 1.2};
-                                return p; });
-    m_particles2->setLifetime(5.f);
-
-    m_particles3 = std::make_unique<Particles>(100);
-    m_particles3->setLifetime(5.f);
-    m_particles3->setFrequency(100 / 5. * 0.01f);
-    m_particles3->setUpdater([this](Particle &p)
-                             {
-                                p.acc = {0, 0.5};
-                                p.vel += p.time *p.acc;
-                                p.pos += p.vel * 0.016f; });
-    m_particles3->setEmitter([](utils::Vector2f spawn_pos)
-                             {
-                                Particle p;
-                                p.pos = spawn_pos + utils::Vector2f{randf(-50,50), randf(0, 10.f)};
-                                p.vel = {0., 100};
-                                p.angle = 45.;
-                                p.scale = {10.2, 10.2};
-                                return p; });
-    m_particles3->setRepeat(true);
 }
 
 void Application::run()
@@ -316,44 +259,6 @@ void moveView(utils::Vector2f dr, Renderer &target)
     auto old_view_center = view.getCenter();
     auto new_view_center = old_view_center - (dr);
     view.setCenter(new_view_center.x, new_view_center.y);
-}
-
-void Application::doBloom(Texture &source, Renderer &target)
-{
-
-    auto target_size = target.getTargetSize();
-    Sprite2 screen_sprite(source);
-    screen_sprite.setPosition(target_size.x / 2.f, target_size.y / 2.f);
-    screen_sprite.setScale(target_size.x / 2.f, target_size.y / 2.f);
-
-    m_bloom_renderer1.m_view.setCenter(screen_sprite.getPosition().x, screen_sprite.getPosition().y);
-    m_bloom_renderer1.m_view.setSize(target_size.x, target_size.y);
-    target.m_view.setCenter(screen_sprite.getPosition().x, screen_sprite.getPosition().y);
-    target.m_view.setSize(target_size.x, target_size.y);
-    m_bloom_renderer2.m_view.setCenter(screen_sprite.getPosition().x, screen_sprite.getPosition().y);
-    m_bloom_renderer2.m_view.setSize(target_size.x, target_size.y);
-
-    m_bloom_renderer2.clear({0, 0, 0, 1});
-    m_bloom_renderer2.drawSprite(screen_sprite, "brightness", GL_DYNAMIC_DRAW);
-    m_bloom_renderer2.drawAll();
-
-    for (int pass = 0; pass < 2; ++pass)
-    {
-        m_bloom_renderer1.clear({0, 0, 0, 1});
-        screen_sprite.setTexture(m_bloom_pass2.getTexture());
-        m_bloom_renderer1.drawSprite(screen_sprite, "gaussVert", GL_DYNAMIC_DRAW);
-        m_bloom_renderer1.drawAll();
-
-        m_bloom_renderer2.clear({0, 0, 0, 1});
-        screen_sprite.setTexture(m_bloom_pass1.getTexture());
-        m_bloom_renderer2.drawSprite(screen_sprite, "gaussHoriz", GL_DYNAMIC_DRAW);
-        m_bloom_renderer2.drawAll();
-    }
-
-    screen_sprite.setTexture(0, source);
-    screen_sprite.setTexture(1, m_bloom_pass2.getTexture());
-    target.drawSprite(screen_sprite, "combineBloom", GL_DYNAMIC_DRAW);
-    target.drawAll();
 }
 
 void Application::update(float dt)
