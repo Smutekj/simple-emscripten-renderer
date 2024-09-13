@@ -114,7 +114,6 @@ public:
     inline static float m_time;
 };
 
-
 void inline bindVertexAttributes(GLuint buffer, std::vector<int> sizes)
 {
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
@@ -170,6 +169,11 @@ public:
     const auto &getShaders() const
     {
         return m_shaders;
+    }
+
+    bool contains(const std::string &shader_id) const
+    {
+        return m_shaders.count(shader_id) > 0;
     }
 
     ShaderUIData &getData(std::string name);

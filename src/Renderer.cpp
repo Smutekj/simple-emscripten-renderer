@@ -56,12 +56,20 @@ utils::Vector2f Renderer::getMouseInWorld()
 
 void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_type)
 {
+    if (!m_shaders.contains(shader_id))
+    {
+        return;
+    }
     drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(), sprite.m_color,
                sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
 }
 
 void Renderer::drawText(Text &text, std::string shader_id, GLenum draw_type)
 {
+    if (!m_shaders.contains(shader_id))
+    {
+        return;
+    }
     auto &string = text.getText();
     auto font = text.getFont();
     Sprite2 glyph_sprite(font->getTexture());
@@ -316,7 +324,6 @@ void Renderer::drawAll()
 
     while (!to_delete.empty())
     {
-        //     m_config2sprite_batches.erase(to_delete.back());
         to_delete.pop_back();
     }
     for (auto &[config, batches] : m_config2batches)
@@ -354,7 +361,6 @@ Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shade
 
     m_config2batches[config];
     //! create the new batch
-    // m_config2next_free_batch[config] = m_config2batches.at(config).size();
     m_config2batches.at(config).push_back(createBatch(config, shader, draw_type));
     return *m_config2batches.at(config).back();
 }
@@ -384,7 +390,6 @@ Batch &Renderer::findBatch(GLuint texture_id, Shader &shader, GLenum draw_type, 
 
     m_config2batches[config];
     //! create the new batch
-    // m_config2next_free_batch[config] = m_config2batches.at(config).size();
     m_config2batches.at(config).push_back(createBatch(config, shader, draw_type));
     return *m_config2batches.at(config).back();
 }
