@@ -57,6 +57,11 @@ public:
     void setEmitter(std::function<Particle(utils::Vector2f)> new_emitter);
     void setOnParticleDeathCallback(std::function<void(Particle&)> new_updater);
     
+    void setShader(const std::string& shader_id)
+    {
+        m_shader_id = shader_id;
+    }
+
 private:
     void integrate(float dt);
     void destroyDeadParticles();
