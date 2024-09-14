@@ -10,7 +10,7 @@
 #include <vector>
 #include <memory>
 
-constexpr static int BATCH_VERTEX_CAPACITY = 69000;
+constexpr static int BATCH_VERTEX_CAPACITY = 65000; //! maximum number of vertices per batch
 
 struct BatchConfig
 {
