@@ -115,7 +115,7 @@ void Particles::draw(Renderer &renderer)
         rect.setRotation(particle.angle);
         rect.setScale(particle.scale.x, particle.scale.y);
 
-        renderer.drawRectangle(rect, particle.color, GL_DYNAMIC_DRAW);
+        renderer.drawRectangle(rect, particle.color, m_shader_id, GL_DYNAMIC_DRAW);
     }
 }
 

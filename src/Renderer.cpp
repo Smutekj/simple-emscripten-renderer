@@ -217,9 +217,15 @@ void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Colo
     // batch.pushVertex(2);
 }
 
-void Renderer::drawRectangle(Rectangle2 &r, Color color, GLenum draw_type)
+
+void Renderer::drawRectangle(Rectangle2 &r, Color color, const std::string& shader_id, GLenum draw_type)
 {
-    auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), draw_type, 6);
+
+    if (!m_shaders.contains(shader_id))
+    {
+        return;
+    }
+    auto &batch = findBatch(0, m_shaders.get(shader_id), draw_type, 6);
 
     std::vector<Vertex> verts(6); //! this should be static?
     verts[0] = {{-r.width / 2.f, -r.height / 2.f}, color, {0.f, 0.f}};
@@ -237,6 +243,7 @@ void Renderer::drawRectangle(Rectangle2 &r, Color color, GLenum draw_type)
 
     batch.pushVertexArray(verts);
 }
+
 
 void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_verts)
 {

@@ -14,7 +14,6 @@ constexpr static int BATCH_VERTEX_CAPACITY = 65000; //! maximum number of vertic
 
 struct BatchConfig
 {
-
     BatchConfig() = default;
 
     BatchConfig(std::array<GLuint, N_MAX_TEXTURES> tex_ids, const GLuint &shader_id, GLenum draw_type)

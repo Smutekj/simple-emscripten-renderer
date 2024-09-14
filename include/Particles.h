@@ -85,6 +85,8 @@ protected:
     float m_spread_max = 360;
     float m_lifetime = 1.f;
     float m_frequency = 10.f;
+
+    std::string m_shader_id = "VertexArrayDefault";
 };
 
 class TexturedParticles : public Particles
