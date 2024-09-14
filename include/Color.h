@@ -33,4 +33,16 @@ struct ColorByte
     unsigned char g = 0;
     unsigned char b = 0;
     unsigned char a = 0;
+
+    ColorByte() = default;
+    ColorByte(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
+        : r(r), g(g), b(b), a(a)
+    {
+    }
+    ColorByte(const Color &col)
+        : r(static_cast<unsigned char>(col.r * 255)),
+          g(static_cast<unsigned char>(col.g * 255)),
+          b(static_cast<unsigned char>(col.b * 255)),
+          a(static_cast<unsigned char>(col.a * 255))
+    {}
 };
