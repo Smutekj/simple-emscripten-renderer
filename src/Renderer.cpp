@@ -221,11 +221,9 @@ void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Colo
 void Renderer::drawRectangle(Rectangle2 &r, Color color, const std::string& shader_id, GLenum draw_type)
 {
 
-    if (!m_shaders.contains(shader_id))
-    {
-        return;
-    }
-    auto &batch = findBatch(0, m_shaders.get(shader_id), draw_type, 6);
+    auto& shader_name = m_shaders.contains(shader_id) ? shader_id : "VertexArrayDefault";
+
+    auto &batch = findBatch(0, m_shaders.get(shader_name), draw_type, 6);
 
     std::vector<Vertex> verts(6); //! this should be static?
     verts[0] = {{-r.width / 2.f, -r.height / 2.f}, color, {0.f, 0.f}};
@@ -250,9 +248,9 @@ void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_v
     drawCricleBatched(center, 0., radius, radius, color, n_verts);
 }
 
-void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts)
+void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b,  Color color, int n_verts, std::string shader_id)
 {
-    auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), GL_DYNAMIC_DRAW, n_verts);
+    auto &batch = findBatch(0, m_shaders.get( shader_id), GL_DYNAMIC_DRAW, n_verts);
 
     auto pi = std::numbers::pi_v<float>;
 
