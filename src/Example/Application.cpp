@@ -85,7 +85,7 @@ Application::Application(int width, int height) : m_window(width, height),
     }
 
     m_window_renderer.addShader("Instanced", "../Resources/basicinstanced.vert", "../Resources/texture.frag");
-    m_window_renderer.addShader("Text", "../Resources/basicinstanced.vert", "../Resources/text2.frag");
+    m_window_renderer.addShader("Text", "../Resources/basicinstanced.vert", "../Resources/textBorder.frag");
     m_window_renderer.addShader("VertexArrayDefault", "../Resources/basictex.vert", "../Resources/fullpass.frag");
 
 
@@ -320,6 +320,8 @@ void Application::update(float dt)
     test_text.setPosition(400, 300);
     test_text.setScale(1, 1);
     test_text.setColor({255, 0,255,255});
+
+    m_window_renderer.getShaders().refresh();
 
     auto mouse_coords = m_window_renderer.getMouseInWorld();
     Sprite2 test_sprite(m_test_font->getTexture());//*m_textures.get("arrow"));

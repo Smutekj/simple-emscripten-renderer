@@ -104,10 +104,11 @@ public:
 private:
     void retrieveCode(const char *code_path, std::string &code);
 
-    unsigned int m_id; // the program ID
+    unsigned int m_id = -1; // the program ID
     std::string m_fragment_path;
     std::string m_vertex_path;
     std::string m_shader_name = "default_name";
+    std::filesystem::file_time_type m_last_writetime;
 
     VariablesData m_variables;
 
@@ -150,6 +151,7 @@ struct ShaderUIData
     ShaderUIData(Shader &program)
         : p_program(&program), filename(program.getFragmentPath()), variables(program.getVariables())
     {
+        last_write_time =  std::filesystem::last_write_time(filename);
     }
 
     Shader *p_program = nullptr;

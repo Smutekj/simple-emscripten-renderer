@@ -1,6 +1,5 @@
 #include "Shader.h"
 
-
 void static extractUniformNames(VariablesData &shader_data, const std::string &filename)
 {
     const auto tmp_filename = filename + ".tmp";
@@ -46,9 +45,6 @@ void static extractUniformNames(VariablesData &shader_data, const std::string &f
     file.close();
 }
 
-
-
-
 void static extractTextureNames(VariablesData &shader_data, std::string filename)
 {
     const auto tmp_filename = filename + ".tmp";
@@ -57,7 +53,7 @@ void static extractTextureNames(VariablesData &shader_data, std::string filename
     {
         throw std::runtime_error("File not found: " + filename);
     }
-    
+
     GLuint texture_shader_id = 0;
     int slot = 0;
     std::string line;
@@ -85,71 +81,63 @@ void static extractTextureNames(VariablesData &shader_data, std::string filename
     file.close();
 }
 
+Shader &ShaderHolder::get(std::string id)
+{
+    return *m_shaders.at(id);
+}
 
-    Shader &ShaderHolder::get(std::string id)
+void ShaderHolder::use(std::string id)
+{
+    m_shaders.at(id)->use();
+}
+
+void ShaderHolder::load(std::string name, std::string vertex_path, std::string fragment_path)
+{
+
+    m_shaders[name] = std::make_unique<Shader>(vertex_path, fragment_path);
+    auto &shader = m_shaders.at(name);
+    shader->m_shader_name = name;
+    m_shader_data.insert({name, *shader});
+
+    shader->use();
+    extractUniformNames(m_shader_data.at(name).variables, shader->getFragmentPath());
+}
+
+ShaderUIData &ShaderHolder::getData(std::string name)
+{
+    return m_shader_data.at(name);
+}
+
+void ShaderHolder::initializeUniforms()
+{
+    for (auto &[shader_name, shader] : m_shaders)
     {
-        return *m_shaders.at(id);
+        m_shader_data.insert({shader_name, *shader});
+
+        extractUniformNames(m_shader_data.at(shader_name).variables, shader->getFragmentPath());
     }
-
-    void ShaderHolder::use(std::string id)
-    {
-        m_shaders.at(id)->use();
-    }
-
-    void ShaderHolder::load(std::string name, std::string vertex_path, std::string fragment_path)
+}
+void ShaderHolder::refresh()
+{
+    std::vector<std::string> to_refresh;
+    for (auto &[shader_name, shader] : m_shaders)
     {
 
-        m_shaders[name] = std::make_unique<Shader>(vertex_path, fragment_path);
-        auto &shader = m_shaders.at(name);
-        shader->m_shader_name = name;
-        m_shader_data.insert({name, *shader});
-        shader->use();
-        extractUniformNames(m_shader_data.at(name).variables, shader->getFragmentPath());
-    }
-
-
-
-    ShaderUIData &ShaderHolder::getData(std::string name)
-    {
-        return m_shader_data.at(name);
-    }
-
-    void ShaderHolder::initializeUniforms()
-    {
-        for (auto &[shader_name, shader] : m_shaders)
+        std::filesystem::path f_path = "/home/smutekj/Desktop/test/build/" + shader->getFragmentPath();
+        auto last_time = std::filesystem::last_write_time(f_path);
+        if (last_time != m_shader_data.at(shader_name).last_write_time)
         {
-            m_shader_data.insert({shader_name, *shader});
-
-            extractUniformNames(m_shader_data.at(shader_name).variables, shader->getFragmentPath());
+            to_refresh.push_back(shader_name);
         }
     }
-    void ShaderHolder::refresh()
+    while (!to_refresh.empty())
     {
-        std::vector<std::string> to_refresh;
-        for (auto &[shader_name, shader] : m_shaders)
-        {
-            
-            auto last_time = std::filesystem::last_write_time(shader->getFragmentPath());
-
-            if(last_time != m_shader_data.at(shader_name).last_write_time)
-            {
-                to_refresh.push_back(shader_name);
-            }
-        }
-        while(!to_refresh.empty())
-        {
-            auto shader_id = to_refresh.back();
-            to_refresh.pop_back();
-            auto vertex_path = m_shaders.at(shader_id)->getVertexPath();
-            auto fragment_path = m_shaders.at(shader_id)->getFragmentPath();
-            erase(shader_id);
-            load(shader_id, vertex_path, fragment_path);
-
-        }
+        auto shader_id = to_refresh.back();
+        to_refresh.pop_back();
+        auto vertex_path = m_shaders.at(shader_id)->getVertexPath();
+        auto fragment_path = m_shaders.at(shader_id)->getFragmentPath();
     }
-
-
-
+}
 
 void Shader::setUniforms()
 {
@@ -161,7 +149,7 @@ void Shader::setUniforms()
     {
         //! ???
     }
-    if(m_variables.uniforms.contains("u_time"))
+    if (m_variables.uniforms.contains("u_time"))
     {
         m_variables.uniforms.at("u_time") = Shader::m_time;
     }
@@ -376,6 +364,16 @@ void Shader::recompile()
 
 void Shader::use()
 {
+    auto last_time = std::filesystem::last_write_time(m_fragment_path);
+    if (last_time != m_last_writetime)
+    {
+        if (m_id != -1)
+        {
+            glDeleteProgram(m_id);
+        }
+        recompile();
+        m_last_writetime = last_time;
+    }
     glUseProgram(m_id);
     glCheckError();
 }

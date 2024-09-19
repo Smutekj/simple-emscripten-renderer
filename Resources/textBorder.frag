@@ -6,7 +6,7 @@ in vec4 v_color;
 
 uniform vec4 u_edge_color = vec4(1., 0.,0.,1.);
 uniform float u_time = 0.;
-uniform float u_time_factor = 0.5;
+uniform float u_time_factor = 1.;
 
 out vec4 FragColor;
 
