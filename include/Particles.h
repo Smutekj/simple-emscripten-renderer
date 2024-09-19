@@ -33,7 +33,7 @@ struct Particle
 
 class Renderer;
 
-class Particles
+class Particles 
 {
 
 public:
@@ -49,13 +49,11 @@ public:
     {
         return m_spawn_pos;
     }
-    void setVel(float vel);
-    
+
     void setInitColor(Color color);
     void setFinalColor(Color color);
+    
     void setLifetime(float lifetime);
-    void setFrequency(float lifetime);
-    void setAngleSpread(float min_spread, float max_spread);
     
     void setRepeat(bool repeats);
     bool getRepeat()const
@@ -63,12 +61,7 @@ public:
         return m_repeats;
     }
 
-    void setSize(float size);
-    float getSize()const
-    {
-        return m_particle_size;
-    }
-    
+
     void setPeriod(int period);
     int getPeriod() const;
     
@@ -80,6 +73,12 @@ public:
     {
         m_shader_id = shader_id;
     }
+
+public:
+
+    Color m_init_color;
+    Color m_final_color;
+    utils::Vector2f m_spawn_pos;
 
 private:
     void integrate(float dt);
@@ -94,23 +93,13 @@ protected:
 
     VectorMap<Particle> m_particle_pool;
 
-    int m_spawn_period = 1;
-    int m_spawn_timer = 0;
-    utils::Vector2f m_spawn_pos;
+    int m_spawn_period = 1; //! m_spawn_period frames need to pass for one particle
+    int m_spawn_timer = 0;  //! measures frames since last spawn 
 
-    float m_particle_size = 0.5;
-    float m_vel = 3;
-    Color m_color;
-    Color m_final_color;
-
-    bool m_repeats = true;
+    bool m_repeats = true; //! true if particles should be created continuously
     int n_spawned = 0;
 
-    float m_spread_min = 0;
-    float m_spread_max = 360;
     float m_lifetime = 1.f;
-    float m_frequency = 10.f;
-
     std::string m_shader_id = "VertexArrayDefault";
 };
 

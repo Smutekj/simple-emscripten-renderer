@@ -19,10 +19,6 @@ void Particles::setSpawnPos(utils::Vector2f pos)
     m_spawn_pos = pos;
 }
 
-void Particles::setSize(float size)
-{
-    m_particle_size = size;
-}
 void Particles::setPeriod(int spawn_period)
 {
     m_spawn_period = spawn_period;
@@ -96,7 +92,7 @@ void Particles::integrate(float dt)
     {
         auto &particle = particles[p_ind];
         particle.time += dt;
-        particle.color = interpolate(m_color, m_final_color, particle.time/particle.life_time);
+        particle.color = interpolate(m_init_color, m_final_color, particle.time/particle.life_time);
         m_updater(particle);
     
     }
@@ -133,14 +129,9 @@ void Particles::setEmitter(std::function<Particle(utils::Vector2f)> new_emitter)
     m_emitter = new_emitter;
 }
 
-void Particles::setVel(float vel)
-{
-    m_vel = vel;
-}
-
 void Particles::setInitColor(Color color)
 {
-    m_color = color;
+    m_init_color = color;
 }
 void Particles::setFinalColor(Color color)
 {
@@ -150,15 +141,11 @@ void Particles::setLifetime(float life_time)
 {
     m_lifetime = life_time;
 }
-void Particles::setFrequency(float frequency)
-{
-    m_spawn_period = 1./frequency;
-}
+
 
 TexturedParticles::TexturedParticles(Texture &texture)
     : m_texture(&texture), Particles(20)
 {
-    m_particle_size = 3;
 }
 
 void TexturedParticles::draw(Renderer &renderer)
@@ -182,11 +169,7 @@ void TexturedParticles::draw(Renderer &renderer)
     }
 }
 
-void Particles::setAngleSpread(float min_spread, float max_spread)
-{
-    m_spread_max = max_spread;
-    m_spread_min = min_spread;
-}
+
 void Particles::setRepeat(bool repeats)
 {
     m_repeats = repeats;
