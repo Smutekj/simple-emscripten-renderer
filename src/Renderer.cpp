@@ -85,7 +85,7 @@ void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_ty
 
 void Renderer::drawText(Text &text, std::string shader_id, GLenum draw_type)
 {
-    if (!m_shaders.contains(shader_id))
+    if (!checkShader(shader_id))
     {
         return;
     }
@@ -208,6 +208,10 @@ void Renderer::drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color
 void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color,
                                GLenum draw_type)
 {
+    if(!checkShader("VertexArrayDefault"))
+    {
+        return;
+    }
     auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), draw_type, 6);
 
     std::vector<Vertex> verts(6); //! this should be static?
