@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <type_traits>
 #include <variant>
+#include <filesystem>
 
 #include <magic_enum.hpp>
 #include <magic_enum_utility.hpp>
@@ -154,6 +155,8 @@ struct ShaderUIData
     Shader *p_program = nullptr;
     std::string filename = "";
     VariablesData &variables;
+    std::filesystem::file_time_type last_write_time;
+
 };
 
 class ShaderHolder
@@ -165,6 +168,12 @@ public:
     void use(std::string id);
 
     void load(std::string name, std::string vertex_path, std::string fragment_path);
+
+    void erase(const std::string& shader_id)
+    {
+        m_shaders.erase(shader_id);
+        m_shader_data.erase(shader_id);
+    }
 
     const auto &getShaders() const
     {
@@ -181,6 +190,8 @@ public:
     {
         return m_shader_data;
     }
+
+    void refresh();
 
     void initializeUniforms();
 

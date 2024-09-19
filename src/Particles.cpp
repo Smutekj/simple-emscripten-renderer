@@ -110,7 +110,7 @@ void Particles::draw(Renderer &renderer)
     for (int i = 0; i < n_particles; ++i)
     {
         int p_ind = (youngest_particle_ind + i) % n_particles;
-        auto &particle = particles[p_ind];
+        auto &particle = particles.at(p_ind);
         rect.setPosition(particle.pos.x, particle.pos.y);
         rect.setRotation(particle.angle);
         rect.setScale(particle.scale.x, particle.scale.y);

@@ -123,6 +123,30 @@ void static extractTextureNames(VariablesData &shader_data, std::string filename
             extractUniformNames(m_shader_data.at(shader_name).variables, shader->getFragmentPath());
         }
     }
+    void ShaderHolder::refresh()
+    {
+        std::vector<std::string> to_refresh;
+        for (auto &[shader_name, shader] : m_shaders)
+        {
+            
+            auto last_time = std::filesystem::last_write_time(shader->getFragmentPath());
+
+            if(last_time != m_shader_data.at(shader_name).last_write_time)
+            {
+                to_refresh.push_back(shader_name);
+            }
+        }
+        while(!to_refresh.empty())
+        {
+            auto shader_id = to_refresh.back();
+            to_refresh.pop_back();
+            auto vertex_path = m_shaders.at(shader_id)->getVertexPath();
+            auto fragment_path = m_shaders.at(shader_id)->getFragmentPath();
+            erase(shader_id);
+            load(shader_id, vertex_path, fragment_path);
+
+        }
+    }
 
 
 
