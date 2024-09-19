@@ -93,7 +93,11 @@ void ShaderHolder::use(std::string id)
 
 void ShaderHolder::load(std::string name, std::string vertex_path, std::string fragment_path)
 {
-
+    if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
+    {
+        m_shaders.erase(name);
+        m_shader_data.erase(name);
+    }
     m_shaders[name] = std::make_unique<Shader>(vertex_path, fragment_path);
     auto &shader = m_shaders.at(name);
     shader->m_shader_name = name;
