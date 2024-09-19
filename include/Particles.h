@@ -45,14 +45,29 @@ public:
     virtual void draw(Renderer &target);
 
     void setSpawnPos(utils::Vector2f pos);
+    utils::Vector2f getSpawnPos()const
+    {
+        return m_spawn_pos;
+    }
     void setVel(float vel);
+    
     void setInitColor(Color color);
     void setFinalColor(Color color);
     void setLifetime(float lifetime);
     void setFrequency(float lifetime);
     void setAngleSpread(float min_spread, float max_spread);
+    
     void setRepeat(bool repeats);
+    bool getRepeat()const
+    {
+        return m_repeats;
+    }
+
     void setSize(float size);
+    float getSize()const
+    {
+        return m_particle_size;
+    }
     
     void setPeriod(int period);
     int getPeriod() const;
