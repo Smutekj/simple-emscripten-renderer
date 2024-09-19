@@ -23,6 +23,14 @@ void Particles::setSize(float size)
 {
     m_particle_size = size;
 }
+void Particles::setPeriod(int spawn_period)
+{
+    m_spawn_period = spawn_period;
+}
+int Particles::getPeriod()const
+{
+    return m_spawn_period;;
+}
 
 void Particles::update(float dt)
 {
@@ -35,7 +43,6 @@ void Particles::update(float dt)
         if (!m_repeats && n_spawned < m_particle_pool.capacity())
         {
             createParticle();
-            // n_spawned++;
         }
         else if (m_repeats)
         {
@@ -53,8 +60,6 @@ void Particles::update(float dt)
 void Particles::createParticle()
 {
     auto new_particle = m_emitter(m_spawn_pos);
-    new_particle.color = m_color;
-    new_particle.life_time = m_lifetime;
     m_particle_pool.insert(new_particle);
     n_spawned++;
 }

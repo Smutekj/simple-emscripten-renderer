@@ -27,8 +27,8 @@ struct Particle
     Particle() = default;
     virtual ~Particle() = default;
 
-    Particle(utils::Vector2f init_pos, utils::Vector2f init_vel, utils::Vector2f acc = {0, 0}, utils::Vector2f scale = {1,1},
-             Color color = {0,0,1,1}, float life_time = 69);
+    Particle(utils::Vector2f init_pos, utils::Vector2f init_vel, utils::Vector2f acc = {0, 0}, utils::Vector2f scale = {1, 1},
+             Color color = {0, 0, 1, 1}, float life_time = 69);
 };
 
 class Renderer;
@@ -53,11 +53,15 @@ public:
     void setAngleSpread(float min_spread, float max_spread);
     void setRepeat(bool repeats);
     void setSize(float size);
-    void setUpdater(std::function<void(Particle&)> new_updater);
-    void setEmitter(std::function<Particle(utils::Vector2f)> new_emitter);
-    void setOnParticleDeathCallback(std::function<void(Particle&)> new_updater);
     
-    void setShader(const std::string& shader_id)
+    void setPeriod(int period);
+    int getPeriod() const;
+    
+    void setUpdater(std::function<void(Particle &)> new_updater);
+    void setEmitter(std::function<Particle(utils::Vector2f)> new_emitter);
+    void setOnParticleDeathCallback(std::function<void(Particle &)> new_updater);
+
+    void setShader(const std::string &shader_id)
     {
         m_shader_id = shader_id;
     }
@@ -68,9 +72,10 @@ private:
     void createParticle();
 
 protected:
-    std::function<void(Particle&)> m_updater = [](Particle&){};
-    std::function<void(Particle&)> m_on_particle_death = [](Particle&){};
-    std::function<Particle(utils::Vector2f)> m_emitter = [](utils::Vector2f){return Particle{};};
+    std::function<void(Particle &)> m_updater = [](Particle &) {};
+    std::function<void(Particle &)> m_on_particle_death = [](Particle &) {};
+    std::function<Particle(utils::Vector2f)> m_emitter = [](utils::Vector2f)
+    { return Particle{}; };
 
     VectorMap<Particle> m_particle_pool;
 
@@ -101,7 +106,7 @@ public:
     explicit TexturedParticles(Texture &texture);
     virtual ~TexturedParticles() = default;
 
-    virtual void draw(Renderer& r) override;
+    virtual void draw(Renderer &r) override;
     void setTexture(Texture &texture);
 
 private:
