@@ -54,14 +54,33 @@ utils::Vector2f Renderer::getMouseInWorld()
     return {world_coords.x, world_coords.y};
 }
 
+bool Renderer::checkShader(const std::string &shader_id)
+{
+    if (m_shaders.contains(shader_id))
+    {
+        return true;
+    }
+
+    try
+    {
+        std::filesystem::path resources_path = "../Resources/";
+        m_shaders.load(shader_id, resources_path.string() + "basicinstanced.vert", resources_path.string() + shader_id + ".frag");
+        return true;
+    }
+    catch (const std::exception &e)
+    {
+        std::cout << e.what() << "\n";
+    }
+    return false;
+}
+
 void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_type)
 {
-    if (!m_shaders.contains(shader_id))
+    if (checkShader(shader_id))
     {
-        return;
+        drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(), sprite.m_color,
+                   sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
     }
-    drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(), sprite.m_color,
-               sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
 }
 
 void Renderer::drawText(Text &text, std::string shader_id, GLenum draw_type)
@@ -217,11 +236,10 @@ void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Colo
     // batch.pushVertex(2);
 }
 
-
-void Renderer::drawRectangle(Rectangle2 &r, Color color, const std::string& shader_id, GLenum draw_type)
+void Renderer::drawRectangle(Rectangle2 &r, Color color, const std::string &shader_id, GLenum draw_type)
 {
 
-    auto& shader_name = m_shaders.contains(shader_id) ? shader_id : "VertexArrayDefault";
+    auto &shader_name = m_shaders.contains(shader_id) ? shader_id : "VertexArrayDefault";
 
     auto &batch = findBatch(0, m_shaders.get(shader_name), draw_type, 6);
 
@@ -242,15 +260,14 @@ void Renderer::drawRectangle(Rectangle2 &r, Color color, const std::string& shad
     batch.pushVertexArray(verts);
 }
 
-
 void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_verts)
 {
     drawCricleBatched(center, 0., radius, radius, color, n_verts);
 }
 
-void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b,  Color color, int n_verts, std::string shader_id)
+void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts, std::string shader_id)
 {
-    auto &batch = findBatch(0, m_shaders.get( shader_id), GL_DYNAMIC_DRAW, n_verts);
+    auto &batch = findBatch(0, m_shaders.get(shader_id), GL_DYNAMIC_DRAW, n_verts);
 
     auto pi = std::numbers::pi_v<float>;
 

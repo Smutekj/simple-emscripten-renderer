@@ -134,11 +134,6 @@ public:
     Shader &getShader(std::string id);
     utils::Vector2f getMouseInWorld();
 
-public:
-    View m_view;
-    Rect<float> m_viewport;
-    BlendParams m_blend_factors;
-
 private:
     void drawSpriteStatic(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
                           Texture &texture, Shader &shader);
@@ -152,6 +147,14 @@ private:
 
     BatchPtr createBatch(const BatchConfig &config, Shader &shader, GLenum draw_type);
 
+    bool checkShader(const std::string &shader_id);
+
+public:
+    View m_view;
+    Rect<float> m_viewport;
+    BlendParams m_blend_factors;
+
+private:
     ShaderHolder m_shaders;
 
     std::unordered_map<BatchConfig, int> m_config2next_free_batch;
