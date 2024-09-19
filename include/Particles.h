@@ -20,8 +20,8 @@ struct Particle
     utils::Vector2f acc;
     utils::Vector2f scale;
     float angle = 0.f;
-    Color color;
-    float life_time;
+    Color color = {0,0,0,1};
+    float life_time = 1.f;
     float time = 0;
 
     Particle() = default;
