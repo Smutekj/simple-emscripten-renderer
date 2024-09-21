@@ -69,6 +69,17 @@ struct Sprite2 : public Rectangle2
         m_tex_rect = {0, 0, (int)texture.getSize().x, (int)texture.getSize().y};
         m_tex_size = texture.getSize();
     }
+    void setTextureP(int slot, Texture *texture = nullptr)
+    {
+        if (!texture)
+        {
+            return;
+        }
+        m_texture = texture;
+        m_texture_handles.at(slot) = texture->getHandle();
+        m_tex_rect = {0, 0, (int)texture->getSize().x, (int)texture->getSize().y};
+        m_tex_size = texture->getSize();
+    }
     Texture *m_texture = nullptr;
     std::array<GLuint, N_MAX_TEXTURES> m_texture_handles = {0, 0};
     utils::Vector2i m_tex_size = {0, 0};
