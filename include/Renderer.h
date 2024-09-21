@@ -49,6 +49,16 @@ struct Rectangle2 : public Transform
 struct Sprite2 : public Rectangle2
 {
 
+    Sprite2(Texture *texture = nullptr)
+        : m_texture(texture)
+    {
+        if (texture)
+        {
+            m_tex_rect = {0, 0, (int)texture->getSize().x, (int)texture->getSize().y};
+            m_texture_handles.at(0) = texture->getHandle();
+            m_tex_size = texture->getSize();
+        }
+    }
     Sprite2(Texture &texture)
         : m_texture(&texture),
           m_tex_rect(0, 0, (int)texture.getSize().x, (int)texture.getSize().y)
