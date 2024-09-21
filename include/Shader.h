@@ -46,12 +46,16 @@ struct VariablesData
 
     std::string setTexture(int slot, GLuint handle)
     {
-        auto name = std::find_if(textures.begin(), textures.end(), [slot](auto &tex_data)
-                                 { return tex_data.second.slot == slot; })
-                        ->first;
 
-        textures.at(name) = {slot, handle};
-        return name;
+        auto name_it = std::find_if(textures.begin(), textures.end(), [slot](auto &tex_data)
+                                    { return tex_data.second.slot == slot; });
+
+        if (name_it != textures.end())
+        { 
+            textures.at(name_it->first) = {slot, handle};
+            return name_it->first;
+        }
+        return "";
     }
 };
 
@@ -151,14 +155,13 @@ struct ShaderUIData
     ShaderUIData(Shader &program)
         : p_program(&program), filename(program.getFragmentPath()), variables(program.getVariables())
     {
-        last_write_time =  std::filesystem::last_write_time(filename);
+        last_write_time = std::filesystem::last_write_time(filename);
     }
 
     Shader *p_program = nullptr;
     std::string filename = "";
     VariablesData &variables;
     std::filesystem::file_time_type last_write_time;
-
 };
 
 class ShaderHolder
@@ -171,7 +174,7 @@ public:
 
     void load(std::string name, std::string vertex_path, std::string fragment_path);
 
-    void erase(const std::string& shader_id)
+    void erase(const std::string &shader_id)
     {
         m_shaders.erase(shader_id);
         m_shader_data.erase(shader_id);
