@@ -183,7 +183,7 @@ void SpriteBatch::createBuffers()
         {
             auto texture_id = m_config.texture_ids.at(slot);
             if (texture_id != 0)
-            {
+            { 
                 glActiveTexture(GL_TEXTURE0 + slot);
                 glCheckError();
                 glBindTexture(GL_TEXTURE_2D, texture_id);

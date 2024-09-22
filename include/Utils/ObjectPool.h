@@ -143,13 +143,12 @@ public:
         for (auto &ind : object2entity)
         {
             free_inds.insert(ind);
-            entity2ind.at(ind) = -1;    
+            entity2ind.at(ind) = -1;
         }
 
         objects.clear();
         object2entity.clear();
     }
-
 
 private:
     std::vector<int> object2entity;
@@ -175,6 +174,10 @@ public:
     void setMaxCount(int n_max_count);
     std::vector<Type> &getData();
     int capacity();
+    int getEntityInd(int data_ind) const
+    {
+        return m_data2entity_ind.at(data_ind);
+    }
 
 private:
     std::vector<int> m_entity2data_ind;

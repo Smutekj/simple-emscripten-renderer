@@ -69,12 +69,12 @@ void Particles::destroyDeadParticles()
         auto &particle = particles[p_ind];
         if (particle.time > particle.life_time)
         {
-            to_destroy.push_back(p_ind);
+            to_destroy.push_back(m_particle_pool.getEntityInd(p_ind));
         }
     }
     for (auto part_ind : to_destroy)
     {
-        m_particle_pool.removeByDataInd(part_ind);
+        m_particle_pool.removeByEntityInd(part_ind);
     }
 }
 
