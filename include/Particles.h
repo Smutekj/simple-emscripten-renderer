@@ -78,6 +78,7 @@ public:
     Color m_init_color;
     Color m_final_color;
     utils::Vector2f m_spawn_pos;
+    std::function<void(std::vector<Particle> &, int, float)> m_updater_full;
 
 private:
     void integrate(float dt);
@@ -86,7 +87,6 @@ private:
 
 protected:
     std::function<void(Particle &)> m_updater = [](Particle &) {};
-    std::function<void(std::vector<Particle> &, int, float)> m_updater_full;
     std::function<void(Particle &)> m_on_particle_death = [](Particle &) {};
     std::function<Particle(utils::Vector2f)> m_emitter = [](utils::Vector2f)
     { return Particle{}; };
