@@ -23,9 +23,10 @@ void Particles::setPeriod(int spawn_period)
 {
     m_spawn_period = spawn_period;
 }
-int Particles::getPeriod()const
+int Particles::getPeriod() const
 {
-    return m_spawn_period;;
+    return m_spawn_period;
+    ;
 }
 
 void Particles::update(float dt)
@@ -46,10 +47,18 @@ void Particles::update(float dt)
         }
         else
         {
+            //! ???
         }
     }
 
-    integrate(dt);
+    if (!m_updater_full) //! use deafult method if we haven't provided it ourselves
+    {
+        integrate(dt);
+    }
+    else
+    {
+        m_updater_full(m_particle_pool.getData(), m_particle_pool.size(), dt);
+    }
     destroyDeadParticles();
 }
 
@@ -61,7 +70,7 @@ void Particles::createParticle()
 }
 
 void Particles::destroyDeadParticles()
-{ 
+{
     auto &particles = m_particle_pool.getData();
     std::vector<int> to_destroy;
     for (int p_ind = 0; p_ind < m_particle_pool.size(); ++p_ind)
@@ -78,11 +87,9 @@ void Particles::destroyDeadParticles()
     }
 }
 
-
-
 Color interpolate(Color start, Color end, float lambda)
 {
-    return start + (end - start) * lambda ;
+    return start + (end - start) * lambda;
 }
 
 void Particles::integrate(float dt)
@@ -92,9 +99,8 @@ void Particles::integrate(float dt)
     {
         auto &particle = particles[p_ind];
         particle.time += dt;
-        particle.color = interpolate(m_init_color, m_final_color, particle.time/particle.life_time);
+        particle.color = interpolate(m_init_color, m_final_color, particle.time / particle.life_time);
         m_updater(particle);
-    
     }
 }
 
@@ -124,6 +130,11 @@ void Particles::setUpdater(std::function<void(Particle &)> new_updater)
 {
     m_updater = new_updater;
 }
+void Particles::setUpdaterFull(std::function<void(std::vector<Particle> &, int, float)> new_updater)
+{
+    m_updater_full = new_updater;
+}
+
 void Particles::setEmitter(std::function<Particle(utils::Vector2f)> new_emitter)
 {
     m_emitter = new_emitter;
@@ -141,7 +152,6 @@ void Particles::setLifetime(float life_time)
 {
     m_lifetime = life_time;
 }
-
 
 TexturedParticles::TexturedParticles(Texture &texture)
     : m_texture(&texture), Particles(20)
@@ -168,7 +178,6 @@ void TexturedParticles::draw(Renderer &renderer)
         renderer.drawSprite(sprite, "Instanced", GL_DYNAMIC_DRAW);
     }
 }
-
 
 void Particles::setRepeat(bool repeats)
 {

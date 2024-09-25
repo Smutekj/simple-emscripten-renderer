@@ -7,6 +7,7 @@
 #include <memory>
 #include <map>
 
+
 enum class TexMappingParam
 {
     Nearest = GL_NEAREST,
@@ -93,10 +94,6 @@ struct TextureHolder
         m_textures[texture_name] = std::make_shared<Texture>(texture);
 
         return true;
-    }
-
-    bool remove(std::string name)
-    {
     }
 
     bool add(std::string texture_name, std::string filename)

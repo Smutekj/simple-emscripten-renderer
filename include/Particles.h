@@ -20,7 +20,7 @@ struct Particle
     utils::Vector2f acc;
     utils::Vector2f scale;
     float angle = 0.f;
-    Color color = {0,0,0,1};
+    Color color = {0, 0, 0, 1};
     float life_time = 1.f;
     float time = 0;
 
@@ -33,7 +33,7 @@ struct Particle
 
 class Renderer;
 
-class Particles 
+class Particles
 {
 
 public:
@@ -45,27 +45,27 @@ public:
     virtual void draw(Renderer &target);
 
     void setSpawnPos(utils::Vector2f pos);
-    utils::Vector2f getSpawnPos()const
+    utils::Vector2f getSpawnPos() const
     {
         return m_spawn_pos;
     }
 
     void setInitColor(Color color);
     void setFinalColor(Color color);
-    
+
     void setLifetime(float lifetime);
-    
+
     void setRepeat(bool repeats);
-    bool getRepeat()const
+    bool getRepeat() const
     {
         return m_repeats;
     }
 
-
     void setPeriod(int period);
     int getPeriod() const;
-    
+
     void setUpdater(std::function<void(Particle &)> new_updater);
+    void setUpdaterFull(std::function<void(std::vector<Particle> &, int, float)> new_updater);
     void setEmitter(std::function<Particle(utils::Vector2f)> new_emitter);
     void setOnParticleDeathCallback(std::function<void(Particle &)> new_updater);
 
@@ -75,7 +75,6 @@ public:
     }
 
 public:
-
     Color m_init_color;
     Color m_final_color;
     utils::Vector2f m_spawn_pos;
@@ -87,6 +86,7 @@ private:
 
 protected:
     std::function<void(Particle &)> m_updater = [](Particle &) {};
+    std::function<void(std::vector<Particle> &, int, float)> m_updater_full;
     std::function<void(Particle &)> m_on_particle_death = [](Particle &) {};
     std::function<Particle(utils::Vector2f)> m_emitter = [](utils::Vector2f)
     { return Particle{}; };
@@ -94,7 +94,7 @@ protected:
     VectorMap<Particle> m_particle_pool;
 
     int m_spawn_period = 1; //! m_spawn_period frames need to pass for one particle
-    int m_spawn_timer = 0;  //! measures frames since last spawn 
+    int m_spawn_timer = 0;  //! measures frames since last spawn
 
     bool m_repeats = true; //! true if particles should be created continuously
     int n_spawned = 0;
