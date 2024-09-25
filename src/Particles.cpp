@@ -61,7 +61,7 @@ void Particles::createParticle()
 }
 
 void Particles::destroyDeadParticles()
-{
+{ 
     auto &particles = m_particle_pool.getData();
     std::vector<int> to_destroy;
     for (int p_ind = 0; p_ind < m_particle_pool.size(); ++p_ind)
