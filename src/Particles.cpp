@@ -122,7 +122,7 @@ void Particles::draw(Renderer &renderer)
         rect.setRotation(particle.angle);
         rect.setScale(particle.scale.x, particle.scale.y);
 
-        renderer.drawRectangle(rect, particle.color, m_shader_id, GL_DYNAMIC_DRAW);
+        renderer.drawRectangle(rect, particle.color, m_shader_id, DrawType::Dynamic);
     }
 }
 
@@ -175,7 +175,7 @@ void TexturedParticles::draw(Renderer &renderer)
         sprite.setRotation(particle.angle);
         sprite.setScale(particle.scale.x, particle.scale.y);
 
-        renderer.drawSprite(sprite, "Instanced", GL_DYNAMIC_DRAW);
+        renderer.drawSprite(sprite, "Instanced", DrawType::Dynamic);
     }
 }
 
