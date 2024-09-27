@@ -127,8 +127,9 @@ class Renderer
 public:
     Renderer(RenderTarget &target);
 
-    void drawSprite(Sprite2 &sprite, std::string shader_id, DrawType draw_type);
-    void drawText(Text &text, std::string shader_id, DrawType draw_type);
+    void drawSprite(Sprite2 &sprite, const std::string& shader_id, DrawType draw_type = DrawType::Dynamic);
+    void drawSpriteDynamic(Sprite2 &sprite, const std::string& shader_id);
+    void drawText(Text &text, const std::string& shader_id, DrawType draw_type);
 
     void drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color);
 

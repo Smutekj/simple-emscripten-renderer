@@ -74,7 +74,7 @@ bool Renderer::checkShader(const std::string &shader_id)
     return false;
 }
 
-void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, DrawType draw_type)
+void Renderer::drawSprite(Sprite2 &sprite, const std::string& shader_id, DrawType draw_type)
 {
     if (checkShader(shader_id))
     {
@@ -82,8 +82,12 @@ void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, DrawType draw_
                    sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
     }
 }
+void Renderer::drawSpriteDynamic(Sprite2 &sprite, const std::string& shader_id)
+{
+    drawSprite(sprite, shader_id, DrawType::Dynamic);
+}
 
-void Renderer::drawText(Text &text, std::string shader_id, DrawType draw_type)
+void Renderer::drawText(Text &text,const std::string& shader_id, DrawType draw_type)
 {
     if (!checkShader(shader_id))
     {
