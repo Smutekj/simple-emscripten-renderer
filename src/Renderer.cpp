@@ -149,7 +149,7 @@ void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color,
 {
     auto &shader = m_shaders.get(shader_id);
 
-    if (draw_type == DrawType::Dynamic)
+    if (draw_type == DrawType::Static)
     {
         std::cout << "STATIC DRAW NOT SUPPORTED YET!!!";
         return;
