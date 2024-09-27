@@ -147,7 +147,7 @@ bool Font::loadFromFile(std::string font_filename)
         glyph_sprite.setPosition(glyph_pos + (character.size + 1) / 2.f);
         glyph_sprite.setScale(face->glyph->bitmap.width / 2.f,
                               -static_cast<float>(face->glyph->bitmap.rows) / 2.f); //! MINUS FOR Y COORD IS IMPORTANT!!!!!!
-        m_canvas->drawSprite(glyph_sprite, "Text", GL_DYNAMIC_DRAW);
+        m_canvas->drawSprite(glyph_sprite, "Text", DrawType::Dynamic);
 
         glyph_pos.x += face->glyph->bitmap.width + safety_pixels_x;
         if (glyph_pos.x + max_width >= main_texture.getSize().x) //! if we reach right side of the main texture
