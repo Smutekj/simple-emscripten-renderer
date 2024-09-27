@@ -10,20 +10,27 @@
 #include <vector>
 #include <memory>
 
-constexpr static int BATCH_VERTEX_CAPACITY = 69000;
+enum class DrawType
+{
+    Dynamic = GL_DYNAMIC_DRAW,
+    Static = GL_STATIC_DRAW,
+    Stream = GL_STREAM_DRAW, 
+};
+
+
+constexpr static int BATCH_VERTEX_CAPACITY = 65000; //! maximum number of vertices per batch
 
 struct BatchConfig
 {
-
     BatchConfig() = default;
 
-    BatchConfig(std::array<GLuint, N_MAX_TEXTURES> tex_ids, const GLuint &shader_id, GLenum draw_type)
+    BatchConfig(std::array<GLuint, N_MAX_TEXTURES> tex_ids, const GLuint &shader_id, DrawType draw_type)
         : shader_id(shader_id), draw_type(draw_type)
     {
         assert(tex_ids.size() <= N_MAX_TEXTURES);
         std::copy(tex_ids.begin(), tex_ids.end(), texture_ids.begin());
     }
-    BatchConfig(const GLuint &tex_id, const GLuint &shader_id, GLenum draw_type)
+    BatchConfig(const GLuint &tex_id, const GLuint &shader_id, DrawType draw_type)
         : shader_id(shader_id), draw_type(draw_type)
     {
         texture_ids[0] = tex_id;
@@ -40,7 +47,7 @@ struct BatchConfig
     std::array<GLuint, N_MAX_TEXTURES> texture_ids = {0, 0};
     // GLuint texture_id = 0;
     GLuint shader_id = 0;
-    GLenum draw_type = GL_DYNAMIC_DRAW;
+    DrawType draw_type = DrawType::Dynamic;
 };
 
 inline void hashloop(int n, std::invocable<int> auto &&hash_combiner)
@@ -77,8 +84,8 @@ class Batch
 {
 
 public:
-    Batch(GLuint texture_id, Shader &shader, GLenum draw_type);
-    Batch(const BatchConfig &config, Shader &shader, GLenum draw_type);
+    Batch(GLuint texture_id, Shader &shader, DrawType draw_type);
+    Batch(const BatchConfig &config, Shader &shader, DrawType draw_type);
 
     void clear();
 
@@ -114,6 +121,7 @@ struct Trans
     float angle = 0;
     Vec2 tex_coords = {0, 0};
     Vec2 tex_size = {0, 0};
+    ColorByte color = {255, 255, 255, 255};
 };
 
 class SpriteBatch
@@ -137,7 +145,7 @@ public:
     BatchConfig m_config;
 
 private:
-    static constexpr Vec2 m_prototype[6] = {{-1, -1},
+    static constexpr Vec2 m_prototype[4] = {{-1, -1},
                                             {-1, 1},
                                             {1, -1},
                                             {1, 1}};

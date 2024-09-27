@@ -2,6 +2,7 @@
 
 #include "Texture.h"
 #include "RenderTarget.h"
+#include "Color.h"
 
 #include <vector>
 #include <filesystem>
@@ -20,14 +21,6 @@ public:
 private:
     std::shared_ptr<Texture> m_texture = nullptr;
     TextureOptions m_options;
-};
-
-struct ColorByte
-{
-    unsigned char r = 0;
-    unsigned char g = 0;
-    unsigned char b = 0;
-    unsigned char a = 0;
 };
 
 struct Image

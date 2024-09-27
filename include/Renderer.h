@@ -9,9 +9,41 @@
 #include <memory>
 #include <set>
 
+
+
+enum class BlendFactor
+{
+    One = GL_ONE,
+    Zero = GL_ZERO,
+    SrcAlpha = GL_SRC_ALPHA,
+    OneMinusSrcAlpha = GL_ONE_MINUS_SRC_ALPHA,
+    SrcColor = GL_SRC_COLOR,
+};
+
+//! \struct holds info for color blending for OpenGL
+//! \brief the order of parameters corresponds to the order in
+//! \brief glBlendFunSeparate(...);
+//! \brief https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glBlendFuncSeparate.xhtml
+struct BlendParams
+{
+    BlendFactor src_factor = BlendFactor::One;
+    BlendFactor dst_factor = BlendFactor::OneMinusSrcAlpha;
+    BlendFactor src_alpha = BlendFactor::One;
+    BlendFactor dst_alpha = BlendFactor::OneMinusSrcAlpha;
+
+    BlendParams() = default;
+    BlendParams(BlendFactor src_fact, BlendFactor dst_fact)
+        : src_factor(src_fact), dst_factor(dst_fact)
+    {
+    }
+    BlendParams(BlendFactor src_fact, BlendFactor dst_fact, BlendFactor src_a, BlendFactor dst_a)
+        : src_factor(src_fact), dst_factor(dst_fact), src_alpha(src_a), dst_alpha(dst_a)
+    {
+    }
+};
+
 struct Rectangle2 : public Transform
 {
-
     float width = 1;
     float height = 1;
 };
@@ -19,6 +51,16 @@ struct Rectangle2 : public Transform
 struct Sprite2 : public Rectangle2
 {
 
+    Sprite2(Texture *texture = nullptr)
+        : m_texture(texture)
+    {
+        if (texture)
+        {
+            m_tex_rect = {0, 0, (int)texture->getSize().x, (int)texture->getSize().y};
+            m_texture_handles.at(0) = texture->getHandle();
+            m_tex_size = texture->getSize();
+        }
+    }
     Sprite2(Texture &texture)
         : m_texture(&texture),
           m_tex_rect(0, 0, (int)texture.getSize().x, (int)texture.getSize().y)
@@ -39,11 +81,42 @@ struct Sprite2 : public Rectangle2
         m_tex_rect = {0, 0, (int)texture.getSize().x, (int)texture.getSize().y};
         m_tex_size = texture.getSize();
     }
+    void setTextureP(int slot, Texture *texture = nullptr)
+    {
+        if (!texture)
+        {
+            return;
+        }
+        m_texture = texture;
+        m_texture_handles.at(slot) = texture->getHandle();
+        m_tex_rect = {0, 0, (int)texture->getSize().x, (int)texture->getSize().y};
+        m_tex_size = texture->getSize();
+    }
     Texture *m_texture = nullptr;
     std::array<GLuint, N_MAX_TEXTURES> m_texture_handles = {0, 0};
-    utils::Vector2i m_tex_size = {0,0}; 
+    utils::Vector2i m_tex_size = {0, 0};
     Rect<int> m_tex_rect;
+    ColorByte m_color = {255, 255, 255, 255};
+};
 
+class Font;
+
+class Text : public Transform
+{
+
+public:
+    Text(std::string text = "");
+    void setFont(std::shared_ptr<Font> new_font);
+    std::shared_ptr<Font> getFont();
+    void setText(const std::string &new_text);
+    const std::string &getText() const;
+    void setColor(ColorByte new_color);
+    const ColorByte &getColor() const;
+
+private:
+    std::weak_ptr<Font> m_font;
+    std::string m_text = "";
+    ColorByte m_color = {255, 255, 255, 255};
 };
 
 class Renderer
@@ -54,20 +127,22 @@ class Renderer
 public:
     Renderer(RenderTarget &target);
 
-    void drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
-                    Texture &texture, std::string shader_id, GLenum draw_type);
-    void drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_type);
-    void drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect, Vec2 texture_size,
-                    std::array<GLuint, N_MAX_TEXTURES> &textures, std::string shader_id, GLenum draw_type);
-    void drawText(std::string text, Vec2 center, Vec2 scale, float angle, Font& font, std::string shader_id, GLenum draw_type);
+    void drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
+                    Texture &texture, std::string shader_id, DrawType draw_type);
+    void drawSprite(Sprite2 &sprite, std::string shader_id, DrawType draw_type);
+    void drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect, Vec2 texture_size,
+                    std::array<GLuint, N_MAX_TEXTURES> &textures, std::string shader_id, DrawType draw_type);
+    void drawText(std::string text, Vec2 center, Vec2 scale, float angle, Font &font,
+                  std::string shader_id, DrawType draw_type);
+    void drawText(Text &text, std::string shader_id, DrawType draw_type);
 
     void drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color);
 
-    void drawRectangle(Rectangle2 &r, Color color, GLenum draw_type);
-    void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color, GLenum draw_type = GL_DYNAMIC_DRAW);
-    void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts=51);
-    void drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts = 51);
-    void drawVertices(VertexArray& verts, GLenum draw_type = GL_DYNAMIC_DRAW, std::shared_ptr<Texture> p_texture = nullptr);
+    void drawRectangle(Rectangle2 &r, Color color, const std::string &shader_id = "VertexArrayDefault", DrawType draw_type = DrawType::Dynamic);
+    void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color, DrawType draw_type = DrawType::Dynamic);
+    void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 51);
+    void drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts = 51, std::string shader_id = "VertexArrayDefault");
+    void drawVertices(VertexArray &verts, DrawType draw_type = DrawType::Dynamic, std::shared_ptr<Texture> p_texture = nullptr);
 
     void drawAll();
 
@@ -82,23 +157,27 @@ public:
     Shader &getShader(std::string id);
     utils::Vector2f getMouseInWorld();
 
-public:
-    View m_view;
-    Rect<float> m_viewport;
-
 private:
     void drawSpriteStatic(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
                           Texture &texture, Shader &shader);
-    Batch &findBatch(GLuint texture_id, Shader &shader, GLenum draw_type, int num_vertices_inserted);
-    Batch &findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, GLenum draw_type, int num_vertices_inserted);
-    SpriteBatch &findSpriteBatch(GLuint texture_id, Shader &shader, GLenum draw_type);
-    SpriteBatch &findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, GLenum draw_type);
+    Batch &findBatch(GLuint texture_id, Shader &shader, DrawType draw_type, int num_vertices_inserted);
+    Batch &findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type, int num_vertices_inserted);
+    SpriteBatch &findSpriteBatch(GLuint texture_id, Shader &shader, DrawType draw_type);
+    SpriteBatch &findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type);
 
-    Batch &findFreeBatch(BatchConfig config, Shader &shader, GLenum draw_type, int num_vertices_inserted);
-    SpriteBatch &findFreeSpriteBatch(BatchConfig config, Shader &shader, GLenum draw_type);
+    Batch &findFreeBatch(BatchConfig config, Shader &shader, DrawType draw_type, int num_vertices_inserted);
+    SpriteBatch &findFreeSpriteBatch(BatchConfig config, Shader &shader, DrawType draw_type);
 
-    BatchPtr createBatch(const BatchConfig &config, Shader &shader, GLenum draw_type);
+    BatchPtr createBatch(const BatchConfig &config, Shader &shader, DrawType draw_type);
 
+    bool checkShader(const std::string &shader_id);
+
+public:
+    View m_view;
+    Rect<float> m_viewport;
+    BlendParams m_blend_factors;
+
+private:
     ShaderHolder m_shaders;
 
     std::unordered_map<BatchConfig, int> m_config2next_free_batch;

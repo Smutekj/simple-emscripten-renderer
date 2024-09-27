@@ -1,13 +1,13 @@
 #include "Batch.h"
 
-Batch::Batch(GLuint texture_id, Shader &shader, GLenum draw_type)
+Batch::Batch(GLuint texture_id, Shader &shader, DrawType draw_type)
     : m_config(texture_id, shader.getId(), draw_type),
-      m_verts(shader, draw_type, m_capacity)
+      m_verts(shader, static_cast<GLenum>(draw_type), m_capacity)
 {
 }
-Batch::Batch(const BatchConfig &config, Shader &shader, GLenum draw_type)
+Batch::Batch(const BatchConfig &config, Shader &shader, DrawType draw_type)
     : m_config(config),
-      m_verts(shader, draw_type, m_capacity)
+      m_verts(shader, static_cast<GLenum>(draw_type), m_capacity)
 {
     m_indices.reserve(m_capacity*3);
     std::for_each(config.texture_ids.begin(), config.texture_ids.end(), [&config, this](auto &id)
@@ -32,7 +32,7 @@ void Batch::flush(View &view)
 
     m_verts.draw(view, m_indices);
 
-    if (m_config.draw_type != GL_STATIC_DRAW)
+    if (m_config.draw_type != DrawType::Static) //! static should stay the same so no need to clear data
     {
         clear();
     }
@@ -121,6 +121,7 @@ void SpriteBatch::createBuffers()
         return true;
     };
 
+    //! TODO: I should probably start using VAOs... since we can use GLES 3.0
     void SpriteBatch::bindAttributes()
     {
 
@@ -140,12 +141,15 @@ void SpriteBatch::createBuffers()
         glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(5 * sizeof(float)));
         glEnableVertexAttribArray(5);
         glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(7 * sizeof(float)));
+        glEnableVertexAttribArray(6);
+        glVertexAttribPointer(6, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Trans), (void *)(9 * sizeof(float)));
 
         glVertexAttribDivisor(1, 1);
         glVertexAttribDivisor(2, 1);
         glVertexAttribDivisor(3, 1);
         glVertexAttribDivisor(4, 1);
         glVertexAttribDivisor(5, 1);
+        glVertexAttribDivisor(6, 1);
         glCheckError();
     }
 
@@ -179,7 +183,7 @@ void SpriteBatch::createBuffers()
         {
             auto texture_id = m_config.texture_ids.at(slot);
             if (texture_id != 0)
-            {
+            { 
                 glActiveTexture(GL_TEXTURE0 + slot);
                 glCheckError();
                 glBindTexture(GL_TEXTURE_2D, texture_id);

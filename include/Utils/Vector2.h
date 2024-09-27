@@ -4,11 +4,11 @@
 #include <cassert>
 #include <type_traits>
 #include <numeric>
+#include <ostream>
 #include <numbers>
 
 namespace utils
 {
-
 
     bool inline approx_equal(float a, float b, float epsilon = std::numeric_limits<float>::epsilon())
     {
@@ -23,8 +23,6 @@ namespace utils
         return (b - a) > std::max(std::abs(a), std::abs(b)) * 10000. * epsilon;
     }
 
-
-
     template <class T>
     struct Vector2
     {
@@ -37,11 +35,11 @@ namespace utils
             : x(x), y(y) {}
 
         template <class VecType>
-        constexpr Vector2<T> operator=(VecType& other_vec)
+        constexpr Vector2<T> operator=(VecType &other_vec)
         {
             x = other_vec.x;
             y = other_vec.y;
-            return {other_vec.x, other_vec.y}; 
+            return {other_vec.x, other_vec.y};
         }
 
         template <class T1>
@@ -101,24 +99,38 @@ namespace utils
         constexpr auto operator-(const Vector2<T1> &v) const
         {
             //! unsigned types are casted into int because differences would overflow
-            if constexpr(std::is_unsigned_v<T>)
+            if constexpr (std::is_unsigned_v<T>)
             {
                 return Vector2<int>{static_cast<int>(x) - v.x, static_cast<int>(y) - v.y};
-            }else {
+            }
+            else
+            {
                 return Vector2<T>{x - v.x, y - v.y};
             }
         }
 
-        constexpr bool operator==(const Vector2<T>& v) const
+        constexpr bool operator==(const Vector2<T> &v) const
         {
-            if constexpr(std::is_floating_point_v<T>)
+            if constexpr (std::is_floating_point_v<T>)
             {
-                return approx_equal(v.x,x) && approx_equal(v.y,y);
-            }else{
+                return approx_equal(v.x, x) && approx_equal(v.y, y);
+            }
+            else
+            {
                 return v.x == x && v.y == y;
             }
         }
+
+        template <class X>
+        friend std::ostream &operator<<(std::ostream &os, const Vector2<X> &vec);
     };
+
+    template <class T>
+    std::ostream &operator<<(std::ostream &os, const Vector2<T> &vec)
+    {
+        os << "[" << vec.x << ", " << vec.y << "] ";
+        return os;
+    }
 
     template <class T, class Scalar>
     constexpr Vector2<T> inline operator*(Scalar i, const Vector2<T> &v)
@@ -238,7 +250,7 @@ namespace utils
     inline utils::Vector2f angle2dir(float angle)
     {
         const auto to_radains = std::numbers::pi_v<float> / 180.f;
-        return {std::cos(angle * to_radains), std::sin(angle*to_radains)};
+        return {std::cos(angle * to_radains), std::sin(angle * to_radains)};
     }
 
 }

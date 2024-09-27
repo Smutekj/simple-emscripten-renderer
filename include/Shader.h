@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <type_traits>
 #include <variant>
+#include <filesystem>
 
 #include <magic_enum.hpp>
 #include <magic_enum_utility.hpp>
@@ -45,12 +46,16 @@ struct VariablesData
 
     std::string setTexture(int slot, GLuint handle)
     {
-        auto name = std::find_if(textures.begin(), textures.end(), [slot](auto &tex_data)
-                                 { return tex_data.second.slot == slot; })
-                        ->first;
 
-        textures.at(name) = {slot, handle};
-        return name;
+        auto name_it = std::find_if(textures.begin(), textures.end(), [slot](auto &tex_data)
+                                    { return tex_data.second.slot == slot; });
+
+        if (name_it != textures.end())
+        { 
+            textures.at(name_it->first) = {slot, handle};
+            return name_it->first;
+        }
+        return "";
     }
 };
 
@@ -103,12 +108,16 @@ public:
 private:
     void retrieveCode(const char *code_path, std::string &code);
 
-    unsigned int m_id; // the program ID
+    unsigned int m_id = -1; // the program ID
     std::string m_fragment_path;
     std::string m_vertex_path;
     std::string m_shader_name = "default_name";
+    std::filesystem::file_time_type m_last_writetime;
 
     VariablesData m_variables;
+
+public:
+    inline static float m_time;
 };
 
 void inline bindVertexAttributes(GLuint buffer, std::vector<int> sizes)
@@ -128,42 +137,6 @@ void inline bindVertexAttributes(GLuint buffer, std::vector<int> sizes)
     }
 }
 
-class ShaderS
-{
-
-public:
-    ShaderS() = default;
-    ShaderS(const char *vertexPath, const char *fragmentPath);
-
-    GLuint getId() const;
-    void recompile();
-
-    // use/activate the shader
-    void use();
-
-    // utility uniform functions
-    void setBool(const std::string &name, bool value) const;
-    void setInt(const std::string &name, int value) const;
-    void setFloat(const std::string &name, float value) const;
-    void setVec2(const std::string &name, const glm::vec2 &value) const;
-    void setVec2(const std::string &name, float x, float y) const;
-    void setVec3(const std::string &name, const glm::vec3 &value) const;
-    void setVec3(const std::string &name, float x, float y, float z) const;
-    void setVec4(const std::string &name, const glm::vec4 &value) const;
-    void setVec4(const std::string &name, float x, float y, float z, float w) const;
-    void setMat2(const std::string &name, const glm::mat2 &mat) const;
-    void setMat3(const std::string &name, const glm::mat3 &mat) const;
-    void setMat4(const std::string &name, const glm::mat4 &mat) const;
-
-private:
-    void retrieveCode(const char *code_path, std::string &code);
-
-    unsigned int m_id; // the program ID
-    std::string m_fragment_path;
-    std::string m_vertex_path;
-    std::string m_shader_name = "default_name";
-};
-
 enum class ShaderID
 {
     VertexArrayDefault,
@@ -182,11 +155,13 @@ struct ShaderUIData
     ShaderUIData(Shader &program)
         : p_program(&program), filename(program.getFragmentPath()), variables(program.getVariables())
     {
+        last_write_time = std::filesystem::last_write_time(filename);
     }
 
     Shader *p_program = nullptr;
     std::string filename = "";
     VariablesData &variables;
+    std::filesystem::file_time_type last_write_time;
 };
 
 class ShaderHolder
@@ -199,9 +174,20 @@ public:
 
     void load(std::string name, std::string vertex_path, std::string fragment_path);
 
+    void erase(const std::string &shader_id)
+    {
+        m_shaders.erase(shader_id);
+        m_shader_data.erase(shader_id);
+    }
+
     const auto &getShaders() const
     {
         return m_shaders;
+    }
+
+    bool contains(const std::string &shader_id) const
+    {
+        return m_shaders.count(shader_id) > 0;
     }
 
     ShaderUIData &getData(std::string name);
@@ -210,6 +196,7 @@ public:
         return m_shader_data;
     }
 
+    void refresh();
 
     void initializeUniforms();
 

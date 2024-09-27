@@ -19,9 +19,14 @@ void Particles::setSpawnPos(utils::Vector2f pos)
     m_spawn_pos = pos;
 }
 
-void Particles::setSize(float size)
+void Particles::setPeriod(int spawn_period)
 {
-    m_particle_size = size;
+    m_spawn_period = spawn_period;
+}
+int Particles::getPeriod() const
+{
+    return m_spawn_period;
+    ;
 }
 
 void Particles::update(float dt)
@@ -35,7 +40,6 @@ void Particles::update(float dt)
         if (!m_repeats && n_spawned < m_particle_pool.capacity())
         {
             createParticle();
-            // n_spawned++;
         }
         else if (m_repeats)
         {
@@ -43,18 +47,24 @@ void Particles::update(float dt)
         }
         else
         {
+            //! ???
         }
     }
 
-    integrate(dt);
+    if (!m_updater_full) //! use deafult method if we haven't provided it ourselves
+    {
+        integrate(dt);
+    }
+    else
+    {
+        m_updater_full(m_particle_pool.getData(), m_particle_pool.size(), dt);
+    }
     destroyDeadParticles();
 }
 
 void Particles::createParticle()
 {
     auto new_particle = m_emitter(m_spawn_pos);
-    new_particle.color = m_color;
-    new_particle.life_time = m_lifetime;
     m_particle_pool.insert(new_particle);
     n_spawned++;
 }
@@ -68,20 +78,18 @@ void Particles::destroyDeadParticles()
         auto &particle = particles[p_ind];
         if (particle.time > particle.life_time)
         {
-            to_destroy.push_back(p_ind);
+            to_destroy.push_back(m_particle_pool.getEntityInd(p_ind));
         }
     }
     for (auto part_ind : to_destroy)
     {
-        m_particle_pool.removeByDataInd(part_ind);
+        m_particle_pool.removeByEntityInd(part_ind);
     }
 }
 
-
-
 Color interpolate(Color start, Color end, float lambda)
 {
-    return start + (end - start) * lambda ;
+    return start + (end - start) * lambda;
 }
 
 void Particles::integrate(float dt)
@@ -91,9 +99,8 @@ void Particles::integrate(float dt)
     {
         auto &particle = particles[p_ind];
         particle.time += dt;
-        particle.color = interpolate(m_color, m_final_color, particle.time/particle.life_time);
+        particle.color = interpolate(m_init_color, m_final_color, particle.time / particle.life_time);
         m_updater(particle);
-    
     }
 }
 
@@ -110,12 +117,12 @@ void Particles::draw(Renderer &renderer)
     for (int i = 0; i < n_particles; ++i)
     {
         int p_ind = (youngest_particle_ind + i) % n_particles;
-        auto &particle = particles[p_ind];
+        auto &particle = particles.at(p_ind);
         rect.setPosition(particle.pos.x, particle.pos.y);
         rect.setRotation(particle.angle);
         rect.setScale(particle.scale.x, particle.scale.y);
 
-        renderer.drawRectangle(rect, particle.color, GL_DYNAMIC_DRAW);
+        renderer.drawRectangle(rect, particle.color, m_shader_id, GL_DYNAMIC_DRAW);
     }
 }
 
@@ -123,19 +130,19 @@ void Particles::setUpdater(std::function<void(Particle &)> new_updater)
 {
     m_updater = new_updater;
 }
+void Particles::setUpdaterFull(std::function<void(std::vector<Particle> &, int, float)> new_updater)
+{
+    m_updater_full = new_updater;
+}
+
 void Particles::setEmitter(std::function<Particle(utils::Vector2f)> new_emitter)
 {
     m_emitter = new_emitter;
 }
 
-void Particles::setVel(float vel)
-{
-    m_vel = vel;
-}
-
 void Particles::setInitColor(Color color)
 {
-    m_color = color;
+    m_init_color = color;
 }
 void Particles::setFinalColor(Color color)
 {
@@ -145,15 +152,10 @@ void Particles::setLifetime(float life_time)
 {
     m_lifetime = life_time;
 }
-void Particles::setFrequency(float frequency)
-{
-    m_spawn_period = 1./frequency;
-}
 
 TexturedParticles::TexturedParticles(Texture &texture)
     : m_texture(&texture), Particles(20)
 {
-    m_particle_size = 3;
 }
 
 void TexturedParticles::draw(Renderer &renderer)
@@ -177,11 +179,6 @@ void TexturedParticles::draw(Renderer &renderer)
     }
 }
 
-void Particles::setAngleSpread(float min_spread, float max_spread)
-{
-    m_spread_max = max_spread;
-    m_spread_min = min_spread;
-}
 void Particles::setRepeat(bool repeats)
 {
     m_repeats = repeats;

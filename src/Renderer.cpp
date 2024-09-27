@@ -2,6 +2,7 @@
 
 #include "Rectangle.h"
 #include "Texture.h"
+#include "Font.h"
 
 #include <chrono>
 #include <numbers>
@@ -53,54 +54,102 @@ utils::Vector2f Renderer::getMouseInWorld()
     return {world_coords.x, world_coords.y};
 }
 
-void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_type)
+bool Renderer::checkShader(const std::string &shader_id)
 {
-    // drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(),
-    //            sprite.m_tex_rect, sprite.m_texture, shader_id, draw_type);
-    // if(sprite.m_texture)
-    // {
-        // sprite.m_tex_size = sprite.m_texture->getSize();
-    // }
-    drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(),
-               sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
+    if (m_shaders.contains(shader_id))
+    {
+        return true;
+    }
+
+    try
+    {
+        std::filesystem::path resources_path = "../Resources/";
+        m_shaders.load(shader_id, resources_path.string() + "basicinstanced.vert", resources_path.string() + shader_id + ".frag");
+        return true;
+    }
+    catch (const std::exception &e)
+    {
+        std::cout << e.what() << "\n";
+    }
+    return false;
 }
 
-void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
-                          Texture &texture, std::string shader_id, GLenum draw_type)
+void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, DrawType draw_type)
 {
-    auto &shader = m_shaders.get(shader_id);
-
-    if (draw_type == GL_STATIC_DRAW)
+    if (checkShader(shader_id))
     {
-        drawSpriteStatic(center, scale, angle, tex_rect, texture, shader);
+        drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(), sprite.m_color,
+                   sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
+    }
+}
+
+void Renderer::drawText(Text &text, std::string shader_id, DrawType draw_type)
+{
+    if (!checkShader(shader_id))
+    {
         return;
     }
+    auto &string = text.getText();
+    auto font = text.getFont();
+    Sprite2 glyph_sprite(font->getTexture());
 
-    Trans t;
-    t.angle = angle;
-    t.trans = center;
-    t.scale = scale;
+    //! find dimensions of the text
+    // auto text_size_x =
+    //     std::accumulate(string.begin(), string.end(), 0, [](auto character)
+    //                     {
+    //     return font->m_characters.at(character).size.x; });
+    // auto text_size_y =
+    //     *std::max_element(string.begin(), string.end(), [](auto character)
+    //                       {
+    //     return font->m_characters.at(character).size.y; });
 
-    //! normalize the texture rectangle to be between [0,1] just as OpenGL likes it
-    auto tex_size = texture.getSize();
-    Rect<float> tex_rect_norm = {tex_rect.pos_x / tex_size.x, tex_rect.pos_y / tex_size.y,
-                                 tex_rect.width / tex_size.x, tex_rect.height / tex_size.y};
-    t.tex_coords = {tex_rect_norm.pos_x, tex_rect_norm.pos_y};
-    t.tex_size = {tex_rect_norm.width, tex_rect_norm.height};
+    // utils::Vector2f text_size = {text_size_x, text_size_y};
 
-    auto &batch = findSpriteBatch(texture.getHandle(), shader, GL_DYNAMIC_DRAW);
-    if (batch.addSprite(t))
+    auto text_scale = text.getScale();
+    auto center_pos = text.getPosition();
+    auto upper_left_pos = center_pos;
+    utils::Vector2f glyph_pos = center_pos;
+    for (std::size_t glyph_ind = 0; glyph_ind < string.size(); ++glyph_ind)
     {
+        auto character = font->m_characters.at(string.at(glyph_ind));
+
+        float dy = character.size.y - character.bearing.y;
+        glyph_pos.x = upper_left_pos.x + character.bearing.x * text_scale.x;
+        glyph_pos.y = upper_left_pos.y + dy * text_scale.y;
+
+        float width = character.size.x * text_scale.x;
+        float height = character.size.y * text_scale.y;
+
+        glyph_sprite.m_tex_rect = {character.tex_coords.x, character.tex_coords.y,
+                                   character.size.x, character.size.y};
+
+        //! setPosition sets center of the sprite not the corner position. so we must correct for that
+        glyph_pos += utils::Vector2f{width, height - 4. * dy} / 2.f; //! the 4 is weird :(
+        glyph_sprite.setPosition(glyph_pos);
+        glyph_sprite.setScale(width / 2., height / 2.);
+        glyph_sprite.m_color = text.getColor();
+
+        upper_left_pos.x += (character.advance >> 6) * text_scale.x;
+        drawSprite(glyph_sprite, shader_id, draw_type);
     }
 }
 
-void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
+void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
+                          Texture &texture, std::string shader_id, DrawType draw_type)
+{
+    std::array<GLuint, N_MAX_TEXTURES> texture_handles;
+    texture_handles.fill(0);
+    texture_handles[0] = texture.getHandle();
+    drawSprite(center, scale, angle, color, tex_rect, texture.getSize(), texture_handles, shader_id, draw_type);
+}
+
+void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
                           Vec2 texture_size, std::array<GLuint, N_MAX_TEXTURES> &texture_handles,
-                          std::string shader_id, GLenum draw_type)
+                          std::string shader_id, DrawType draw_type)
 {
     auto &shader = m_shaders.get(shader_id);
 
-    if (draw_type == GL_STATIC_DRAW)
+    if (draw_type == DrawType::Dynamic)
     {
         std::cout << "STATIC DRAW NOT SUPPORTED YET!!!";
         return;
@@ -110,6 +159,7 @@ void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_re
     t.angle = angle;
     t.trans = center;
     t.scale = scale;
+    t.color = color;
 
     //! normalize the texture rectangle to be between [0,1] just as OpenGL likes it
     auto tex_size = texture_size;
@@ -118,7 +168,7 @@ void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_re
     t.tex_coords = {tex_rect_norm.pos_x, tex_rect_norm.pos_y};
     t.tex_size = {tex_rect_norm.width, tex_rect_norm.height};
 
-    auto &batch = findSpriteBatch(texture_handles, shader, GL_DYNAMIC_DRAW);
+    auto &batch = findSpriteBatch(texture_handles, shader, DrawType::Dynamic);
     if (batch.addSprite(t))
     {
     }
@@ -127,7 +177,7 @@ void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, Rect<int> tex_re
 void Renderer::drawSpriteStatic(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
                                 Texture &texture, Shader &shader)
 {
-    auto &batch = findBatch(texture.getHandle(), shader, GL_STATIC_DRAW, 4);
+    auto &batch = findBatch(texture.getHandle(), shader, DrawType::Dynamic, 4);
 
     Sprite s(texture, shader);
     s.setRotation(angle);
@@ -156,8 +206,12 @@ void Renderer::drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color
 }
 
 void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color,
-                               GLenum draw_type)
+                               DrawType draw_type)
 {
+    if(!checkShader("VertexArrayDefault"))
+    {
+        return;
+    }
     auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), draw_type, 6);
 
     std::vector<Vertex> verts(6); //! this should be static?
@@ -186,9 +240,12 @@ void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Colo
     // batch.pushVertex(2);
 }
 
-void Renderer::drawRectangle(Rectangle2 &r, Color color, GLenum draw_type)
+void Renderer::drawRectangle(Rectangle2 &r, Color color, const std::string &shader_id, DrawType draw_type)
 {
-    auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), draw_type, 6);
+
+    auto &shader_name = m_shaders.contains(shader_id) ? shader_id : "VertexArrayDefault";
+
+    auto &batch = findBatch(0, m_shaders.get(shader_name), draw_type, 6);
 
     std::vector<Vertex> verts(6); //! this should be static?
     verts[0] = {{-r.width / 2.f, -r.height / 2.f}, color, {0.f, 0.f}};
@@ -207,39 +264,14 @@ void Renderer::drawRectangle(Rectangle2 &r, Color color, GLenum draw_type)
     batch.pushVertexArray(verts);
 }
 
-
-
 void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_verts)
 {
-    auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), GL_DYNAMIC_DRAW, n_verts);
-
-    auto pi = std::numbers::pi_v<float>;
-
-    auto n_verts_circumference = n_verts - 1;
-    batch.pushVertex({center, color, {0, 0}});
-    for (int i = 0; i < n_verts_circumference; ++i)
-    {
-        float x = std::cos(2.f * i * pi / 50.f);
-        float y = std::sin(2.f * i * pi / 50.f);
-        Vertex v = {{center.x + x * radius, center.y + y * radius}, color, {x, y}};
-        batch.pushVertex(v);
-    }
-
-    auto &indices = batch.m_indices;
-    indices.resize(indices.size() - n_verts); //! get rid of indices just created by pushVertex
-    auto last_index = batch.getLastInd() - n_verts;
-    //! make triangles by specifying indices
-    for (IndexType i = 0; i < n_verts_circumference; ++i)
-    {
-        indices.push_back(last_index);
-        indices.push_back((i) % n_verts_circumference + last_index + 1);
-        indices.push_back((i + 1) % n_verts_circumference + last_index + 1);
-    }
+    drawCricleBatched(center, 0., radius, radius, color, n_verts);
 }
 
-void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts)
+void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts, std::string shader_id)
 {
-    auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), GL_DYNAMIC_DRAW, n_verts);
+    auto &batch = findBatch(0, m_shaders.get(shader_id), DrawType::Dynamic, n_verts);
 
     auto pi = std::numbers::pi_v<float>;
 
@@ -247,8 +279,8 @@ void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float
     batch.pushVertex({center, color, {0, 0}});
     for (int i = 0; i < n_verts_circumference; ++i)
     {
-        float x = std::cos(2.f * i * pi / n_verts_circumference + angle);
-        float y = std::sin(2.f * i * pi / n_verts_circumference + angle);
+        float x = std::cos(2.f * i * pi / n_verts_circumference + glm::radians(angle));
+        float y = std::sin(2.f * i * pi / n_verts_circumference + glm::radians(angle));
         Vertex v = {{center.x + x * radius_a, center.y + y * radius_b}, color, {x, y}};
         batch.pushVertex(v);
     }
@@ -265,9 +297,9 @@ void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float
     }
 }
 
-void Renderer::drawVertices(VertexArray& verts, GLenum draw_type, std::shared_ptr<Texture> p_texture)
+void Renderer::drawVertices(VertexArray &verts, DrawType draw_type, std::shared_ptr<Texture> p_texture)
 {
-    GLuint texture_id = p_texture ? p_texture->getHandle() : 0; 
+    GLuint texture_id = p_texture ? p_texture->getHandle() : 0;
     auto &batch = findBatch(texture_id, *verts.m_shader, draw_type, static_cast<int>(verts.size()));
 
     auto pi = std::numbers::pi_v<float>;
@@ -278,8 +310,22 @@ void Renderer::drawVertices(VertexArray& verts, GLenum draw_type, std::shared_pt
         batch.pushVertex(verts[i]);
     }
 }
+
+static void setBlendFunc(BlendParams params = {})
+{
+    auto df = static_cast<GLuint>(params.dst_factor);
+    auto da = static_cast<GLuint>(params.dst_alpha);
+    auto sf = static_cast<GLuint>(params.src_factor);
+    auto sa = static_cast<GLuint>(params.src_alpha);
+
+    glBlendFuncSeparate(sf, df, sa, da);
+}
+
 void Renderer::drawAll()
 {
+
+    setBlendFunc(m_blend_factors);
+
     m_target.bind(); //! binds the corresponding opengl framebuffer (or window)
     //! set proper view
 
@@ -296,7 +342,7 @@ void Renderer::drawAll()
             batch->flush(m_view);
         }
         //! clear dynamic batches
-        if (config.draw_type != GL_STATIC_DRAW)
+        if (config.draw_type != DrawType::Dynamic)
         {
             to_delete.push_back(config);
         }
@@ -304,7 +350,6 @@ void Renderer::drawAll()
 
     while (!to_delete.empty())
     {
-        //     m_config2sprite_batches.erase(to_delete.back());
         to_delete.pop_back();
     }
     for (auto &[config, batches] : m_config2batches)
@@ -316,7 +361,7 @@ void Renderer::drawAll()
         }
 
         //! clear dynamic batches
-        if (config.draw_type != GL_STATIC_DRAW)
+        if (config.draw_type != DrawType::Dynamic)
         {
             to_delete.push_back(config);
         }
@@ -332,7 +377,7 @@ void Renderer::drawAll()
     }
 }
 
-Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, GLenum draw_type, int num_vertices_inserted)
+Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type, int num_vertices_inserted)
 {
     BatchConfig config = {texture_ids, shader.getId(), draw_type};
     if (m_config2batches.count(config) != 0) //! batch with config exists
@@ -342,12 +387,11 @@ Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shade
 
     m_config2batches[config];
     //! create the new batch
-    // m_config2next_free_batch[config] = m_config2batches.at(config).size();
     m_config2batches.at(config).push_back(createBatch(config, shader, draw_type));
     return *m_config2batches.at(config).back();
 }
 
-SpriteBatch &Renderer::findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, GLenum draw_type)
+SpriteBatch &Renderer::findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type)
 {
     BatchConfig config = {texture_ids, shader.getId(), draw_type};
     if (m_config2sprite_batches.count(config) != 0) //! batch with config exists
@@ -362,7 +406,7 @@ SpriteBatch &Renderer::findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> textur
     return *m_config2sprite_batches.at(config).back();
 }
 
-Batch &Renderer::findBatch(GLuint texture_id, Shader &shader, GLenum draw_type, int num_vertices_inserted)
+Batch &Renderer::findBatch(GLuint texture_id, Shader &shader, DrawType draw_type, int num_vertices_inserted)
 {
     BatchConfig config = {texture_id, shader.getId(), draw_type};
     if (m_config2batches.count(config) != 0) //! batch with config exists
@@ -372,12 +416,11 @@ Batch &Renderer::findBatch(GLuint texture_id, Shader &shader, GLenum draw_type, 
 
     m_config2batches[config];
     //! create the new batch
-    // m_config2next_free_batch[config] = m_config2batches.at(config).size();
     m_config2batches.at(config).push_back(createBatch(config, shader, draw_type));
     return *m_config2batches.at(config).back();
 }
 
-SpriteBatch &Renderer::findSpriteBatch(GLuint texture_id, Shader &shader, GLenum draw_type)
+SpriteBatch &Renderer::findSpriteBatch(GLuint texture_id, Shader &shader, DrawType draw_type)
 {
     BatchConfig config = {texture_id, shader.getId(), draw_type};
     if (m_config2sprite_batches.count(config) != 0) //! batch with config exists
@@ -392,12 +435,12 @@ SpriteBatch &Renderer::findSpriteBatch(GLuint texture_id, Shader &shader, GLenum
     return *m_config2sprite_batches.at(config).back();
 }
 
-Renderer::BatchPtr Renderer::createBatch(const BatchConfig &config, Shader &shader, GLenum draw_type)
+Renderer::BatchPtr Renderer::createBatch(const BatchConfig &config, Shader &shader, DrawType draw_type)
 {
     return std::make_unique<Batch>(config, shader, draw_type);
 }
 
-Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, GLenum draw_type, int num_vertices_inserted)
+Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, DrawType draw_type, int num_vertices_inserted)
 {
     auto &batches = m_config2batches.at(config);
     for (auto &batch : batches)
@@ -411,7 +454,7 @@ Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, GLenum draw_t
     batches.push_back(createBatch(config, shader, draw_type));
     return *batches.back();
 }
-SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, GLenum draw_type)
+SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, DrawType draw_type)
 {
     auto &batches = m_config2sprite_batches.at(config);
     auto it = std::find_if(batches.begin(), batches.end(), [](auto &batch)
@@ -422,4 +465,38 @@ SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, G
     }
     m_config2sprite_batches.at(config).push_back(std::make_unique<SpriteBatch>(config, shader));
     return *batches.back();
+}
+
+Text::Text(std::string text)
+    : m_text(text)
+{
+}
+
+void Text::setFont(std::shared_ptr<Font> new_font)
+{
+    m_font = std::weak_ptr<Font>(new_font);
+}
+std::shared_ptr<Font> Text::getFont()
+{
+    return m_font.lock();
+}
+
+void Text::setText(const std::string &new_text)
+{
+    m_text = new_text;
+}
+
+const std::string &Text::getText() const
+{
+    return m_text;
+}
+
+void Text::setColor(ColorByte new_color)
+{
+    m_color = new_color;
+}
+
+const ColorByte &Text::getColor() const
+{
+    return m_color;
 }

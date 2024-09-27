@@ -143,13 +143,12 @@ public:
         for (auto &ind : object2entity)
         {
             free_inds.insert(ind);
-            entity2ind.at(ind) = -1;    
+            entity2ind.at(ind) = -1;
         }
 
         objects.clear();
         object2entity.clear();
     }
-
 
 private:
     std::vector<int> object2entity;
@@ -168,12 +167,16 @@ public:
 
     void removeByDataInd(int data_ind);
     void removeByEntityInd(int entity_ind);
-    void insert(Type datum);
+    int insert(Type datum);
     int size();
     Type &getEntity(int index);
     void clear();
     void setMaxCount(int n_max_count);
     std::vector<Type> &getData();
+    int getEntityInd(int data_ind) const
+    {
+        return m_data2entity_ind.at(data_ind);
+    }
     int capacity();
 
 private:
@@ -221,9 +224,11 @@ void VectorMap<T>::removeByDataInd(int data_ind)
 {
     assert(n_active > 0);
     auto entity_ind = m_data2entity_ind.at(data_ind);
-    free_inds.insert(entity_ind);
 
+    assert(entity_ind != -1);
     assert(data_ind != -1);
+
+    free_inds.insert(entity_ind);
 
     m_entity2data_ind[entity_ind] = -1;
     m_entity2data_ind.at(m_data2entity_ind.at(n_active - 1)) = data_ind;
@@ -242,23 +247,31 @@ void VectorMap<T>::removeByEntityInd(int entity_ind)
 
     free_inds.insert(entity_ind);
 
-    auto data_ind = m_entity2data_ind[entity_ind];
+    assert(entity_ind != -1);
+    auto data_ind = m_entity2data_ind.at(entity_ind);
     assert(data_ind != -1);
 
-    m_entity2data_ind[entity_ind] = -1;
-    m_entity2data_ind.at(m_data2entity_ind.at(n_active - 1)) = data_ind;
+    auto moved_entity_ind = m_data2entity_ind.at(n_active - 1);
+    if (data_ind == -1)
+    {
+        throw std::runtime_error("Trying to delete non-existent object!");
+    }
+    m_entity2data_ind.at(moved_entity_ind) = data_ind;
+    m_entity2data_ind.at(entity_ind) = -1;
 
-    m_data[data_ind] = m_data[n_active - 1];
-    m_data2entity_ind[n_active - 1] = -1;
+    m_data.at(data_ind) = m_data.at(n_active - 1);
+    m_data2entity_ind.at(data_ind) = moved_entity_ind;
+    m_data2entity_ind.at(n_active - 1) = -1;
 
     n_active--;
 }
+
 template <class T>
-void VectorMap<T>::insert(T datum)
+int VectorMap<T>::insert(T datum)
 {
     if (free_inds.empty())
     {
-        return;
+        return -1;
     }
     int new_ind = *free_inds.begin();
     free_inds.erase(free_inds.begin());
@@ -268,6 +281,8 @@ void VectorMap<T>::insert(T datum)
     m_entity2data_ind.at(new_ind) = n_active;
 
     n_active++;
+
+    return new_ind;
 }
 
 template <class T>

@@ -26,7 +26,9 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/libsdl-org/SDL
   GIT_TAG SDL2
 )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSDL_TEST_LIBRARY=OFF -DSDL2_DISABLE_INSTALL=ON")
 FetchContent_MakeAvailable(SDL2)
+
 
 find_package(Freetype REQUIRED)
 
