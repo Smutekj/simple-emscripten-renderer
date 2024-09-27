@@ -106,15 +106,16 @@ class Text : public Transform
 
 public:
     Text(std::string text = "");
-    void setFont(std::shared_ptr<Font> new_font);
-    std::shared_ptr<Font> getFont();
+    void setFont(Font* font);
+    // std::shared_ptr<Font> getFont();
+    Font* getFont();
     void setText(const std::string &new_text);
     const std::string &getText() const;
     void setColor(ColorByte new_color);
     const ColorByte &getColor() const;
 
 private:
-    std::weak_ptr<Font> m_font;
+    Font* m_font = nullptr;
     std::string m_text = "";
     ColorByte m_color = {255, 255, 255, 255};
 };

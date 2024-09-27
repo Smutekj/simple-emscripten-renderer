@@ -103,6 +103,10 @@ void Renderer::drawText(Text &text,const std::string& shader_id, DrawType draw_t
     }
     auto &string = text.getText();
     auto font = text.getFont();
+    if(!font)
+    {
+        return;
+    }
     Sprite2 glyph_sprite(font->getTexture());
 
     //! find dimensions of the text
@@ -475,13 +479,13 @@ Text::Text(std::string text)
 {
 }
 
-void Text::setFont(std::shared_ptr<Font> new_font)
+void Text::setFont(Font* new_font)
 {
-    m_font = std::weak_ptr<Font>(new_font);
+    m_font = new_font;
 }
-std::shared_ptr<Font> Text::getFont()
+Font* Text::getFont()
 {
-    return m_font.lock();
+    return m_font;
 }
 
 void Text::setText(const std::string &new_text)
