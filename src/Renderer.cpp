@@ -74,7 +74,7 @@ bool Renderer::checkShader(const std::string &shader_id)
     return false;
 }
 
-void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_type)
+void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, DrawType draw_type)
 {
     if (checkShader(shader_id))
     {
@@ -83,7 +83,7 @@ void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, GLenum draw_ty
     }
 }
 
-void Renderer::drawText(Text &text, std::string shader_id, GLenum draw_type)
+void Renderer::drawText(Text &text, std::string shader_id, DrawType draw_type)
 {
     if (!checkShader(shader_id))
     {
@@ -135,7 +135,7 @@ void Renderer::drawText(Text &text, std::string shader_id, GLenum draw_type)
 }
 
 void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
-                          Texture &texture, std::string shader_id, GLenum draw_type)
+                          Texture &texture, std::string shader_id, DrawType draw_type)
 {
     std::array<GLuint, N_MAX_TEXTURES> texture_handles;
     texture_handles.fill(0);
@@ -145,11 +145,11 @@ void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color,
 
 void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
                           Vec2 texture_size, std::array<GLuint, N_MAX_TEXTURES> &texture_handles,
-                          std::string shader_id, GLenum draw_type)
+                          std::string shader_id, DrawType draw_type)
 {
     auto &shader = m_shaders.get(shader_id);
 
-    if (draw_type == GL_STATIC_DRAW)
+    if (draw_type == DrawType::Dynamic)
     {
         std::cout << "STATIC DRAW NOT SUPPORTED YET!!!";
         return;
@@ -168,7 +168,7 @@ void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color,
     t.tex_coords = {tex_rect_norm.pos_x, tex_rect_norm.pos_y};
     t.tex_size = {tex_rect_norm.width, tex_rect_norm.height};
 
-    auto &batch = findSpriteBatch(texture_handles, shader, GL_DYNAMIC_DRAW);
+    auto &batch = findSpriteBatch(texture_handles, shader, DrawType::Dynamic);
     if (batch.addSprite(t))
     {
     }
@@ -177,7 +177,7 @@ void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color,
 void Renderer::drawSpriteStatic(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
                                 Texture &texture, Shader &shader)
 {
-    auto &batch = findBatch(texture.getHandle(), shader, GL_STATIC_DRAW, 4);
+    auto &batch = findBatch(texture.getHandle(), shader, DrawType::Dynamic, 4);
 
     Sprite s(texture, shader);
     s.setRotation(angle);
@@ -206,7 +206,7 @@ void Renderer::drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color
 }
 
 void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color,
-                               GLenum draw_type)
+                               DrawType draw_type)
 {
     if(!checkShader("VertexArrayDefault"))
     {
@@ -240,7 +240,7 @@ void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Colo
     // batch.pushVertex(2);
 }
 
-void Renderer::drawRectangle(Rectangle2 &r, Color color, const std::string &shader_id, GLenum draw_type)
+void Renderer::drawRectangle(Rectangle2 &r, Color color, const std::string &shader_id, DrawType draw_type)
 {
 
     auto &shader_name = m_shaders.contains(shader_id) ? shader_id : "VertexArrayDefault";
@@ -271,7 +271,7 @@ void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_v
 
 void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts, std::string shader_id)
 {
-    auto &batch = findBatch(0, m_shaders.get(shader_id), GL_DYNAMIC_DRAW, n_verts);
+    auto &batch = findBatch(0, m_shaders.get(shader_id), DrawType::Dynamic, n_verts);
 
     auto pi = std::numbers::pi_v<float>;
 
@@ -297,7 +297,7 @@ void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float
     }
 }
 
-void Renderer::drawVertices(VertexArray &verts, GLenum draw_type, std::shared_ptr<Texture> p_texture)
+void Renderer::drawVertices(VertexArray &verts, DrawType draw_type, std::shared_ptr<Texture> p_texture)
 {
     GLuint texture_id = p_texture ? p_texture->getHandle() : 0;
     auto &batch = findBatch(texture_id, *verts.m_shader, draw_type, static_cast<int>(verts.size()));
@@ -342,7 +342,7 @@ void Renderer::drawAll()
             batch->flush(m_view);
         }
         //! clear dynamic batches
-        if (config.draw_type != GL_STATIC_DRAW)
+        if (config.draw_type != DrawType::Dynamic)
         {
             to_delete.push_back(config);
         }
@@ -361,7 +361,7 @@ void Renderer::drawAll()
         }
 
         //! clear dynamic batches
-        if (config.draw_type != GL_STATIC_DRAW)
+        if (config.draw_type != DrawType::Dynamic)
         {
             to_delete.push_back(config);
         }
@@ -377,7 +377,7 @@ void Renderer::drawAll()
     }
 }
 
-Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, GLenum draw_type, int num_vertices_inserted)
+Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type, int num_vertices_inserted)
 {
     BatchConfig config = {texture_ids, shader.getId(), draw_type};
     if (m_config2batches.count(config) != 0) //! batch with config exists
@@ -391,7 +391,7 @@ Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shade
     return *m_config2batches.at(config).back();
 }
 
-SpriteBatch &Renderer::findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, GLenum draw_type)
+SpriteBatch &Renderer::findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type)
 {
     BatchConfig config = {texture_ids, shader.getId(), draw_type};
     if (m_config2sprite_batches.count(config) != 0) //! batch with config exists
@@ -406,7 +406,7 @@ SpriteBatch &Renderer::findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> textur
     return *m_config2sprite_batches.at(config).back();
 }
 
-Batch &Renderer::findBatch(GLuint texture_id, Shader &shader, GLenum draw_type, int num_vertices_inserted)
+Batch &Renderer::findBatch(GLuint texture_id, Shader &shader, DrawType draw_type, int num_vertices_inserted)
 {
     BatchConfig config = {texture_id, shader.getId(), draw_type};
     if (m_config2batches.count(config) != 0) //! batch with config exists
@@ -420,7 +420,7 @@ Batch &Renderer::findBatch(GLuint texture_id, Shader &shader, GLenum draw_type, 
     return *m_config2batches.at(config).back();
 }
 
-SpriteBatch &Renderer::findSpriteBatch(GLuint texture_id, Shader &shader, GLenum draw_type)
+SpriteBatch &Renderer::findSpriteBatch(GLuint texture_id, Shader &shader, DrawType draw_type)
 {
     BatchConfig config = {texture_id, shader.getId(), draw_type};
     if (m_config2sprite_batches.count(config) != 0) //! batch with config exists
@@ -435,12 +435,12 @@ SpriteBatch &Renderer::findSpriteBatch(GLuint texture_id, Shader &shader, GLenum
     return *m_config2sprite_batches.at(config).back();
 }
 
-Renderer::BatchPtr Renderer::createBatch(const BatchConfig &config, Shader &shader, GLenum draw_type)
+Renderer::BatchPtr Renderer::createBatch(const BatchConfig &config, Shader &shader, DrawType draw_type)
 {
     return std::make_unique<Batch>(config, shader, draw_type);
 }
 
-Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, GLenum draw_type, int num_vertices_inserted)
+Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, DrawType draw_type, int num_vertices_inserted)
 {
     auto &batches = m_config2batches.at(config);
     for (auto &batch : batches)
@@ -454,7 +454,7 @@ Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, GLenum draw_t
     batches.push_back(createBatch(config, shader, draw_type));
     return *batches.back();
 }
-SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, GLenum draw_type)
+SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, DrawType draw_type)
 {
     auto &batches = m_config2sprite_batches.at(config);
     auto it = std::find_if(batches.begin(), batches.end(), [](auto &batch)
