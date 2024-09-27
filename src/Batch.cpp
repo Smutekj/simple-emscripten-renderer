@@ -1,13 +1,13 @@
 #include "Batch.h"
 
-Batch::Batch(GLuint texture_id, Shader &shader, GLenum draw_type)
+Batch::Batch(GLuint texture_id, Shader &shader, DrawType draw_type)
     : m_config(texture_id, shader.getId(), draw_type),
-      m_verts(shader, draw_type, m_capacity)
+      m_verts(shader, static_cast<GLenum>(draw_type), m_capacity)
 {
 }
-Batch::Batch(const BatchConfig &config, Shader &shader, GLenum draw_type)
+Batch::Batch(const BatchConfig &config, Shader &shader, DrawType draw_type)
     : m_config(config),
-      m_verts(shader, draw_type, m_capacity)
+      m_verts(shader, static_cast<GLenum>(draw_type), m_capacity)
 {
     m_indices.reserve(m_capacity*3);
     std::for_each(config.texture_ids.begin(), config.texture_ids.end(), [&config, this](auto &id)
@@ -32,7 +32,7 @@ void Batch::flush(View &view)
 
     m_verts.draw(view, m_indices);
 
-    if (m_config.draw_type != GL_STATIC_DRAW)
+    if (m_config.draw_type != DrawType::Static) //! static should stay the same so no need to clear data
     {
         clear();
     }
