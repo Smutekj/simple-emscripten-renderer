@@ -149,7 +149,8 @@ public:
     void clear(Color c);
 
     void addShader(std::string id, std::string vertex_path, std::string fragment_path);
-    Shader &getShader(std::string id);
+    Shader &getShader(const std::string& id);
+    Shader *getShaderP(const std::string& id);
     utils::Vector2f getMouseInWorld();
 
 private:

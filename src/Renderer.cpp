@@ -37,9 +37,17 @@ void Renderer::addShader(std::string id, std::string vertex_path, std::string fr
     m_shaders.load(id, vertex_path, fragment_path);
 }
 
-Shader &Renderer::getShader(std::string id)
+Shader &Renderer::getShader(const std::string& id)
 {
     return m_shaders.get(id);
+}
+Shader* Renderer::getShaderP(const std::string& id)
+{
+    if(hasShader(id))
+    {
+        return &m_shaders.get(id);
+    }
+    return nullptr;
 }
 
 utils::Vector2f Renderer::getMouseInWorld()
