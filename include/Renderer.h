@@ -127,13 +127,7 @@ class Renderer
 public:
     Renderer(RenderTarget &target);
 
-    void drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
-                    Texture &texture, std::string shader_id, DrawType draw_type);
     void drawSprite(Sprite2 &sprite, std::string shader_id, DrawType draw_type);
-    void drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect, Vec2 texture_size,
-                    std::array<GLuint, N_MAX_TEXTURES> &textures, std::string shader_id, DrawType draw_type);
-    void drawText(std::string text, Vec2 center, Vec2 scale, float angle, Font &font,
-                  std::string shader_id, DrawType draw_type);
     void drawText(Text &text, std::string shader_id, DrawType draw_type);
 
     void drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color);
@@ -141,7 +135,7 @@ public:
     void drawRectangle(Rectangle2 &r, Color color, const std::string &shader_id = "VertexArrayDefault", DrawType draw_type = DrawType::Dynamic);
     void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color, DrawType draw_type = DrawType::Dynamic);
     void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 51);
-    void drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts = 51, std::string shader_id = "VertexArrayDefault");
+    void drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f& scale, Color color, int n_verts = 51, std::string shader_id = "VertexArrayDefault");
     void drawVertices(VertexArray &verts, DrawType draw_type = DrawType::Dynamic, std::shared_ptr<Texture> p_texture = nullptr);
 
     void drawAll();
@@ -160,6 +154,9 @@ public:
 private:
     void drawSpriteStatic(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
                           Texture &texture, Shader &shader);
+    void drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect, Vec2 texture_size,
+                    std::array<GLuint, N_MAX_TEXTURES> &textures, const std::string& shader_id, DrawType draw_type);
+    
     Batch &findBatch(GLuint texture_id, Shader &shader, DrawType draw_type, int num_vertices_inserted);
     Batch &findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type, int num_vertices_inserted);
     SpriteBatch &findSpriteBatch(GLuint texture_id, Shader &shader, DrawType draw_type);

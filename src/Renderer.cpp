@@ -78,7 +78,7 @@ void Renderer::drawSprite(Sprite2 &sprite, std::string shader_id, DrawType draw_
 {
     if (checkShader(shader_id))
     {
-        drawSprite(sprite.getPosition(), sprite.getScale(), sprite.getRotation(), sprite.m_color,
+        drawSpriteUnpacked(sprite.getPosition(), sprite.getScale(), sprite.getRotation(), sprite.m_color,
                    sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
     }
 }
@@ -134,18 +134,9 @@ void Renderer::drawText(Text &text, std::string shader_id, DrawType draw_type)
     }
 }
 
-void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
-                          Texture &texture, std::string shader_id, DrawType draw_type)
-{
-    std::array<GLuint, N_MAX_TEXTURES> texture_handles;
-    texture_handles.fill(0);
-    texture_handles[0] = texture.getHandle();
-    drawSprite(center, scale, angle, color, tex_rect, texture.getSize(), texture_handles, shader_id, draw_type);
-}
-
-void Renderer::drawSprite(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
+void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
                           Vec2 texture_size, std::array<GLuint, N_MAX_TEXTURES> &texture_handles,
-                          std::string shader_id, DrawType draw_type)
+                          const std::string& shader_id, DrawType draw_type)
 {
     auto &shader = m_shaders.get(shader_id);
 
@@ -266,10 +257,10 @@ void Renderer::drawRectangle(Rectangle2 &r, Color color, const std::string &shad
 
 void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_verts)
 {
-    drawCricleBatched(center, 0., radius, radius, color, n_verts);
+    drawEllipseBatched(center, 0., utils::Vector2f{radius, radius}, color, n_verts);
 }
 
-void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float radius_b, Color color, int n_verts, std::string shader_id)
+void Renderer::drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f& scale, Color color, int n_verts, std::string shader_id)
 {
     auto &batch = findBatch(0, m_shaders.get(shader_id), DrawType::Dynamic, n_verts);
 
@@ -281,7 +272,7 @@ void Renderer::drawCricleBatched(Vec2 center, float angle, float radius_a, float
     {
         float x = std::cos(2.f * i * pi / n_verts_circumference + glm::radians(angle));
         float y = std::sin(2.f * i * pi / n_verts_circumference + glm::radians(angle));
-        Vertex v = {{center.x + x * radius_a, center.y + y * radius_b}, color, {x, y}};
+        Vertex v = {{center.x + x * scale.x, center.y + y * scale.y}, color, {x, y}};
         batch.pushVertex(v);
     }
 
