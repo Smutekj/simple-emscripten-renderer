@@ -238,11 +238,15 @@ namespace utils
         }
         return false;
     }
-
+    constexpr auto to_radains = std::numbers::pi_v<float> / 180.f;
+    constexpr auto to_degrees = 180.f / std::numbers::pi_v<float>;
     inline utils::Vector2f angle2dir(float angle)
     {
-        const auto to_radains = std::numbers::pi_v<float> / 180.f;
         return {std::cos(angle * to_radains), std::sin(angle * to_radains)};
+    }
+    inline float dir2angle(const utils::Vector2f& dir)
+    {
+        return to_degrees * std::atan2(dir.y, dir.x);
     }
 
 }
