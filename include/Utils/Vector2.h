@@ -96,17 +96,9 @@ namespace utils
         }
 
         template <class T1>
-        constexpr auto operator-(const Vector2<T1> &v) const
+        constexpr Vector2<T1> operator-(const Vector2<T1> &v) const
         {
-            //! unsigned types are casted into int because differences would overflow
-            if constexpr (std::is_unsigned_v<T>)
-            {
-                return Vector2<int>{static_cast<int>(x) - v.x, static_cast<int>(y) - v.y};
-            }
-            else
-            {
-                return Vector2<T>{x - v.x, y - v.y};
-            }
+                return {x - v.x, y - v.y};
         }
 
         constexpr bool operator==(const Vector2<T> &v) const
