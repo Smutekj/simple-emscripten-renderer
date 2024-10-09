@@ -5,6 +5,12 @@
 
 class Font;
 
+//! \class contains necessary data to draw texts
+//! \brief contains string to draw, color and pointer to font
+//! \brief when drawn, the characters are stored as distance fields, therefore
+//! \brief effects like borders should be done using suitable shader.
+//! \todo add italics/underscores/boldness, 
+//! \todo add possibility to define how to draw on multiple lines 
 class Text : public Transform
 {
 
