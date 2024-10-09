@@ -18,21 +18,16 @@ Batch::Batch(const BatchConfig &config, Shader &shader, DrawType draw_type)
 
 void Batch::clear()
 {
-    // m_verts.resize(0);
     m_used_vertices = 0;
     m_indices.clear();
 }
 
 void Batch::flush(View &view)
 {
-    // if(m_config.texture_id != 0)
-    // {
-    //     glBindTexture(GL_TEXTURE_2D, m_config.texture_ids.at);
-    // }
 
     m_verts.draw(view, m_indices);
 
-    if (m_config.draw_type != DrawType::Static) //! static should stay the same so no need to clear data
+    if (m_config.draw_type != DrawType::Static) //! static draws should stay the same so no need to clear data
     {
         clear();
     }
@@ -56,7 +51,6 @@ void Batch::pushVertex(Vertex v)
 
 void Batch::pushVertex(int ind)
 {
-    // assert(ind >= 0 && ind < m_verts.size());
     m_indices.push_back(ind);
 }
 

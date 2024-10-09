@@ -3,6 +3,7 @@
 #include "Utils/RandomTools.h"
 #include "Renderer.h"
 
+
 Particle::Particle(utils::Vector2f init_pos, utils::Vector2f init_vel, utils::Vector2f acc, utils::Vector2f scale,
                    Color color, float life_time)
     : pos(init_pos), vel(init_vel), acc(acc), scale(scale), color(color), life_time(life_time)
@@ -14,6 +15,8 @@ Particles::Particles(int n_max_particles)
 {
 }
 
+//! \brief sets spawn position of the particles
+//! \param pos new spawn position
 void Particles::setSpawnPos(utils::Vector2f pos)
 {
     m_spawn_pos = pos;
@@ -29,6 +32,10 @@ int Particles::getPeriod() const
     ;
 }
 
+
+//! \brief creates particle/s if needed then does one integration of updater 
+//! \brief afterwards destroys particles that are dead 
+//! \param dt time step
 void Particles::update(float dt)
 {
 
@@ -62,6 +69,7 @@ void Particles::update(float dt)
     destroyDeadParticles();
 }
 
+//! \brief creates new particle if there is space in particle pool
 void Particles::createParticle()
 {
     auto new_particle = m_emitter(m_spawn_pos);
@@ -69,6 +77,8 @@ void Particles::createParticle()
     n_spawned++;
 }
 
+//! \brief destroys all particles with time larger than lifetime
+//! \brief and frees space in particle pool
 void Particles::destroyDeadParticles()
 {
     auto &particles = m_particle_pool.getData();
@@ -87,11 +97,14 @@ void Particles::destroyDeadParticles()
     }
 }
 
+
 Color interpolate(Color start, Color end, float lambda)
 {
     return start + (end - start) * lambda;
 }
 
+//! \brief one step of integration algorithm (euler i guess...)
+//! \param dt time step
 void Particles::integrate(float dt)
 {
     auto &particles = m_particle_pool.getData();
@@ -104,7 +117,9 @@ void Particles::integrate(float dt)
     }
 }
 
-void Particles::draw(Renderer &renderer)
+//! \brief Draws particles into \p canvas
+//! \brief \param canvas target to draw into
+void Particles::draw(Renderer &canvas)
 {
     auto &particles = m_particle_pool.getData();
     auto n_particles = m_particle_pool.size();
@@ -122,7 +137,7 @@ void Particles::draw(Renderer &renderer)
         rect.setRotation(particle.angle);
         rect.setScale(particle.scale.x, particle.scale.y);
 
-        renderer.drawRectangle(rect, particle.color, m_shader_id, DrawType::Dynamic);
+        canvas.drawRectangle(rect, particle.color, m_shader_id, DrawType::Dynamic);
     }
 }
 
