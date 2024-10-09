@@ -130,3 +130,8 @@ std::shared_ptr<Texture> TextureHolder::get(std::string name)
 
     return nullptr;
 }
+
+std::map<std::string, std::shared_ptr<Texture>> &TextureHolder::getTextures()
+{
+    return m_textures;
+}

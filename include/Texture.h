@@ -101,6 +101,7 @@ public:
 
     std::shared_ptr<Texture> get(std::string name);
 
+    std::map<std::string, std::shared_ptr<Texture>>& getTextures();
 private:
     std::map<std::string, std::shared_ptr<Texture>> m_textures;
 };
