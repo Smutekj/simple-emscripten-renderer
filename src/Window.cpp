@@ -64,3 +64,9 @@ void Window::setSize(int width, int height)
     // SDL_BlitSurface(image, NULL, surface, NULL);
     SDL_UpdateWindowSurface(m_handle);
 }
+
+void Window::close()
+{
+    m_should_close = true;
+    SDL_Quit();
+}

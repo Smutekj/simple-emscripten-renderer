@@ -13,11 +13,7 @@ public:
     SDL_GLContext* getContext();
 
     bool shouldClose() const;
-    void close()
-    {
-        m_should_close = true;
-        SDL_Quit();
-    }
+    void close();
 
     void setSize(int width, int height);
 
