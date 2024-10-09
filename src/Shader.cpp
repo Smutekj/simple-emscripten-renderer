@@ -94,12 +94,12 @@ std::string VariablesData::setTexture(int slot, GLuint handle)
     return "";
 }
 
-Shader &ShaderHolder::get(std::string id)
+Shader &ShaderHolder::get(const std::string& id)
 {
     return *m_shaders.at(id);
 }
 
-void ShaderHolder::use(std::string id)
+void ShaderHolder::use(const std::string& id)
 {
     m_shaders.at(id)->use();
 }

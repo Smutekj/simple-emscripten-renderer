@@ -132,11 +132,11 @@ class ShaderHolder
 {
 
 public:
-    Shader &get(std::string id);
+    Shader &get(const std::string &id);
 
-    void use(std::string id);
+    void use(const std::string &id);
 
-    void load(const std::string& name, const std::string& vertex_filename, const std::string& fragment_filename);
+    void load(const std::string &name, const std::string &vertex_filename, const std::string &fragment_filename);
 
     void erase(const std::string &shader_id);
 
