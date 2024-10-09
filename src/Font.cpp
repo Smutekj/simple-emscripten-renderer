@@ -22,10 +22,10 @@ Font::Font(std::string font_filename)
     using Path = std::filesystem::path;
     Path shaders_path(__FILE__);
     shaders_path.remove_filename();
-    shaders_path += "../Resources/";
-    Path vertex_path = shaders_path.string() + "basicinstanced.vert";
-    Path fragment_path = shaders_path.string() + "text.frag";
-    m_canvas->addShader("Text", vertex_path, fragment_path);
+    shaders_path += "../Resources/Shaders/";
+    m_canvas->addShader("Text",
+                        shaders_path.string() + "basicinstanced.vert",
+                        shaders_path.string() + "text.frag");
     if (!loadFromFile(font_filename))
     {
         // spdlog::error("FONT FILE " + font_filename + " NOT FOUND!");
