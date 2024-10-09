@@ -128,8 +128,6 @@ Application::Application(int width, int height) : m_window(width, height),
                                 p.scale = {10.2, 10.2};
                                 return p; });
     m_particles->setRepeat(true);
-
-
 }
 
 void Application::run()

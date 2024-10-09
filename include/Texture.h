@@ -7,6 +7,10 @@
 #include <memory>
 #include <map>
 
+using TextureHandle = GLuint;
+
+constexpr int N_MAX_TEXTURES = 2; //! maximum number of texture slots
+
 
 enum class TexMappingParam
 {
@@ -21,7 +25,7 @@ enum class TexMappingParam
 enum class TextureDataTypes
 {
     Float = GL_FLOAT,
-    UByte = GL_UNSIGNED_BYTE, 
+    UByte = GL_UNSIGNED_BYTE,
 };
 
 enum class TextureFormat
@@ -59,7 +63,7 @@ class Texture
     };
 
 public:
-    void loadFromFile(std::string filename, TextureOptions options  = {});
+    void loadFromFile(std::string filename, TextureOptions options = {});
     void create(int width, int height, TextureOptions options = {});
 
     void bind(int slot = 0);
@@ -69,7 +73,6 @@ public:
 private:
     void invalidate();
     void initialize(TextureOptions options);
-
 
 private:
     GLuint m_texture_handle = 0;

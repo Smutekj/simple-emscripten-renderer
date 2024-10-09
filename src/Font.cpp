@@ -139,7 +139,7 @@ bool Font::loadFromFile(std::string font_filename)
                 (unsigned int)face->glyph->advance.x};
         m_characters.insert(std::pair<char, Character>(c, character));
 
-        Sprite2 glyph_sprite(main_texture);
+        Sprite glyph_sprite(main_texture);
         glyph_sprite.m_tex_rect = {0, 0, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows};
         glyph_sprite.m_texture_handles[0] = textures[c];
         glyph_sprite.m_tex_size = character.size;

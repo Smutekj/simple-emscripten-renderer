@@ -10,12 +10,12 @@ class Texture;
 class Shader;
 class View;
 
-class Rectangle : public Transform
+class DrawRectangle : public Transform
 {
 
 public:
-    Rectangle(Shader &shader);
-    ~Rectangle()
+    DrawRectangle(Shader &shader);
+    ~DrawRectangle()
     {
         glDeleteBuffers(1, &m_vbo);
         glCheckError();
@@ -39,22 +39,9 @@ private:
 
 protected:
     Texture *m_texture = nullptr;
-    std::vector<Vertex> m_verts;
+    std::array<Vertex, 4> m_verts;
     // VertexArray m_verts;
 };
 
 
 
-
-
-class Sprite : public Rectangle
-{
-
-public:
-    Sprite(Texture &texture, Shader &shader);
-    void setTextureRect(Rect<int> tex_rect);
-
-private:
-    // Texture &m_texture;
-    Rect<float> m_tex_rect = {0, 0, 1, 1};
-};

@@ -3,21 +3,18 @@
 #include "Vertex.h"
 #include "IncludesGl.h"
 #include "Shader.h"
+#include "Texture.h"
 
 #include <vector>
 #include <memory>
 
-// class Shader;
-class Texture;
 class View;
 
-constexpr int N_MAX_TEXTURES = 2;
 
 class VertexArray
 {
 
 public:
-    // VertexArray();
     VertexArray(Shader &shader);
     VertexArray(Shader &shader, GLenum draw_type);
     VertexArray(Shader &shader, GLenum draw_type, int n_verts);

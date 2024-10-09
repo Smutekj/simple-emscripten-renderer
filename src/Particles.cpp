@@ -128,7 +128,7 @@ void Particles::draw(Renderer &canvas)
                                    { return p1.time < p2.time; });
     //! we draw from the youngest to the oldest
     int youngest_particle_ind = min_it - particles.begin();
-    Rectangle2 rect;
+    RectangleSimple rect;
     for (int i = 0; i < n_particles; ++i)
     {
         int p_ind = (youngest_particle_ind + i) % n_particles;
@@ -159,6 +159,7 @@ void Particles::setInitColor(Color color)
 {
     m_init_color = color;
 }
+
 void Particles::setFinalColor(Color color)
 {
     m_final_color = color;
@@ -180,7 +181,7 @@ void TexturedParticles::draw(Renderer &renderer)
     auto n_particles = m_particle_pool.size();
 
     // utils::Vector2f texture_size = asFloat(m_texture->getSize());
-    Sprite2 sprite(*m_texture);
+    Sprite sprite(*m_texture);
 
     for (int p_ind = 0; p_ind < n_particles; ++p_ind)
     {

@@ -4,14 +4,13 @@
 #include "Texture.h"
 #include "View.h"
 
-Rectangle::Rectangle(Shader &shader) : m_shader(&shader)
+DrawRectangle::DrawRectangle(Shader &shader) : m_shader(&shader)
 {
     initialize();
 }
-void Rectangle::initialize()
+void DrawRectangle::initialize()
 {
 
-    m_verts.resize(4);
     m_verts[0] = {{-1.f, -1.f}, {1.f, 1.f, 1.f, 1.f}, {0.f, 1.f}};
     m_verts[1] = {{1.f, -1.f}, {1.f, 1.f, 1.f, 1.f}, {1.f, 1.f}};
     m_verts[2] = {{1.f, 1.f}, {1.f, 1.f, 1.f, 1.f}, {1.f, 0.f}};
@@ -23,7 +22,7 @@ void Rectangle::initialize()
     glCheckError();
 }
 
-void Rectangle::draw(GLuint target, View &view)
+void DrawRectangle::draw(GLuint target, View &view)
 {
 
     glBindFramebuffer(GL_FRAMEBUFFER, target);
@@ -53,24 +52,24 @@ void Rectangle::draw(GLuint target, View &view)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Rectangle::setShader(Shader &shader)
+void DrawRectangle::setShader(Shader &shader)
 {
     m_shader = &shader;
 }
 
-void Rectangle::setTexture(Texture &texture)
+void DrawRectangle::setTexture(Texture &texture)
 {
     m_texture = &texture;
 }
 
-void Rectangle::setColor(Color color)
+void DrawRectangle::setColor(Color color)
 {
     for (int i = 0; i < m_verts.size(); ++i)
     {
         m_verts[i].color = color;
     }
 }
-void Rectangle::setTexCoords(float tex_coord_x, float tex_coord_y, float width, float height)
+void DrawRectangle::setTexCoords(float tex_coord_x, float tex_coord_y, float width, float height)
 {
 
     m_verts[0].tex_coord = {tex_coord_x, tex_coord_y};
@@ -79,7 +78,7 @@ void Rectangle::setTexCoords(float tex_coord_x, float tex_coord_y, float width, 
     m_verts[3].tex_coord = {tex_coord_x, tex_coord_y};
 }
 
-std::vector<Vertex> Rectangle::getVerts()
+std::vector<Vertex> DrawRectangle::getVerts()
 {
     auto m = getMatrix();
     std::vector<Vertex> new_verts;
@@ -95,20 +94,20 @@ std::vector<Vertex> Rectangle::getVerts()
     return new_verts;
 }
 
-Sprite::Sprite(Texture &texture, Shader &shader)
-    : Rectangle(shader)
-{
-    setTexture(texture);
-}
+// Sprite::Sprite(Texture &texture, Shader &shader)
+//     : Rectangle(shader)
+// {
+//     setTexture(texture);
+// }
 
-void Sprite::setTextureRect(Rect<int> tex_rect)
-{
-    auto tex_size = m_texture->getSize();
-    m_tex_rect = {tex_rect.pos_x / tex_size.x, tex_rect.pos_y / tex_size.y,
-                  tex_rect.width / tex_size.x, tex_rect.height / tex_size.y};
+// void Sprite::setTextureRect(Rect<int> tex_rect)
+// {
+//     auto tex_size = m_texture->getSize();
+//     m_tex_rect = {tex_rect.pos_x / tex_size.x, tex_rect.pos_y / tex_size.y,
+//                   tex_rect.width / tex_size.x, tex_rect.height / tex_size.y};
 
-    m_verts[0].tex_coord = {m_tex_rect.pos_x, m_tex_rect.pos_y};
-    m_verts[1].tex_coord = {m_tex_rect.pos_x + m_tex_rect.width, m_tex_rect.pos_y};
-    m_verts[2].tex_coord = {m_tex_rect.pos_x + m_tex_rect.width, m_tex_rect.pos_y + m_tex_rect.height};
-    m_verts[3].tex_coord = {m_tex_rect.pos_x, m_tex_rect.pos_y + m_tex_rect.height};
-}
+//     m_verts[0].tex_coord = {m_tex_rect.pos_x, m_tex_rect.pos_y};
+//     m_verts[1].tex_coord = {m_tex_rect.pos_x + m_tex_rect.width, m_tex_rect.pos_y};
+//     m_verts[2].tex_coord = {m_tex_rect.pos_x + m_tex_rect.width, m_tex_rect.pos_y + m_tex_rect.height};
+//     m_verts[3].tex_coord = {m_tex_rect.pos_x, m_tex_rect.pos_y + m_tex_rect.height};
+// }

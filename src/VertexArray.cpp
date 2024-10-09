@@ -1,6 +1,5 @@
 #include "VertexArray.h"
 
-#include "Texture.h"
 #include "Shader.h"
 #include "View.h"
 

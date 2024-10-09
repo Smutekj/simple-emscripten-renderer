@@ -82,7 +82,7 @@ bool Renderer::checkShader(const std::string &shader_id)
     return false;
 }
 
-void Renderer::drawSprite(Sprite2 &sprite, const std::string& shader_id, DrawType draw_type)
+void Renderer::drawSprite(Sprite &sprite, const std::string& shader_id, DrawType draw_type)
 {
     if (checkShader(shader_id))
     {
@@ -90,7 +90,7 @@ void Renderer::drawSprite(Sprite2 &sprite, const std::string& shader_id, DrawTyp
                    sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
     }
 }
-void Renderer::drawSpriteDynamic(Sprite2 &sprite, const std::string& shader_id)
+void Renderer::drawSpriteDynamic(Sprite &sprite, const std::string& shader_id)
 {
     drawSprite(sprite, shader_id, DrawType::Dynamic);
 }
@@ -107,7 +107,7 @@ void Renderer::drawText(Text &text,const std::string& shader_id, DrawType draw_t
     {
         return;
     }
-    Sprite2 glyph_sprite(font->getTexture());
+    Sprite glyph_sprite(font->getTexture());
 
     //! find dimensions of the text
     // auto text_size_x =
@@ -175,33 +175,15 @@ void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByt
     t.tex_coords = {tex_rect_norm.pos_x, tex_rect_norm.pos_y};
     t.tex_size = {tex_rect_norm.width, tex_rect_norm.height};
 
-    auto &batch = findSpriteBatch(texture_handles, shader, DrawType::Dynamic);
+    auto &batch = findSpriteBatch(texture_handles, shader, draw_type);
     if (batch.addSprite(t))
     {
     }
 }
 
-void Renderer::drawSpriteStatic(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
-                                Texture &texture, Shader &shader)
-{
-    auto &batch = findBatch(texture.getHandle(), shader, DrawType::Dynamic, 4);
-
-    Sprite s(texture, shader);
-    s.setRotation(angle);
-    s.setScale(scale.x / 2.f, scale.y / 2.f);
-    s.setPosition(center.x, center.y);
-    s.setTextureRect(tex_rect);
-
-    auto verts = s.getVerts();
-    int next_ind = batch.getLastInd();
-    batch.pushVertexArray(verts);
-    batch.pushVertex(next_ind);
-    batch.pushVertex(next_ind + 2);
-}
-
 void Renderer::drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color)
 {
-    Rectangle r(m_shaders.get("ShapeDefault"));
+    DrawRectangle r(m_shaders.get("ShapeDefault"));
     Vec2 dr = {point_b.x - point_a.x, point_b.y - point_a.y};
     r.setRotation(std::atan2(dr.y, dr.x));
     r.setScale(thickness, std::sqrt(dr.x * dr.x + dr.y * dr.y) / 2.f);
@@ -247,7 +229,7 @@ void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Colo
     // batch.pushVertex(2);
 }
 
-void Renderer::drawRectangle(Rectangle2 &r, Color color, const std::string &shader_id, DrawType draw_type)
+void Renderer::drawRectangle(RectangleSimple &r, Color color, const std::string &shader_id, DrawType draw_type)
 {
 
     auto &shader_name = m_shaders.contains(shader_id) ? shader_id : "VertexArrayDefault";

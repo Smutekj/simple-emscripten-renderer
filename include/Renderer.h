@@ -3,8 +3,10 @@
 #include "Rect.h"
 #include "Batch.h"
 #include "Rectangle.h"
+#include "Sprite.h"
 #include "Texture.h"
 #include "RenderTarget.h"
+
 
 #include <memory>
 #include <set>
@@ -42,63 +44,6 @@ struct BlendParams
     }
 };
 
-struct Rectangle2 : public Transform
-{
-    float width = 1;
-    float height = 1;
-};
-
-struct Sprite2 : public Rectangle2
-{
-
-    Sprite2(Texture *texture = nullptr)
-        : m_texture(texture)
-    {
-        if (texture)
-        {
-            m_tex_rect = {0, 0, (int)texture->getSize().x, (int)texture->getSize().y};
-            m_texture_handles.at(0) = texture->getHandle();
-            m_tex_size = texture->getSize();
-        }
-    }
-    Sprite2(Texture &texture)
-        : m_texture(&texture),
-          m_tex_rect(0, 0, (int)texture.getSize().x, (int)texture.getSize().y)
-    {
-        m_texture_handles.at(0) = texture.getHandle();
-        m_tex_size = texture.getSize();
-    }
-
-    void setTexture(Texture &texture)
-    {
-        setTexture(0, texture);
-    }
-
-    void setTexture(int slot, Texture &texture)
-    {
-        m_texture = &texture;
-        m_texture_handles.at(slot) = texture.getHandle();
-        m_tex_rect = {0, 0, (int)texture.getSize().x, (int)texture.getSize().y};
-        m_tex_size = texture.getSize();
-    }
-    void setTextureP(int slot, Texture *texture = nullptr)
-    {
-        if (!texture)
-        {
-            return;
-        }
-        m_texture = texture;
-        m_texture_handles.at(slot) = texture->getHandle();
-        m_tex_rect = {0, 0, (int)texture->getSize().x, (int)texture->getSize().y};
-        m_tex_size = texture->getSize();
-    }
-    Texture *m_texture = nullptr;
-    std::array<GLuint, N_MAX_TEXTURES> m_texture_handles = {0, 0};
-    utils::Vector2i m_tex_size = {0, 0};
-    Rect<int> m_tex_rect;
-    ColorByte m_color = {255, 255, 255, 255};
-};
-
 class Font;
 
 class Text : public Transform
@@ -128,13 +73,13 @@ class Renderer
 public:
     Renderer(RenderTarget &target);
 
-    void drawSprite(Sprite2 &sprite, const std::string& shader_id, DrawType draw_type = DrawType::Dynamic);
-    void drawSpriteDynamic(Sprite2 &sprite, const std::string& shader_id);
+    void drawSprite(Sprite &sprite, const std::string& shader_id, DrawType draw_type = DrawType::Dynamic);
+    void drawSpriteDynamic(Sprite &sprite, const std::string& shader_id);
     void drawText(Text &text, const std::string& shader_id, DrawType draw_type);
 
     void drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color);
 
-    void drawRectangle(Rectangle2 &r, Color color, const std::string &shader_id = "VertexArrayDefault", DrawType draw_type = DrawType::Dynamic);
+    void drawRectangle(RectangleSimple &r, Color color, const std::string &shader_id = "VertexArrayDefault", DrawType draw_type = DrawType::Dynamic);
     void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color, DrawType draw_type = DrawType::Dynamic);
     void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 51);
     void drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f& scale, Color color, int n_verts = 51, std::string shader_id = "VertexArrayDefault");
