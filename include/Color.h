@@ -1,5 +1,7 @@
 #pragma once
 
+
+//! \struct Color, where each channel is a 32-bit float
 struct Color
 {
     float r = 0.;
@@ -27,6 +29,7 @@ struct Color
     }
 };
 
+//! \struct Color, where each channel is a 8-bit unsigned number (0-255)
 struct ColorByte
 {
     unsigned char r = 0;

@@ -10,16 +10,10 @@
 #include <vector>
 #include <memory>
 
-enum class DrawType
-{
-    Dynamic = GL_DYNAMIC_DRAW,
-    Static = GL_STATIC_DRAW,
-    Stream = GL_STREAM_DRAW, 
-};
-
-
 constexpr static int BATCH_VERTEX_CAPACITY = 65000; //! maximum number of vertices per batch
 
+//! \struct stores information which define batches
+//! \brief each batch is defined by: 1. a set of GL texture ids 2. GL shader id and GL draw type
 struct BatchConfig
 {
     BatchConfig() = default;
@@ -34,35 +28,6 @@ struct BatchConfig
     DrawType draw_type = DrawType::Dynamic;
 };
 
-inline void hashloop(int n, std::invocable<int> auto &&hash_combiner)
-{
-    for (int i = 0; i < n; ++i)
-    {
-        std::invoke(hash_combiner, i);
-    }
-}
-
-inline void hash_combine([[maybe_unused]] std::size_t &seed) {}
-
-template <typename T, typename... Rest>
-inline void hash_combine(std::size_t &seed, const T &v, Rest... rest)
-{
-    std::hash<T> hasher;
-    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    hash_combine(seed, rest...);
-}
-
-template <>
-struct
-    std::hash<BatchConfig>
-{
-    std::size_t operator()(const BatchConfig &config) const
-    {
-        std::size_t ret = 0;
-        hash_combine(ret, config.shader_id, config.draw_type, config.texture_ids[0], config.texture_ids[1]);
-        return ret;
-    }
-};
 
 class Batch
 {
@@ -122,8 +87,8 @@ public:
     int getFreeVerts() const;
     void flush(View &view);
 
-    private:
-        void createBuffers();
+private:
+    void createBuffers();
 
 public:
     BatchConfig m_config;
@@ -141,8 +106,39 @@ private:
     GLuint m_texture_id = 0;
     GLuint m_transform_buffer = 0;
     GLuint m_indices_buffer = 0;
-    GLuint m_vbo = 0;               
+    GLuint m_vbo = 0;
 
     std::array<Trans, BATCH_VERTEX_CAPACITY> m_transforms; //! transform and texture data is stored here
     int m_end = 0;
+};
+
+
+
+inline void hashloop(int n, std::invocable<int> auto &&hash_combiner)
+{
+    for (int i = 0; i < n; ++i)
+    {
+        std::invoke(hash_combiner, i);
+    }
+}
+
+inline void hash_combine([[maybe_unused]] std::size_t &seed) {}
+
+template <typename T, typename... Rest>
+inline void hash_combine(std::size_t &seed, const T &v, Rest... rest)
+{
+    std::hash<T> hasher;
+    seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    hash_combine(seed, rest...);
+}
+
+template <>
+struct std::hash<BatchConfig>
+{
+    std::size_t operator()(const BatchConfig &config) const
+    {
+        std::size_t ret = 0;
+        hash_combine(ret, config.shader_id, config.draw_type, config.texture_ids[0], config.texture_ids[1]);
+        return ret;
+    }
 };

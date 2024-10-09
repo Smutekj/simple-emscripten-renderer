@@ -4,7 +4,7 @@
 #include "View.h"
 
 VertexArray::VertexArray(Shader &shader)
-    : m_shader(&shader), m_shader2(shader)
+    : m_shader(&shader)
 {
     glGenBuffers(1, &m_vbo);
     glCheckError();
@@ -14,13 +14,19 @@ VertexArray::VertexArray(Shader &shader)
     m_textures.fill(0);
 }
 
+VertexArray::~VertexArray()
+{
+    glDeleteBuffers(1, &m_vbo);
+    glDeleteBuffers(1, &m_ebo);
+}
+
 void VertexArray::setTexture(int slot, GLuint texture)
 {
     m_textures.at(slot) = texture;
 }
 
 VertexArray::VertexArray(Shader &shader, GLenum draw_type)
-    : m_shader(&shader), m_shader2(shader), m_draw_type(draw_type)
+    : m_shader(&shader), m_draw_type(static_cast<DrawType>(draw_type))
 {
     glGenBuffers(1, &m_vbo);
     glCheckError();
@@ -31,7 +37,6 @@ VertexArray::VertexArray(Shader &shader, GLenum draw_type)
 VertexArray::VertexArray(Shader &shader, GLenum draw_type, int n_verts)
     : VertexArray(shader, draw_type)
 {
-    m_draw_type = draw_type;
     resize(n_verts);
 }
 
@@ -40,11 +45,11 @@ void VertexArray::resize(int n_verts)
     m_vertices.resize(n_verts);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glCheckError();
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * n_verts, m_vertices.data(), m_draw_type);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * n_verts, m_vertices.data(), static_cast<GLuint>(m_draw_type));
     glCheckError();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo); 
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glCheckError();
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3*sizeof(IndexType) * n_verts, NULL, m_draw_type);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(IndexType) * n_verts, NULL, static_cast<GLuint>(m_draw_type));
     glCheckError();
 }
 
@@ -61,8 +66,7 @@ void VertexArray::init()
         glCheckError();
     }
 
-
-    if (m_draw_type == GL_STATIC_DRAW) //! for static draw we assume we do not need to change the data
+    if (m_draw_type == DrawType::Static) //! for static draw we assume we do not need to change the data
     {
         m_is_initialized = true;
     }
@@ -119,16 +123,16 @@ void VertexArray::draw(View &view)
         m_shader->activateTexture(m_textures);
     }
 
-    std::cout << "START!" <<"\n";
+    std::cout << "START!" << "\n";
     auto m = view.getMatrix();
     int i = 0;
-    for(auto& v : m_vertices){
+    for (auto &v : m_vertices)
+    {
         auto pos = m * glm::vec4(v.pos.x, v.pos.y, 0., 1.);
-        std::cout << i  << " " << pos.x << " " <<  pos.y << "\n";
+        std::cout << i << " " << pos.x << " " << pos.y << "\n";
         i++;
     }
-    std::cout << "END!" <<"\n";
-
+    std::cout << "END!" << "\n";
 
     for (int slot = 0; slot < N_MAX_TEXTURES; ++slot)
     {
@@ -164,4 +168,21 @@ void VertexArray::setShader(Shader &shader)
 GLuint VertexArray::getShaderId() const
 {
     return m_shader->getId();
+}
+
+void  bindVertexAttributes(GLuint buffer, std::vector<int> sizes)
+{
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glCheckError();
+    int offset = 0;
+    auto total_size = std::accumulate(sizes.begin(), sizes.end(), 0);
+    for (std::size_t i = 0; i < sizes.size(); ++i)
+    {
+        glEnableVertexAttribArray(i);
+        glVertexAttribPointer(i, sizes.at(i), GL_FLOAT, GL_FALSE,
+                              total_size * sizeof(float), (void *)(offset * sizeof(float)));
+        glVertexAttribDivisor(i, 0);
+        glCheckError();
+        offset += sizes.at(i);
+    }
 }

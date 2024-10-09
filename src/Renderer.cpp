@@ -31,7 +31,7 @@ ShaderHolder &Renderer::getShaders()
     return m_shaders;
 }
 
-bool Renderer::hasShader(std::string id)
+bool Renderer::hasShader(std::string id) 
 {
     return m_shaders.getShaders().count(id) > 0;
 }

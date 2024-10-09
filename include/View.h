@@ -8,6 +8,9 @@
 
 #include "Vector2.h"
 
+
+//! \class defines rectangle in the world coordinates, which we draw on screen
+//! \brief used to specify, which part of the world to draw
 class View
 {
 
@@ -15,6 +18,7 @@ public:
     View() = default;
 
     void setSize(float width, float height);
+
     template <class VecType>
     void setSize(VecType new_size)
     {

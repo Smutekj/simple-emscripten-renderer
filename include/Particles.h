@@ -13,6 +13,7 @@ namespace sf
     class RenderTarget;
 }
 
+//! \struct contains data used in particle drawing + lifetime management
 struct Particle
 {
     utils::Vector2f pos;

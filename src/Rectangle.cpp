@@ -8,6 +8,13 @@ DrawRectangle::DrawRectangle(Shader &shader) : m_shader(&shader)
 {
     initialize();
 }
+
+DrawRectangle::~DrawRectangle()
+{
+    glDeleteBuffers(1, &m_vbo);
+    glCheckError();
+}
+
 void DrawRectangle::initialize()
 {
 
@@ -18,7 +25,7 @@ void DrawRectangle::initialize()
 
     glGenBuffers(1, &m_vbo);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex)*m_verts.size(), m_verts.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * m_verts.size(), m_verts.data(), GL_STATIC_DRAW);
     glCheckError();
 }
 

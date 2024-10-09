@@ -4,6 +4,10 @@
 #include "Vertex.h"
 #include "IncludesGl.h"
 
+
+//! \class OpenGL Target to draw into.
+//! \brief defines it's size in pixels 
+//! \brief manages it's OpenGL handle
 class RenderTarget
 {
 

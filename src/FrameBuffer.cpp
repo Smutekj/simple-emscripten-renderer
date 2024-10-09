@@ -71,3 +71,14 @@ void writeTextureToFile(std::filesystem::path path, std::string filename, FrameB
         std::cout << "ERROR WRITING FILE: " << full_path << "\n";
     }
 }
+
+
+    Image::Image(int x, int y)
+        : x_size(x), y_size(y), pixels(x * y)
+    {
+    }
+
+    ColorByte *Image::data()
+    {
+        return pixels.data();
+    }

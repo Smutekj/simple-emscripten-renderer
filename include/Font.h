@@ -12,6 +12,7 @@
 #include <Utils/Vector2.h>
 #include <FrameBuffer.h>
 
+//! \struct FreeType character dimensions and relative position data
 struct Character
 {
     unsigned int texture_id; // ID handle of the glyph texture
@@ -23,6 +24,9 @@ struct Character
 
 class Renderer;
 
+//! \class stores all data related to a given fotn
+//! \brief stores information necessary for drawing for each character in the font;
+//! \brief also contains texture, which contains all glyphs
 class Font
 {
 public:

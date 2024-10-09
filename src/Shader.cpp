@@ -1,5 +1,8 @@
 #include "Shader.h"
 
+
+
+
 void static extractUniformNames(VariablesData &shader_data, const std::string &filename)
 {
     const auto tmp_filename = filename + ".tmp";
@@ -79,6 +82,19 @@ void static extractTextureNames(VariablesData &shader_data, std::string filename
         }
     }
     file.close();
+}
+
+std::string VariablesData::setTexture(int slot, GLuint handle)
+{
+    auto name_it = std::find_if(textures.begin(), textures.end(), [slot](auto &tex_data)
+                                { return tex_data.second.slot == slot; });
+
+    if (name_it != textures.end())
+    {
+        textures.at(name_it->first) = {slot, handle};
+        return name_it->first;
+    }
+    return "";
 }
 
 Shader &ShaderHolder::get(std::string id)
@@ -460,6 +476,12 @@ const std::string &Shader::getVertexPath()
     return m_vertex_path;
 }
 
+ShaderUIData::ShaderUIData(Shader &program)
+    : p_program(&program), filename(program.getFragmentPath()), variables(program.getVariables())
+{
+    last_write_time = std::filesystem::last_write_time(filename);
+}
+
 // template <class ValueType>
 // constexpr void Shader::setUniform(const std::string &name, const ValueType &value)
 // {
@@ -504,3 +526,124 @@ const std::string &Shader::getVertexPath()
 
 //     }
 // }
+
+void ShaderHolder::erase(const std::string &shader_id)
+{
+    m_shaders.erase(shader_id);
+    m_shader_data.erase(shader_id);
+}
+
+const std::unordered_map<std::string, std::unique_ptr<Shader>> &ShaderHolder::getShaders() const
+{
+    return m_shaders;
+}
+
+bool ShaderHolder::contains(const std::string &shader_id) const
+{
+    return m_shaders.count(shader_id) > 0;
+}
+
+auto &ShaderHolder::getAllData()
+{
+    return m_shader_data;
+}
+
+
+std::vector<std::string> separateLine(std::string line, char delimiter)
+{
+    std::vector<std::string> result;
+    int start = 0;
+    int end = 0;
+
+    while ((start = line.find_first_not_of(delimiter, end)) != std::string::npos)
+    {
+        end = line.find(delimiter, start);
+        result.push_back(line.substr(start, end - start));
+    }
+    return result;
+}
+
+std::string trim(std::string input)
+{
+    std::string result;
+    for (auto c : input)
+    {
+        if (c != ' ' && c != ';')
+        {
+            result.push_back(c);
+        }
+    }
+    return result;
+}
+
+bool replace(std::string &str, const std::string &from, const std::string &to)
+{
+    size_t start_pos = str.find(from);
+    if (start_pos == std::string::npos)
+        return false;
+    str.replace(start_pos, from.length(), to);
+    return true;
+}
+
+UniformType extractValue(std::string type_string, std::string initial_value)
+{
+    UniformType value;
+
+    if (initial_value.empty()) //! when there is no string with initial values we set value to some default values
+    {
+        if (type_string == "float")
+        {
+            value = 0.f;
+        }
+        else if (type_string == "int")
+        {
+            value = 0;
+        }
+        else if (type_string == "vec3")
+        {
+            value = glm::vec3(1, 1, 1);
+        }
+        else if (type_string == "vec4")
+        {
+            value = glm::vec4(0, 0, 0, 0);
+        }
+    }
+    else
+    { //! we set value to
+
+        auto value_string = trim(initial_value);
+        if (type_string == "float")
+        {
+            value = std::stof(value_string);
+        }
+        else if (type_string == "int")
+        {
+            value = std::stoi(value_string);
+        }
+        else if (type_string == "vec2")
+        {
+            replace(value_string, type_string, "");
+            replace(value_string, "(", "");
+            replace(value_string, ")", "");
+            auto values = separateLine(value_string, ',');
+            value = glm::vec2(std::stof(values[0]), std::stof(values[1]));
+        }
+        else if (type_string == "vec3")
+        {
+            replace(value_string, type_string, "");
+            replace(value_string, "(", "");
+            replace(value_string, ")", "");
+            auto values = separateLine(value_string, ',');
+            value = glm::vec3(std::stof(values[0]), std::stof(values[1]), std::stof(values[2]));
+        }
+        else if (type_string == "vec4")
+        {
+            replace(value_string, type_string, "");
+            replace(value_string, "(", "");
+            replace(value_string, ")", "");
+            auto values = separateLine(value_string, ',');
+            value = glm::vec4(std::stof(values[0]), std::stof(values[1]), std::stof(values[2]), std::stof(values[3]));
+        }
+    }
+    return value;
+}

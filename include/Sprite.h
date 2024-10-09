@@ -7,13 +7,14 @@
 #include <array>
 
 
-
+//! \struct just a transform with width and height, which represents a rectangle
 struct RectangleSimple : public Transform
 {
     float width = 1;
     float height = 1;
 };
 
+//! \struct holds data regarding Transform world-size and knows, what textures the Sprite uses
 struct Sprite : public RectangleSimple
 {
 

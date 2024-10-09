@@ -8,9 +8,19 @@
 #include <vector>
 #include <memory>
 
+
+enum class DrawType
+{
+    Dynamic = GL_DYNAMIC_DRAW,
+    Static = GL_STATIC_DRAW,
+    Stream = GL_STREAM_DRAW, 
+};
+
+
 class View;
 
 
+//! \class holds vertices for drawing and does all the OpenGL stuff
 class VertexArray
 {
 
@@ -18,11 +28,7 @@ public:
     VertexArray(Shader &shader);
     VertexArray(Shader &shader, GLenum draw_type);
     VertexArray(Shader &shader, GLenum draw_type, int n_verts);
-    ~VertexArray()
-    {
-        glDeleteBuffers(1, &m_vbo);
-        glDeleteBuffers(1, &m_ebo);
-    }
+    ~VertexArray();
 
     void resize(int n_verts);
 
@@ -52,14 +58,13 @@ public:
     GLuint getShaderId()const;
 
 public:     
-    GLenum m_primitives = GL_TRIANGLES;
-    Shader* m_shader = nullptr;
-    Shader& m_shader2;
+    GLenum m_primitives = GL_TRIANGLES; //! 
+    Shader* m_shader = nullptr;         //! pointer to shader
 
 private:
 
-    GLuint m_vbo = -1;
-    GLuint m_ebo = -1;
+    GLuint m_vbo = -1;      //! vertex buffer object OpenGL id
+    GLuint m_ebo = -1;      //! element buffer object OpenGL id
 
     bool m_is_initialized = false;
 
@@ -67,6 +72,9 @@ private:
 
     std::vector<Vertex> m_vertices;
 
-    GLenum m_draw_type = GL_DYNAMIC_DRAW;
+    DrawType m_draw_type = DrawType::Dynamic;
 
 };
+
+
+void inline bindVertexAttributes(GLuint buffer, std::vector<int> sizes);

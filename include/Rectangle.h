@@ -10,16 +10,15 @@ class Texture;
 class Shader;
 class View;
 
+
+//! \class rectangle, which holds it's vertices and all draw info like textures/shader/color
 class DrawRectangle : public Transform
 {
 
 public:
     DrawRectangle(Shader &shader);
-    ~DrawRectangle()
-    {
-        glDeleteBuffers(1, &m_vbo);
-        glCheckError();
-    }
+    ~DrawRectangle();
+    
     void initialize();
 
     void draw(GLuint target, View &view);
@@ -39,8 +38,7 @@ private:
 
 protected:
     Texture *m_texture = nullptr;
-    std::array<Vertex, 4> m_verts;
-    // VertexArray m_verts;
+    std::array<Vertex, 4> m_verts;      
 };
 
 

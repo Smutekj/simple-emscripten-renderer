@@ -22,7 +22,7 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-// helper type for the visitor (stolen from cpp_reference)
+//! helper type for the visitor (stolen from cpp_reference)
 template <class... Ts>
 struct overloads : Ts...
 {
@@ -31,34 +31,29 @@ struct overloads : Ts...
 
 class ShaderHolder;
 
+//! \struct slot in Sprite + GL handle
 struct TextureGlData
 {
     int slot = 0;
     GLuint handle = 0;
 };
 
+//! Types used in GLSL for uniforms
 using UniformType = std::variant<float, bool, int, glm::vec4, glm::vec3, glm::vec2>;
 
+//! \struct contains mappings from uniform names of uniforms and textures in corresponding shader
 struct VariablesData
 {
     std::unordered_map<std::string, UniformType> uniforms;
     std::unordered_map<std::string, TextureGlData> textures;
 
-    std::string setTexture(int slot, GLuint handle)
-    {
-
-        auto name_it = std::find_if(textures.begin(), textures.end(), [slot](auto &tex_data)
-                                    { return tex_data.second.slot == slot; });
-
-        if (name_it != textures.end())
-        { 
-            textures.at(name_it->first) = {slot, handle};
-            return name_it->first;
-        }
-        return "";
-    }
+    std::string setTexture(int slot, GLuint handle);
 };
 
+//! \class contains all the data
+//! \brief combines vertex + framgnet shader
+//! \brief the shaders are load via specified paths
+//! \brief also contains uniforms and textures present in the FragmentShader
 class Shader
 {
 
@@ -120,43 +115,11 @@ public:
     inline static float m_time;
 };
 
-void inline bindVertexAttributes(GLuint buffer, std::vector<int> sizes)
-{
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glCheckError();
-    int offset = 0;
-    auto total_size = std::accumulate(sizes.begin(), sizes.end(), 0);
-    for (std::size_t i = 0; i < sizes.size(); ++i)
-    {
-        glEnableVertexAttribArray(i);
-        glVertexAttribPointer(i, sizes.at(i), GL_FLOAT, GL_FALSE,
-                              total_size * sizeof(float), (void *)(offset * sizeof(float)));
-        glVertexAttribDivisor(i, 0);
-        glCheckError();
-        offset += sizes.at(i);
-    }
-}
-
-enum class ShaderID
-{
-    VertexArrayDefault,
-    ShapeDefault,
-    Texture,
-    Instanced,
-    InstancedBorder,
-    Test,
-    TestChaining,
-    Line,
-};
-
+//! \struct Not sure?
 struct ShaderUIData
 {
 
-    ShaderUIData(Shader &program)
-        : p_program(&program), filename(program.getFragmentPath()), variables(program.getVariables())
-    {
-        last_write_time = std::filesystem::last_write_time(filename);
-    }
+    ShaderUIData(Shader &program);
 
     Shader *p_program = nullptr;
     std::string filename = "";
@@ -164,6 +127,7 @@ struct ShaderUIData
     std::filesystem::file_time_type last_write_time;
 };
 
+//! \class holds shaders themselves and also data about uniforms and textures in them
 class ShaderHolder
 {
 
@@ -174,27 +138,15 @@ public:
 
     void load(std::string name, std::string vertex_path, std::string fragment_path);
 
-    void erase(const std::string &shader_id)
-    {
-        m_shaders.erase(shader_id);
-        m_shader_data.erase(shader_id);
-    }
+    void erase(const std::string &shader_id);
 
-    const auto &getShaders() const
-    {
-        return m_shaders;
-    }
+    const std::unordered_map<std::string, std::unique_ptr<Shader>> &getShaders() const;
 
-    bool contains(const std::string &shader_id) const
-    {
-        return m_shaders.count(shader_id) > 0;
-    }
+    bool contains(const std::string &shader_id) const;
 
     ShaderUIData &getData(std::string name);
-    auto &getAllData()
-    {
-        return m_shader_data;
-    }
+
+    auto &getAllData();
 
     void refresh();
 
@@ -205,101 +157,10 @@ private:
     std::unordered_map<std::string, ShaderUIData> m_shader_data;
 };
 
-std::vector<std::string> inline separateLine(std::string line, char delimiter = ' ')
-{
-    std::vector<std::string> result;
-    int start = 0;
-    int end = 0;
+std::vector<std::string> inline separateLine(std::string line, char delimiter = ' ');
 
-    while ((start = line.find_first_not_of(delimiter, end)) != std::string::npos)
-    {
-        end = line.find(delimiter, start);
-        result.push_back(line.substr(start, end - start));
-    }
-    return result;
-}
+inline std::string trim(std::string input);
 
-inline std::string trim(std::string input)
-{
-    std::string result;
-    for (auto c : input)
-    {
-        if (c != ' ' && c != ';')
-        {
-            result.push_back(c);
-        }
-    }
-    return result;
-}
+inline bool replace(std::string &str, const std::string &from, const std::string &to);
 
-inline bool replace(std::string &str, const std::string &from, const std::string &to)
-{
-    size_t start_pos = str.find(from);
-    if (start_pos == std::string::npos)
-        return false;
-    str.replace(start_pos, from.length(), to);
-    return true;
-}
-
-inline UniformType extractValue(std::string type_string, std::string initial_value)
-{
-    UniformType value;
-
-    if (initial_value.empty()) //! when there is no string with initial values we set value to some default values
-    {
-        if (type_string == "float")
-        {
-            value = 0.f;
-        }
-        else if (type_string == "int")
-        {
-            value = 0;
-        }
-        else if (type_string == "vec3")
-        {
-            value = glm::vec3(1, 1, 1);
-        }
-        else if (type_string == "vec4")
-        {
-            value = glm::vec4(0, 0, 0, 0);
-        }
-    }
-    else
-    { //! we set value to
-
-        auto value_string = trim(initial_value);
-        if (type_string == "float")
-        {
-            value = std::stof(value_string);
-        }
-        else if (type_string == "int")
-        {
-            value = std::stoi(value_string);
-        }
-        else if (type_string == "vec2")
-        {
-            replace(value_string, type_string, "");
-            replace(value_string, "(", "");
-            replace(value_string, ")", "");
-            auto values = separateLine(value_string, ',');
-            value = glm::vec2(std::stof(values[0]), std::stof(values[1]));
-        }
-        else if (type_string == "vec3")
-        {
-            replace(value_string, type_string, "");
-            replace(value_string, "(", "");
-            replace(value_string, ")", "");
-            auto values = separateLine(value_string, ',');
-            value = glm::vec3(std::stof(values[0]), std::stof(values[1]), std::stof(values[2]));
-        }
-        else if (type_string == "vec4")
-        {
-            replace(value_string, type_string, "");
-            replace(value_string, "(", "");
-            replace(value_string, ")", "");
-            auto values = separateLine(value_string, ',');
-            value = glm::vec4(std::stof(values[0]), std::stof(values[1]), std::stof(values[2]), std::stof(values[3]));
-        }
-    }
-    return value;
-}
+inline UniformType extractValue(std::string type_string, std::string initial_value);

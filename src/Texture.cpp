@@ -94,3 +94,39 @@ GLuint Texture::getHandle() const
 {
     return m_texture_handle;
 }
+
+bool TextureHolder::add(std::string texture_name, Texture &texture)
+{
+    if (m_textures.count(texture_name) != 0)
+    {
+        std::cout << "TEXTURE NAME EXISTS!\n"
+                  << texture_name << "\n";
+        return false;
+    }
+
+    m_textures[texture_name] = std::make_shared<Texture>(texture);
+
+    return true;
+}
+
+bool TextureHolder::add(std::string texture_name, std::string filename)
+{
+    if (m_textures.count(texture_name) != 0)
+    {
+        std::cout << "TEXTURE NAME EXISTS!\n"
+                  << texture_name << "\n";
+        return false;
+    }
+    auto tex = std::make_shared<Texture>();
+    tex->loadFromFile(filename);
+    m_textures[texture_name] = std::move(tex);
+    return true;
+}
+
+std::shared_ptr<Texture> TextureHolder::get(std::string name)
+{
+    if (m_textures.count(name) > 0)
+        return m_textures.at(name);
+
+    return nullptr;
+}

@@ -7,6 +7,10 @@
 #include <vector>
 #include <filesystem>
 
+
+//! \class manages to OpenGL FrameBuffer
+//! \brief used for off-screen rendering and stuff like bloom effect...
+//! \brief also manages it's own texture, where we can access data resulted from drawing to the buffer
 class FrameBuffer : public RenderTarget
 {
 
@@ -23,18 +27,15 @@ private:
     TextureOptions m_options;
 };
 
+
+//! \struct holds texture data on the CPU
+//! \brief probably useful for saving images to disk
 struct Image
 {
 
-    Image(int x, int y)
-        : x_size(x), y_size(y), pixels(x * y)
-    {
-    }
+    Image(int x, int y);
 
-    ColorByte *data()
-    {
-        return pixels.data();
-    }
+    ColorByte *data();
 
     int x_size = 0;
     int y_size = 0;

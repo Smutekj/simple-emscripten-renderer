@@ -1,5 +1,9 @@
 #pragma once
 
+
+//! \struct represents an axis-aligned rectangle
+//! \brief position is defined by lower-left coordinate: pos_x, pos_y
+//! \brief and size is defined by width and height
 template <class T>
 struct Rect
 {
@@ -14,3 +18,6 @@ struct Rect
     {
     }
 };
+
+using Rectf = Rect<float>;
+using Recti = Rect<int>;

@@ -11,7 +11,8 @@ using TextureHandle = GLuint;
 
 constexpr int N_MAX_TEXTURES = 2; //! maximum number of texture slots
 
-
+//! \enum options for texture mapping procedure
+//! \brief translates into corresponding OpenGL integers
 enum class TexMappingParam
 {
     Nearest = GL_NEAREST,
@@ -22,12 +23,15 @@ enum class TexMappingParam
     LinearMipmapNearest = GL_LINEAR_MIPMAP_NEAREST,
 };
 
+//! \enum options for data types stored in texture pixels
 enum class TextureDataTypes
 {
     Float = GL_FLOAT,
     UByte = GL_UNSIGNED_BYTE,
 };
 
+//! \enum format of the data stored in each texture pixel 
+//! \brief this needs to correspond somehow to how shaders are used 
 enum class TextureFormat
 {
     RGBA = GL_RGBA,
@@ -35,12 +39,14 @@ enum class TextureFormat
     RGBA16F = GL_RGBA16F,
 };
 
+//! \enum specifies the boundary condition used in drawing textures
 enum class TexWrapParam
 {
     Repeat = GL_REPEAT,
     ClampEdge = GL_CLAMP_TO_EDGE
 };
 
+//! \struct aggregates different OpenGL texture configurations  
 struct TextureOptions
 {
     TextureFormat format = TextureFormat::RGBA;
@@ -52,6 +58,9 @@ struct TextureOptions
     TexWrapParam wrap_y = TexWrapParam::Repeat;
 };
 
+//! \class manages data in the texture
+//! \brief This class corresponds to the actual data on the GPU
+//! \brief Textures should be created sparingly, whereas we can have as many Sprites as we want 
 class Texture
 {
     using GLuint = unsigned int;
@@ -75,51 +84,23 @@ private:
     void initialize(TextureOptions options);
 
 private:
-    GLuint m_texture_handle = 0;
+    GLuint m_texture_handle = 0;        //! OpenGL id for texture
     TextureOptions m_options;
 
     int m_width = 0;
     int m_height = 0;
 };
-
-struct TextureHolder
+ 
+ //! \class holds textures based on id given by string
+class TextureHolder
 {
 
-    bool add(std::string texture_name, Texture &texture)
-    {
-        if (m_textures.count(texture_name) != 0)
-        {
-            std::cout << "TEXTURE NAME EXISTS!\n"
-                      << texture_name << "\n";
-            return false;
-        }
+public:
+    bool add(std::string texture_name, Texture &texture);
+    bool add(std::string texture_name, std::string filename);
 
-        m_textures[texture_name] = std::make_shared<Texture>(texture);
+    std::shared_ptr<Texture> get(std::string name);
 
-        return true;
-    }
-
-    bool add(std::string texture_name, std::string filename)
-    {
-        if (m_textures.count(texture_name) != 0)
-        {
-            std::cout << "TEXTURE NAME EXISTS!\n"
-                      << texture_name << "\n";
-            return false;
-        }
-        auto tex = std::make_shared<Texture>();
-        tex->loadFromFile(filename);
-        m_textures[texture_name] = std::move(tex);
-        return true;
-    }
-
-    std::shared_ptr<Texture> get(std::string name)
-    {
-        if (m_textures.count(name) > 0)
-            return m_textures.at(name);
-
-        return nullptr;
-    }
-
+private:
     std::map<std::string, std::shared_ptr<Texture>> m_textures;
 };
