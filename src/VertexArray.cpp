@@ -53,6 +53,7 @@ void VertexArray::resize(int n_verts)
     glCheckError();
 }
 
+//! \brief initializes 
 void VertexArray::init()
 {
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);

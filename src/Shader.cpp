@@ -315,8 +315,6 @@ Shader::Shader(const std::string vertex_path, const std::string fragment_path)
 
 void Shader::recompile()
 {
-    // glDeleteProgram(m_id);
-
     extractTextureNames(m_variables, m_fragment_path);
     extractUniformNames(m_variables, m_fragment_path);
 
@@ -325,8 +323,6 @@ void Shader::recompile()
     std::string vertex_code = vertex_loader.load_shader(m_vertex_path);
     std::string fragment_code = vertex_loader.load_shader(m_fragment_path);
 
-    // retrieveCode(m_vertex_path.c_str(), vertex_code);
-    // retrieveCode(m_fragment_path.c_str(), fragment_code);
     const char *vShaderCode = vertex_code.c_str();
     const char *fShaderCode = fragment_code.c_str();
 
