@@ -6,7 +6,7 @@
 #include "Sprite.h"
 #include "Texture.h"
 #include "RenderTarget.h"
-
+#include "Text.h"
 
 #include <memory>
 #include <set>
@@ -34,37 +34,17 @@ struct BlendParams
     BlendFactor dst_alpha = BlendFactor::OneMinusSrcAlpha;
 
     BlendParams() = default;
-    BlendParams(BlendFactor src_fact, BlendFactor dst_fact)
-        : src_factor(src_fact), dst_factor(dst_fact)
-    {
-    }
-    BlendParams(BlendFactor src_fact, BlendFactor dst_fact, BlendFactor src_a, BlendFactor dst_a)
-        : src_factor(src_fact), dst_factor(dst_fact), src_alpha(src_a), dst_alpha(dst_a)
-    {
-    }
+    BlendParams(BlendFactor src_fact, BlendFactor dst_fact);
+    BlendParams(BlendFactor src_fact, BlendFactor dst_fact, BlendFactor src_a, BlendFactor dst_a);
 };
 
 class Font;
 
-class Text : public Transform
-{
-
-public:
-    Text(std::string text = "");
-    void setFont(Font* font);
-    // std::shared_ptr<Font> getFont();
-    Font* getFont();
-    void setText(const std::string &new_text);
-    const std::string &getText() const;
-    void setColor(ColorByte new_color);
-    const ColorByte &getColor() const;
-
-private:
-    Font* m_font = nullptr;
-    std::string m_text = "";
-    ColorByte m_color = {255, 255, 255, 255};
-};
-
+//! \class Renderer
+//! \brief acts as a canvas, with draw functions for:
+//! \brief sprites, circles, rectangles, text, and vertex arrays
+//! \brief internally batches draw calls. Once the user wants to actually perform the batched draw calls (that is call the GL functions) 
+//! \brief drawAll() method should be used
 class Renderer
 {
     using BatchPtr = std::unique_ptr<Batch>;
@@ -76,15 +56,14 @@ public:
     void drawSprite(Sprite &sprite, const std::string& shader_id, DrawType draw_type = DrawType::Dynamic);
     void drawSpriteDynamic(Sprite &sprite, const std::string& shader_id);
     void drawText(Text &text, const std::string& shader_id, DrawType draw_type);
-
     void drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color);
-
     void drawRectangle(RectangleSimple &r, Color color, const std::string &shader_id = "VertexArrayDefault", DrawType draw_type = DrawType::Dynamic);
     void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color, DrawType draw_type = DrawType::Dynamic);
-    void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 51);
+    void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 32);
     void drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f& scale, Color color, int n_verts = 51, std::string shader_id = "VertexArrayDefault");
     void drawVertices(VertexArray &verts, DrawType draw_type = DrawType::Dynamic, std::shared_ptr<Texture> p_texture = nullptr);
 
+    //! \brief draws everything into RenderTarget and clears non-static batches. 
     void drawAll();
 
     utils::Vector2i getTargetSize() const;
@@ -118,16 +97,17 @@ private:
     bool checkShader(const std::string &shader_id);
 
 public:
-    View m_view;
-    Rect<float> m_viewport;
-    BlendParams m_blend_factors;
+    View m_view;                //! view defines what part of the world we "look at" and thus draw
+    Rect<float> m_viewport;        //! viewport defines part of the window, we draw into
+    BlendParams m_blend_factors; //! OpenGL factors of the blend equation
 
 private:
-    ShaderHolder m_shaders;
+    ShaderHolder m_shaders; //! stores shaders that we can use in this canvas (will probably just use singleton later on...)
 
     std::unordered_map<BatchConfig, int> m_config2next_free_batch;
+    //! stores batches
     std::unordered_map<BatchConfig, std::vector<BatchPtr>> m_config2batches;
     std::unordered_map<BatchConfig, std::vector<SpriteBatchPtr>> m_config2sprite_batches;
 
-    RenderTarget &m_target;
+    RenderTarget &m_target;     //! actual draw target
 };

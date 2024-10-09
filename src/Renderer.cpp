@@ -7,6 +7,15 @@
 #include <chrono>
 #include <numbers>
 
+BlendParams::BlendParams(BlendFactor src_fact, BlendFactor dst_fact)
+    : src_factor(src_fact), dst_factor(dst_fact)
+{
+}
+BlendParams::BlendParams(BlendFactor src_fact, BlendFactor dst_fact, BlendFactor src_a, BlendFactor dst_a)
+    : src_factor(src_fact), dst_factor(dst_fact), src_alpha(src_a), dst_alpha(dst_a)
+{
+}
+
 Renderer::Renderer(RenderTarget &target)
     : m_target(target), m_viewport(0.f, 0.f, 1.f, 1.f)
 {
@@ -37,13 +46,13 @@ void Renderer::addShader(std::string id, std::string vertex_path, std::string fr
     m_shaders.load(id, vertex_path, fragment_path);
 }
 
-Shader &Renderer::getShader(const std::string& id)
+Shader &Renderer::getShader(const std::string &id)
 {
     return m_shaders.get(id);
 }
-Shader* Renderer::getShaderP(const std::string& id)
+Shader *Renderer::getShaderP(const std::string &id)
 {
-    if(hasShader(id))
+    if (hasShader(id))
     {
         return &m_shaders.get(id);
     }
@@ -82,20 +91,20 @@ bool Renderer::checkShader(const std::string &shader_id)
     return false;
 }
 
-void Renderer::drawSprite(Sprite &sprite, const std::string& shader_id, DrawType draw_type)
+void Renderer::drawSprite(Sprite &sprite, const std::string &shader_id, DrawType draw_type)
 {
     if (checkShader(shader_id))
     {
         drawSpriteUnpacked(sprite.getPosition(), sprite.getScale(), sprite.getRotation(), sprite.m_color,
-                   sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
+                           sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
     }
 }
-void Renderer::drawSpriteDynamic(Sprite &sprite, const std::string& shader_id)
+void Renderer::drawSpriteDynamic(Sprite &sprite, const std::string &shader_id)
 {
     drawSprite(sprite, shader_id, DrawType::Dynamic);
 }
 
-void Renderer::drawText(Text &text,const std::string& shader_id, DrawType draw_type)
+void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_type)
 {
     if (!checkShader(shader_id))
     {
@@ -103,7 +112,7 @@ void Renderer::drawText(Text &text,const std::string& shader_id, DrawType draw_t
     }
     auto &string = text.getText();
     auto font = text.getFont();
-    if(!font)
+    if (!font)
     {
         return;
     }
@@ -151,8 +160,8 @@ void Renderer::drawText(Text &text,const std::string& shader_id, DrawType draw_t
 }
 
 void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
-                          Vec2 texture_size, std::array<GLuint, N_MAX_TEXTURES> &texture_handles,
-                          const std::string& shader_id, DrawType draw_type)
+                                  Vec2 texture_size, std::array<GLuint, N_MAX_TEXTURES> &texture_handles,
+                                  const std::string &shader_id, DrawType draw_type)
 {
     auto &shader = m_shaders.get(shader_id);
 
@@ -197,7 +206,7 @@ void Renderer::drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color
 void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color,
                                DrawType draw_type)
 {
-    if(!checkShader("VertexArrayDefault"))
+    if (!checkShader("VertexArrayDefault"))
     {
         return;
     }
@@ -258,7 +267,7 @@ void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_v
     drawEllipseBatched(center, 0., utils::Vector2f{radius, radius}, color, n_verts);
 }
 
-void Renderer::drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f& scale, Color color, int n_verts, std::string shader_id)
+void Renderer::drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f &scale, Color color, int n_verts, std::string shader_id)
 {
     auto &batch = findBatch(0, m_shaders.get(shader_id), DrawType::Dynamic, n_verts);
 
@@ -454,38 +463,4 @@ SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, D
     }
     m_config2sprite_batches.at(config).push_back(std::make_unique<SpriteBatch>(config, shader));
     return *batches.back();
-}
-
-Text::Text(std::string text)
-    : m_text(text)
-{
-}
-
-void Text::setFont(Font* new_font)
-{
-    m_font = new_font;
-}
-Font* Text::getFont()
-{
-    return m_font;
-}
-
-void Text::setText(const std::string &new_text)
-{
-    m_text = new_text;
-}
-
-const std::string &Text::getText() const
-{
-    return m_text;
-}
-
-void Text::setColor(ColorByte new_color)
-{
-    m_color = new_color;
-}
-
-const ColorByte &Text::getColor() const
-{
-    return m_color;
 }
