@@ -136,7 +136,7 @@ public:
 
     void use(std::string id);
 
-    void load(std::string name, std::string vertex_path, std::string fragment_path);
+    void load(const std::string& name, const std::string& vertex_filename, const std::string& fragment_filename);
 
     void erase(const std::string &shader_id);
 

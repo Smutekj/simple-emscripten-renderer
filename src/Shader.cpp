@@ -1,8 +1,5 @@
 #include "Shader.h"
 
-
-
-
 void static extractUniformNames(VariablesData &shader_data, const std::string &filename)
 {
     const auto tmp_filename = filename + ".tmp";
@@ -107,13 +104,17 @@ void ShaderHolder::use(std::string id)
     m_shaders.at(id)->use();
 }
 
-void ShaderHolder::load(std::string name, std::string vertex_path, std::string fragment_path)
+void ShaderHolder::load(const std::string& name, const std::string& vertex_filename, const std::string& fragment_filename)
 {
     if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
     {
         m_shaders.erase(name);
         m_shader_data.erase(name);
     }
+
+    std::filesystem::path vertex_path = "../Resources/Shaders/" + vertex_filename;
+    std::filesystem::path fragment_path = "../Resources/Shaders/" + fragment_filename;
+
     m_shaders[name] = std::make_unique<Shader>(vertex_path, fragment_path);
     auto &shader = m_shaders.at(name);
     shader->m_shader_name = name;
@@ -543,7 +544,6 @@ auto &ShaderHolder::getAllData()
 {
     return m_shader_data;
 }
-
 
 std::vector<std::string> separateLine(std::string line, char delimiter)
 {
