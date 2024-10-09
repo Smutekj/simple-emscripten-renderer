@@ -80,8 +80,7 @@ bool Renderer::checkShader(const std::string &shader_id)
 
     try
     {
-        std::filesystem::path resources_path = "../Resources/";
-        m_shaders.load(shader_id, resources_path.string() + "basicinstanced.vert", resources_path.string() + shader_id + ".frag");
+        m_shaders.load(shader_id, "basicinstanced.vert", shader_id + ".frag");
         return true;
     }
     catch (const std::exception &e)
