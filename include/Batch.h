@@ -24,28 +24,12 @@ struct BatchConfig
 {
     BatchConfig() = default;
 
-    BatchConfig(std::array<GLuint, N_MAX_TEXTURES> tex_ids, const GLuint &shader_id, DrawType draw_type)
-        : shader_id(shader_id), draw_type(draw_type)
-    {
-        assert(tex_ids.size() <= N_MAX_TEXTURES);
-        std::copy(tex_ids.begin(), tex_ids.end(), texture_ids.begin());
-    }
-    BatchConfig(const GLuint &tex_id, const GLuint &shader_id, DrawType draw_type)
-        : shader_id(shader_id), draw_type(draw_type)
-    {
-        texture_ids[0] = tex_id;
-    }
+    BatchConfig(std::array<GLuint, N_MAX_TEXTURES> tex_ids, const GLuint &shader_id, DrawType draw_type);
+    BatchConfig(const GLuint &tex_id, const GLuint &shader_id, DrawType draw_type);
 
-    bool operator==(const BatchConfig &other) const
-    {
-        bool shaders_same = other.shader_id == shader_id;
-        bool textures_same = std::equal(texture_ids.begin(), texture_ids.end(), std::begin(other.texture_ids));
-        bool drawtypes_same = draw_type == other.draw_type;
-        return shaders_same && textures_same && drawtypes_same;
-    }
+    bool operator==(const BatchConfig &other) const;
 
     std::array<GLuint, N_MAX_TEXTURES> texture_ids = {0, 0};
-    // GLuint texture_id = 0;
     GLuint shader_id = 0;
     DrawType draw_type = DrawType::Dynamic;
 };
@@ -157,8 +141,8 @@ private:
     GLuint m_texture_id = 0;
     GLuint m_transform_buffer = 0;
     GLuint m_indices_buffer = 0;
-    GLuint m_vbo = 0;
+    GLuint m_vbo = 0;               
 
-    std::array<Trans, BATCH_VERTEX_CAPACITY> m_transforms;
+    std::array<Trans, BATCH_VERTEX_CAPACITY> m_transforms; //! transform and texture data is stored here
     int m_end = 0;
 };
