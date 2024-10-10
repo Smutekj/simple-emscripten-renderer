@@ -34,7 +34,7 @@ const ColorByte &Text::getColor() const
     return m_color;
 }
 
-void Text::centerAround(const utils::Vector2f& center) const
+void Text::centerAround(const utils::Vector2f& center)
 {
     auto width = getTextWidth();
     auto curr_pos = getPosition();

@@ -24,7 +24,7 @@ public:
 
 
     float getTextWidth()const;
-    void centerAround(const utils::Vector2f& center) const;
+    void centerAround(const utils::Vector2f& center);
 
 private:
     Font* m_font = nullptr;
