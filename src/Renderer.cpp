@@ -71,6 +71,14 @@ utils::Vector2f Renderer::getMouseInWorld()
     return {world_coords.x, world_coords.y};
 }
 
+utils::Vector2i Renderer::getMouseInScreen()
+{
+    int mouse_coords[2];
+    auto button = SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
+    return {mouse_coords[0],mouse_coords[1]};
+}
+
+
 bool Renderer::checkShader(const std::string &shader_id)
 {
     if (m_shaders.contains(shader_id))

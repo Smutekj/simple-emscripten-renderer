@@ -77,6 +77,7 @@ public:
     Shader &getShader(const std::string& id);
     Shader *getShaderP(const std::string& id);
     utils::Vector2f getMouseInWorld();
+    utils::Vector2i getMouseInScreen();
 
 private:
     void drawSpriteStatic(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
