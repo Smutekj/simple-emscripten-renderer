@@ -1,9 +1,8 @@
 #pragma once
 
-
 #include "Transform.h"
+#include "Font.h"
 
-class Font;
 
 //! \class contains necessary data to draw texts
 //! \brief contains string to draw, color and pointer to font
@@ -23,8 +22,18 @@ public:
     void setColor(ColorByte new_color);
     const ColorByte &getColor() const;
 
+
+    float getTextWidth()const;
+    void centerAround(const utils::Vector2f& center) const;
+
 private:
     Font* m_font = nullptr;
     std::string m_text = "";
     ColorByte m_color = {255, 255, 255, 255};
+};
+
+
+struct TextLineData
+{
+
 };
