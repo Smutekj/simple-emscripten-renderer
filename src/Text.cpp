@@ -40,7 +40,7 @@ void Text::centerAround(const utils::Vector2f& center) const
     auto curr_pos = getPosition();
     utils::Vector2f new_pos = center;
     new_pos.x -= width/2.f;
-    setPosition(new_pos)
+    setPosition(new_pos);
 }
 
 float Text::getTextWidth() const
