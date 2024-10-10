@@ -54,7 +54,6 @@ void static extractTextureNames(VariablesData &shader_data, std::string filename
         throw std::runtime_error("File not found: " + filename);
     }
 
-    GLuint texture_shader_id = 0;
     int slot = 0;
     std::string line;
     while (std::getline(file, line))
@@ -94,17 +93,17 @@ std::string VariablesData::setTexture(int slot, GLuint handle)
     return "";
 }
 
-Shader &ShaderHolder::get(const std::string& id)
+Shader &ShaderHolder::get(const std::string &id)
 {
     return *m_shaders.at(id);
 }
 
-void ShaderHolder::use(const std::string& id)
+void ShaderHolder::use(const std::string &id)
 {
     m_shaders.at(id)->use();
 }
 
-void ShaderHolder::load(const std::string& name, const std::string& vertex_filename, const std::string& fragment_filename)
+void ShaderHolder::load(const std::string &name, const std::string &vertex_filename, const std::string &fragment_filename)
 {
     if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
     {
