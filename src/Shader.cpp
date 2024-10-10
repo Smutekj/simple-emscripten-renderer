@@ -111,7 +111,7 @@ void ShaderHolder::load(const std::string &name, const std::string &vertex_filen
         m_shader_data.erase(name);
     }
 
-    std::filesystem::path vertex_path = "../Resources/Shaders/" + vertex_filename;
+    std::filesystem::path vertex_path = "../Resources/Shaders/" + vertex_filename; //! no idea if this works on windows?????
     std::filesystem::path fragment_path = "../Resources/Shaders/" + fragment_filename;
 
     m_shaders[name] = std::make_unique<Shader>(vertex_path, fragment_path);
@@ -123,7 +123,7 @@ void ShaderHolder::load(const std::string &name, const std::string &vertex_filen
     extractUniformNames(m_shader_data.at(name).variables, shader->getFragmentPath());
 }
 
-ShaderUIData &ShaderHolder::getData(std::string name)
+ShaderUIData &ShaderHolder::getData(const std::string &name)
 {
     return m_shader_data.at(name);
 }
@@ -238,7 +238,7 @@ void Shader::activateTexture(std::array<GLuint, 2> handles)
     }
 }
 
-void Shader::setUniform2(std::string uniform_name, UniformType uniform_value)
+void Shader::setUniform2(const std::string &uniform_name, UniformType uniform_value)
 {
     std::visit([&uniform_name, this](auto &&t)
                {
@@ -256,7 +256,7 @@ void Shader::setUniform2(std::string uniform_name, UniformType uniform_value)
     }
 }
 
-void Shader::saveUniformValue(std::string uniform_name, UniformType uniform_value)
+void Shader::saveUniformValue(const std::string &uniform_name, UniformType uniform_value)
 {
 
     m_variables.uniforms.at(uniform_name) = uniform_value;
@@ -297,15 +297,15 @@ void Shader::retrieveCode(const char *code_path, std::string &code)
     }
 }
 
-Shader::Shader(const std::string vertex_path, const std::string fragment_path,
-               std::string shader_name) : m_shader_name(shader_name),
-                                          m_vertex_path(vertex_path),
-                                          m_fragment_path(fragment_path)
+Shader::Shader(const std::string &vertex_path, const std::string &fragment_path,
+               const std::string &shader_name) : m_vertex_path(vertex_path),
+                                                 m_fragment_path(fragment_path),
+                                                 m_shader_name(shader_name)
 {
     recompile();
 }
 
-Shader::Shader(const std::string vertex_path, const std::string fragment_path)
+Shader::Shader(const std::string &vertex_path, const std::string &fragment_path)
     : m_vertex_path(vertex_path),
       m_fragment_path(fragment_path)
 {

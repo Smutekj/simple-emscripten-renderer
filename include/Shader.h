@@ -59,8 +59,8 @@ class Shader
 
 public:
     Shader() = default;
-    Shader(const std::string vertex_path, const std::string fragment_path);
-    Shader(const std::string vertex_path, const std::string fragment_path, std::string shader_name);
+    Shader(const std::string& vertex_path, const std::string& fragment_path);
+    Shader(const std::string& vertex_path, const std::string& fragment_path, const std::string& shader_name);
 
     VariablesData &getVariables();
     GLuint getId() const;
@@ -94,9 +94,9 @@ public:
     void activateTexture(std::array<GLuint, 2> handles);
 
 public:
-    void setUniform2(std::string uniform_name, UniformType uniform_value);
+    void setUniform2(const std::string& uniform_name, UniformType uniform_value);
 
-    void saveUniformValue(std::string uniform_name, UniformType uniform_value);
+    void saveUniformValue(const std::string& uniform_name, UniformType uniform_value);
 
     friend ShaderHolder;
 
@@ -104,8 +104,8 @@ private:
     void retrieveCode(const char *code_path, std::string &code);
 
     unsigned int m_id = -1; // the program ID
-    std::string m_fragment_path;
     std::string m_vertex_path;
+    std::string m_fragment_path;
     std::string m_shader_name = "default_name";
     std::filesystem::file_time_type m_last_writetime;
 
@@ -144,7 +144,7 @@ public:
 
     bool contains(const std::string &shader_id) const;
 
-    ShaderUIData &getData(std::string name);
+    ShaderUIData &getData(const std::string& name);
 
     auto &getAllData();
 
