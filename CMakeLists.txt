@@ -62,6 +62,7 @@ file(GLOB SRC
 include_directories(${CMAKE_SOURCE_DIR}/include  ${SDL2_INCLUDE_DIRS})
 include_directories(SYSTEM external/magic_enum)
 include_directories(SYSTEM external/freetype)
+
 add_library(${PROJECT_NAME} STATIC)
 target_sources(${PROJECT_NAME} PRIVATE ${SRC})
 target_link_libraries(${PROJECT_NAME} glm GLESv2 ${SDL2_LIBRARIES} freetype)
