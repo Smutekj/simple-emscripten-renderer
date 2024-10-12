@@ -77,4 +77,3 @@ private:
 };
 
 
-void inline bindVertexAttributes(GLuint buffer, std::vector<int> sizes);

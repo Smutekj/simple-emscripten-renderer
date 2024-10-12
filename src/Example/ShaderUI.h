@@ -36,7 +36,7 @@ struct ShaderSlot
         return m_pixels.getSize();
     }
 
-    void draw(Sprite2 &test_sprite)
+    void draw(Sprite &test_sprite)
     {
 
         auto &shader = m_canvas.getShader(m_selected_shader);
@@ -46,7 +46,7 @@ struct ShaderSlot
         }
 
         m_canvas.clear({1, 1, 1, 1});
-        m_canvas.drawSprite(test_sprite, m_selected_shader, GL_DYNAMIC_DRAW);
+        m_canvas.drawSprite(test_sprite, m_selected_shader, DrawType::Dynamic);
         m_canvas.drawAll();
     }
 

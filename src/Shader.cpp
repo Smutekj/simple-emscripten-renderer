@@ -143,7 +143,7 @@ void ShaderHolder::refresh()
     for (auto &[shader_name, shader] : m_shaders)
     {
 
-        std::filesystem::path f_path = "/home/smutekj/Desktop/test/build/" + shader->getFragmentPath();
+        std::filesystem::path f_path =  shader->getFragmentPath();
         auto last_time = std::filesystem::last_write_time(f_path);
         if (last_time != m_shader_data.at(shader_name).last_write_time)
         {
@@ -529,7 +529,7 @@ void ShaderHolder::erase(const std::string &shader_id)
     m_shader_data.erase(shader_id);
 }
 
-const std::unordered_map<std::string, std::unique_ptr<Shader>> &ShaderHolder::getShaders() const
+const ShaderHolder::ShaderMap &ShaderHolder::getShaders() const
 {
     return m_shaders;
 }
@@ -539,7 +539,7 @@ bool ShaderHolder::contains(const std::string &shader_id) const
     return m_shaders.count(shader_id) > 0;
 }
 
-auto &ShaderHolder::getAllData()
+ShaderHolder::ShaderUIDataMap &ShaderHolder::getAllData()
 {
     return m_shader_data;
 }

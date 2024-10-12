@@ -4,9 +4,7 @@
 #include <Renderer.h>
 
 void Font::initialize()
-{
-
-}
+{}
 
 Font::Font(std::string font_filename)
 {
@@ -22,13 +20,13 @@ Font::Font(std::string font_filename)
     using Path = std::filesystem::path;
     Path shaders_path(__FILE__);
     shaders_path.remove_filename();
-    shaders_path += "../Resources/Shaders/";
     m_canvas->addShader("Text",
-                        shaders_path.string() + "basicinstanced.vert",
-                        shaders_path.string() + "text.frag");
+                        "basicinstanced.vert",
+                        "text.frag");
+
     if (!loadFromFile(font_filename))
     {
-        // spdlog::error("FONT FILE " + font_filename + " NOT FOUND!");
+        throw std::runtime_error("FONT FILE " + font_filename + " NOT FOUND!");
     }
 }
 
@@ -117,11 +115,11 @@ bool Font::loadFromFile(std::string font_filename)
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
-            GL_RED,
+            GL_ALPHA,
             face->glyph->bitmap.width,
             face->glyph->bitmap.rows,
             0,
-            GL_RED,
+            GL_ALPHA,
             GL_UNSIGNED_BYTE,
             face->glyph->bitmap.buffer);
         // set texture options

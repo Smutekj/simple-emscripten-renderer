@@ -171,19 +171,3 @@ GLuint VertexArray::getShaderId() const
     return m_shader->getId();
 }
 
-void  bindVertexAttributes(GLuint buffer, std::vector<int> sizes)
-{
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
-    glCheckError();
-    int offset = 0;
-    auto total_size = std::accumulate(sizes.begin(), sizes.end(), 0);
-    for (std::size_t i = 0; i < sizes.size(); ++i)
-    {
-        glEnableVertexAttribArray(i);
-        glVertexAttribPointer(i, sizes.at(i), GL_FLOAT, GL_FALSE,
-                              total_size * sizeof(float), (void *)(offset * sizeof(float)));
-        glVertexAttribDivisor(i, 0);
-        glCheckError();
-        offset += sizes.at(i);
-    }
-}

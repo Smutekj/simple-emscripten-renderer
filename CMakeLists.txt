@@ -12,6 +12,7 @@ set(CMAKE_BUILD_TYPE "Release")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
 endif()
 
+add_subdirectory(external/freetype)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -29,13 +30,10 @@ FetchContent_Declare(
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSDL_TEST_LIBRARY=OFF -DSDL2_DISABLE_INSTALL=ON")
 FetchContent_MakeAvailable(SDL2)
 
-
-find_package(Freetype REQUIRED)
-
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-set(USE_FLAGS "-s USE_SDL=2 -s USE_FREETYPE=1 -s FULL_ES3=1 -s OFFSCREEN_FRAMEBUFFER=1")
+set(USE_FLAGS "-s USE_SDL=2 -s FULL_ES3=1 -s OFFSCREEN_FRAMEBUFFER=1")
 set(USE_FLAGS "${USE_FLAGS} -s MIN_WEBGL_VERSION=1 -s MAX_WEBGL_VERSION=2")
-# set(USE_FLAGS "${USE_FLAGS} -s -sASSERTIONS -sALLOW_MEMORY_GROWTH")
+set(USE_FLAGS "${USE_FLAGS} -s -sASSERTIONS -sALLOW_MEMORY_GROWTH")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}  --embed-file ../Resources --embed-file ../external/lygia")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS} --embed-file ../Resources --embed-file ../external/lygia")
@@ -61,11 +59,12 @@ file(GLOB SRC
      "src/Gui/backends/*.cpp"
 )
 
-include_directories(${CMAKE_SOURCE_DIR}/include  ${SDL2_INCLUDE_DIRS} ${FREETYPE_INCLUDE_DIRS} )
+include_directories(${CMAKE_SOURCE_DIR}/include  ${SDL2_INCLUDE_DIRS})
 include_directories(SYSTEM external/magic_enum)
+include_directories(SYSTEM external/freetype)
 add_library(${PROJECT_NAME} STATIC)
 target_sources(${PROJECT_NAME} PRIVATE ${SRC})
-target_link_libraries(${PROJECT_NAME} glm GLESv2 ${SDL2_LIBRARIES} ${FREETYPE_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} glm GLESv2 ${SDL2_LIBRARIES} freetype)
 target_include_directories(${PROJECT_NAME}
     PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

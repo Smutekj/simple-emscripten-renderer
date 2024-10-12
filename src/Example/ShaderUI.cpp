@@ -85,7 +85,7 @@ void ShadersWindow::drawUniformValue(const char *name, UniformType &value)
                     {   
                         if(ImGui::Button(name))
                         {
-                            value != value; 
+                            value = !value; 
                         }
                     }
                    else if constexpr (std::is_same_v<T, glm::vec2>)
@@ -154,7 +154,7 @@ void ShadersWindow::drawShaderSlot(ShaderSlot &slot)
     {
         if (ImGui::BeginListBox(texture_name.c_str(), shader_box_size))
         {
-            for (auto &[texture_identifier, texture_ptr] : m_textures.m_textures)
+            for (auto &[texture_identifier, texture_ptr] : m_textures.getTextures())
             {
                 const bool is_selected = (value.handle == texture_ptr->getHandle());
                 if (ImGui::Selectable(texture_identifier.c_str(), is_selected))

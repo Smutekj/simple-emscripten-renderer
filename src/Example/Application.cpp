@@ -20,24 +20,24 @@ struct ShaderUniform
 
 // void Application::initializeSimulation()
 // {
-//     m_swirl_renderer1.addShader("swirl", "../Resources/basicinstanced.vert", "../Resources/swirl.frag");
-//     m_vel_initializer.addShader("SwirlInit", "../Resources/basicinstanced.vert", "../Resources/velFieldInit.frag");
+//     m_swirl_renderer1.addShader("swirl", "basicinstanced.vert", "swirl.frag");
+//     m_vel_initializer.addShader("SwirlInit", "basicinstanced.vert", "velFieldInit.frag");
 
 //     auto &simulation_canvas = m_slots.at(0).m_canvas;
 //     auto &simulation_pixels = m_slots.at(0).m_pixels;
 //     //! draw initial condition to buffer 2
-//     Sprite2 buffer_sprite2(b1.getTexture());
+//     Sprite buffer_Sprite(b1.getTexture());
 //     utils::Vector2f slot_size = {simulation_pixels.getSize().x, simulation_pixels.getSize().y};
-//     buffer_sprite2.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
-//     buffer_sprite2.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
-//     simulation_canvas.m_view.setCenter(buffer_sprite2.getPosition().x, buffer_sprite2.getPosition().y);
+//     buffer_Sprite.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
+//     buffer_Sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
+//     simulation_canvas.m_view.setCenter(buffer_Sprite.getPosition().x, buffer_Sprite.getPosition().y);
 //     simulation_canvas.m_view.setSize(slot_size.x, slot_size.y);
-//     simulation_canvas.drawSprite(buffer_sprite2, "rhoFieldInit", GL_DYNAMIC_DRAW);
+//     simulation_canvas.drawSprite(buffer_Sprite, "rhoFieldInit", GL_DYNAMIC_DRAW);
 //     simulation_canvas.drawAll();
 
-//     m_vel_initializer.m_view.setCenter(buffer_sprite2.getPosition().x, buffer_sprite2.getPosition().y);
+//     m_vel_initializer.m_view.setCenter(buffer_Sprite.getPosition().x, buffer_Sprite.getPosition().y);
 //     m_vel_initializer.m_view.setSize(slot_size.x, slot_size.y);
-//     m_vel_initializer.drawSprite(buffer_sprite2, "SwirlInit", GL_DYNAMIC_DRAW);
+//     m_vel_initializer.drawSprite(buffer_Sprite, "SwirlInit", GL_DYNAMIC_DRAW);
 //     m_vel_initializer.drawAll();
 // }
 
@@ -47,10 +47,10 @@ void setUniforms(Shader &program, ShaderUniform<UniformType> &...values)
     (program.setUniform(values.name, values.value), ...);
 }
 
-void drawProgramToTexture(Sprite2 &rect, Renderer &target, std::string program)
+void drawProgramToTexture(Sprite &rect, Renderer &target, std::string program)
 {
     target.clear({1, 1, 1, 1});
-    target.drawSprite(rect, program, GL_DYNAMIC_DRAW);
+    target.drawSprite(rect, program, DrawType::Dynamic);
     target.drawAll();
 }
 
@@ -68,7 +68,7 @@ Application::Application(int width, int height) : m_window(width, height),
     //     m_slots.emplace_back(width / n_slots_x, height / n_slots_y);
     // }
 
-    std::filesystem::path path{"../Resources/"};
+    std::filesystem::path path{"../Resources/Shaders"};
     auto shader_filenames = extractNamesInDirectory(path, ".frag");
     for (auto &shader_filename : shader_filenames)
     {
@@ -76,17 +76,18 @@ Application::Application(int width, int height) : m_window(width, height),
         std::string shader_name = shader_filename.substr(0, pos_right);
         for (auto &slot : m_slots)
         {
-            slot.m_canvas.addShader(shader_name, "../Resources/basicinstanced.vert", path.string() + shader_filename);
+            slot.m_canvas.addShader(shader_name, "basicinstanced.vert", path.string() + shader_filename);
         }
     }
+
     for (auto &slot : m_slots)
     {
-        slot.m_canvas.addShader("VertexArrayDefault", "../Resources/basictex.vert", "../Resources/fullpass.frag");
+        slot.m_canvas.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
     }
 
-    m_window_renderer.addShader("Instanced", "../Resources/basicinstanced.vert", "../Resources/texture.frag");
-    m_window_renderer.addShader("Text", "../Resources/basicinstanced.vert", "../Resources/textBorder.frag");
-    m_window_renderer.addShader("VertexArrayDefault", "../Resources/basictex.vert", "../Resources/fullpass.frag");
+    m_window_renderer.addShader("Instanced", "basicinstanced.vert", "texture.frag");
+    m_window_renderer.addShader("Text", "basicinstanced.vert", "textBorder.frag");
+    m_window_renderer.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
 
 
     auto texture_filenames = extractNamesInDirectory(path, ".png");
@@ -94,7 +95,7 @@ Application::Application(int width, int height) : m_window(width, height),
     {
         auto pos_right = texture_filename.find_last_of('.');
         std::string texture_name = texture_filename.substr(0, pos_right);
-        auto status = m_textures.add(texture_name, "../Resources/" + texture_filename);
+        auto status = m_textures.add(texture_name, "" + texture_filename);
     }
     int slot_id = 0;
     for (auto &slot : m_slots)
@@ -287,7 +288,7 @@ void Application::update(float dt)
     //     // }
     //     auto slot_size = shader_slot.getSize();
 
-    //     Sprite2 test_sprite(shader_slot.m_pixels.getTexture());
+    //     Sprite test_sprite(shader_slot.m_pixels.getTexture());
     //     test_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
     //     test_sprite.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
     //     if (!shader_slot.m_selected_shader.empty())
@@ -314,7 +315,7 @@ void Application::update(float dt)
     // m_particles->draw(m_swirl_renderer1);
 
     Text test_text("brown fox jumps over the lazy dog");
-    test_text.setFont(m_test_font);
+    test_text.setFont(m_test_font.get());
     test_text.setPosition(400, 300);
     test_text.setScale(1, 1);
     test_text.setColor({255, 0,255,255});
@@ -322,17 +323,16 @@ void Application::update(float dt)
     m_window_renderer.getShaders().refresh();
 
     auto mouse_coords = m_window_renderer.getMouseInWorld();
-    Sprite2 test_sprite(m_test_font->getTexture());//*m_textures.get("arrow"));
+    Sprite test_sprite(m_test_font->getTexture());//*m_textures.get("arrow"));
     test_sprite.m_color = {0, 0, 0, 255};
     test_sprite.setScale(400, 300);
     test_sprite.setPosition(400, 300);
     m_window.clear({1, 1, 1, 1});
     m_window_renderer.getShader("Text").use();
     m_window_renderer.getShader("Text").setUniform2("u_time", m_time);
-    m_window_renderer.drawSprite(test_sprite, "Text", GL_DYNAMIC_DRAW);
-    // m_window_renderer.drawText(test_text, "Instanced2", GL_DYNAMIC_DRAW);
+    m_window_renderer.drawSprite(test_sprite, "Text", DrawType::Dynamic);
     test_text.setPosition(mouse_coords);
-    m_window_renderer.drawText(test_text, "Text", GL_DYNAMIC_DRAW);
+    m_window_renderer.drawText(test_text, "Text", DrawType::Dynamic);
     m_window_renderer.drawAll();
 
     // m_window_renderer.drawAll();
@@ -347,7 +347,7 @@ void Application::update(float dt)
     // {
     //     auto slot_size = shader_slot.getSize();
 
-    //     Sprite2 screen_sprite(shader_slot.m_pixels.getTexture());
+    //     Sprite screen_sprite(shader_slot.m_pixels.getTexture());
     //     screen_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
     //     screen_sprite.setPosition(left_margin + slot_size.x / 2.f, top_margin + slot_size.y / 2.f);
     //     // m_window_renderer.drawSprite(screen_sprite, "Instanced", GL_DYNAMIC_DRAW);

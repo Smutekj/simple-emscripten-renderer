@@ -131,6 +131,9 @@ struct ShaderUIData
 class ShaderHolder
 {
 
+    using ShaderMap = std::unordered_map<std::string, std::unique_ptr<Shader>>;
+    using ShaderUIDataMap = std::unordered_map<std::string, ShaderUIData>;
+
 public:
     Shader &get(const std::string &id);
 
@@ -140,21 +143,21 @@ public:
 
     void erase(const std::string &shader_id);
 
-    const std::unordered_map<std::string, std::unique_ptr<Shader>> &getShaders() const;
+    const ShaderMap &getShaders() const;
+    ShaderUIData &getData(const std::string& name);
 
     bool contains(const std::string &shader_id) const;
 
-    ShaderUIData &getData(const std::string& name);
 
-    auto &getAllData();
+    ShaderHolder::ShaderUIDataMap &getAllData();
 
     void refresh();
 
     void initializeUniforms();
 
 private:
-    std::unordered_map<std::string, std::unique_ptr<Shader>> m_shaders;
-    std::unordered_map<std::string, ShaderUIData> m_shader_data;
+    ShaderMap m_shaders;
+    ShaderUIDataMap m_shader_data;
 };
 
 std::vector<std::string> inline separateLine(std::string line, char delimiter = ' ');

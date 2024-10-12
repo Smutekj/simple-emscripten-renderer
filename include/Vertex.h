@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "Utils/Vector2.h"
 #include "Color.h"
 
@@ -13,3 +12,4 @@ struct Vertex
     Vec2 tex_coord;
     // 
 };
+
