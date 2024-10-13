@@ -95,8 +95,7 @@ namespace utils
             return {x * i, y * i};
         }
 
-        template <class T1>
-        constexpr Vector2<T1> operator-(const Vector2<T1> &v) const
+        constexpr Vector2<T> operator-(const Vector2<T> &v) const
         {
                 return {x - v.x, y - v.y};
         }
