@@ -8,7 +8,10 @@ void View::setSize(float width, float height)
     m_needs_recompute = true;
 }
 
-
+utils::Vector2f View::getSize()const
+{
+    return {m_width, m_height};
+}
 
 void View::zoom(float factor)
 {

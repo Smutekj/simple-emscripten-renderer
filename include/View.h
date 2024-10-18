@@ -25,6 +25,8 @@ public:
         setSize(new_size.x, new_size.y);
     }
 
+    utils::Vector2f getSize()const;
+
     void setCenter(float cx, float cy);
     template <class VecType>
     void setCenter(VecType new_center)
