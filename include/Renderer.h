@@ -55,7 +55,7 @@ public:
 
     void drawSprite(Sprite &sprite, const std::string& shader_id, DrawType draw_type = DrawType::Dynamic);
     void drawSpriteDynamic(Sprite &sprite, const std::string& shader_id);
-    void drawText(Text &text, const std::string& shader_id, DrawType draw_type = DrawType draw_type = DrawType::Dynamic;);
+    void drawText(Text &text, const std::string& shader_id, DrawType draw_type = DrawType::Dynamic);
     void drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color);
     void drawRectangle(RectangleSimple &r, Color color, const std::string &shader_id = "VertexArrayDefault", DrawType draw_type = DrawType::Dynamic);
     void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color, DrawType draw_type = DrawType::Dynamic);
