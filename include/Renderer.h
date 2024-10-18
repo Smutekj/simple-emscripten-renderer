@@ -79,6 +79,8 @@ public:
     utils::Vector2f getMouseInWorld();
     utils::Vector2i getMouseInScreen();
 
+    View getDefaultView()const;
+
 private:
     void drawSpriteStatic(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
                           Texture &texture, Shader &shader);

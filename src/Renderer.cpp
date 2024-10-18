@@ -79,6 +79,16 @@ utils::Vector2i Renderer::getMouseInScreen()
 }
 
 
+    View Renderer:getDefaultView()const
+    {
+        View default_view;
+        auto window_size = getTargetSize();
+        default_view.setCenter(window_size/2.f);
+        default_view.setSize(window_size);
+        return default_view;
+    }
+
+
 bool Renderer::checkShader(const std::string &shader_id)
 {
     if (m_shaders.contains(shader_id))
@@ -471,3 +481,5 @@ SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, D
     m_config2sprite_batches.at(config).push_back(std::make_unique<SpriteBatch>(config, shader));
     return *batches.back();
 }
+
+
