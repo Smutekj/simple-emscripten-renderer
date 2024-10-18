@@ -17,9 +17,9 @@ namespace sf
 struct Particle
 {
     utils::Vector2f pos;
-    utils::Vector2f vel;
-    utils::Vector2f acc;
-    utils::Vector2f scale;
+    utils::Vector2f vel = {0,0};
+    utils::Vector2f acc = {0,0};
+    utils::Vector2f scale = {1,1};
     float angle = 0.f;
     Color color = {0, 0, 0, 1};
     float life_time = 1.f;
