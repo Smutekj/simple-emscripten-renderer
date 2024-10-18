@@ -258,9 +258,9 @@ namespace utils
     inline void truncate(utils::Vector2f &vec, float max_value)
     {
         auto speed2 = utils::norm2(vec);
-        if (speedspeed2 > max_value*max_value)
+        if (speed2 > max_value*max_value)
         {
-            vec *= max_value / std::sqrt(speed);
+            vec *= max_value / std::sqrt(speed2);
         }
     }
 
