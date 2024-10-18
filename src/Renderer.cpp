@@ -79,7 +79,7 @@ utils::Vector2i Renderer::getMouseInScreen()
 }
 
 
-    View Renderer:getDefaultView()const
+    View Renderer::getDefaultView()const
     {
         View default_view;
         auto window_size = getTargetSize();
