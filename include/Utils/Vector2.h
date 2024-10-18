@@ -237,8 +237,10 @@ namespace utils
         }
         return false;
     }
-    constexpr auto to_radains = std::numbers::pi_v<float> / 180.f;
-    constexpr auto to_degrees = 180.f / std::numbers::pi_v<float>;
+
+    //! ANGLES AND DIRECTIONS
+    const auto to_radains = std::numbers::pi_v<float> / 180.f;
+    const auto to_degrees = 180.f / std::numbers::pi_v<float>;
     inline utils::Vector2f angle2dir(float angle)
     {
         return {std::cos(angle * to_radains), std::sin(angle * to_radains)};
@@ -248,6 +250,10 @@ namespace utils
         return to_degrees * std::atan2(dir.y, dir.x);
     }
 
+    inline float angleBetween(const utils::Vector2f& v1, const utils::Vector2f& v2)
+    {
+        return to_degrees * std::atan2(cross(v1, v2), dot(v1, v2));
+    }
 }
 
 inline utils::Vector2f asFloat(const utils::Vector2i &r) { return static_cast<utils::Vector2f>(r); }
