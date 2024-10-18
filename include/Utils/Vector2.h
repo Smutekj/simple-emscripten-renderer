@@ -254,6 +254,16 @@ namespace utils
     {
         return to_degrees * std::atan2(cross(v1, v2), dot(v1, v2));
     }
+
+    inline void truncate(utils::Vector2f &vec, float max_value)
+    {
+        auto speed2 = utils::norm2(vec);
+        if (speedspeed2 > max_value*max_value)
+        {
+            vec *= max_value / std::sqrt(speed);
+        }
+    }
+
 }
 
 inline utils::Vector2f asFloat(const utils::Vector2i &r) { return static_cast<utils::Vector2f>(r); }
