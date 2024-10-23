@@ -10,6 +10,8 @@ Particle::Particle(utils::Vector2f init_pos, utils::Vector2f init_vel, utils::Ve
 {
 }
 
+//! \brief constructs from maximum number of particles
+//! \param n_max_particles maximum number of particles
 Particles::Particles(int n_max_particles)
     : m_particle_pool(n_max_particles)
 {
@@ -28,8 +30,7 @@ void Particles::setPeriod(int spawn_period)
 }
 int Particles::getPeriod() const
 {
-    return m_spawn_period;
-    ;
+    return m_spawn_period;  
 }
 
 
@@ -98,7 +99,7 @@ void Particles::destroyDeadParticles()
 }
 
 
-Color interpolate(Color start, Color end, float lambda)
+Color static interpolate(Color start, Color end, float lambda)
 {
     return start + (end - start) * lambda;
 }
