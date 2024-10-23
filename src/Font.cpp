@@ -6,6 +6,8 @@
 void Font::initialize()
 {}
 
+//! \brief creates a font from a path to a file
+//! \param font_filename path to a font file
 Font::Font(std::string font_filename)
 {
     TextureOptions options;
@@ -30,6 +32,7 @@ Font::Font(std::string font_filename)
     }
 }
 
+//! \brief just for debugging
 void static printBuffer(const FT_Face &face)
 {
     auto w = face->glyph->bitmap.width;
@@ -48,6 +51,8 @@ void static printBuffer(const FT_Face &face)
     }
 }
 
+//! \brief loads font from the specified file  
+//! \return true if font was succesfully loaded
 bool Font::loadFromFile(std::string font_filename)
 {
     std::string font_fullpath = "../Resources/Fonts/" + font_filename;
@@ -165,6 +170,7 @@ bool Font::loadFromFile(std::string font_filename)
     return true;
 }
 
+//! \return a texture containing character SDFs
 Texture &Font::getTexture()
 {
     return m_pixels->getTexture();

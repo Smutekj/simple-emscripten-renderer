@@ -34,28 +34,35 @@ FrameBuffer::FrameBuffer(int width, int height, TextureOptions options)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+//! \brief construct by specifying the buffer \p width and \p height
+//! \param width 
+//! \param height
 FrameBuffer::FrameBuffer(int width, int height)
     : FrameBuffer(width, height, {})
 {
 }
 
+//! \returns a texture containing the buffer data on GPU
 Texture &FrameBuffer::getTexture()
 {
     assert(m_texture != nullptr);
     return *m_texture;
 }
 
+//! \brief No clue what I wanted to do with this :(
 void FrameBuffer::setTexture(Texture &new_texture)
 {
     m_target_size = new_texture.getSize();
     m_texture = std::shared_ptr<Texture>(&new_texture);
 }
 
+//! \return OpenGL handle of the associated texture
 GLuint FrameBuffer::getHandle() const
 {
     return m_texture->getHandle();
 }
 
+//! \brief for debugging
 void writeTextureToFile(std::filesystem::path path, std::string filename, FrameBuffer &buffer)
 {
     int width = buffer.getSize().x;
@@ -73,12 +80,12 @@ void writeTextureToFile(std::filesystem::path path, std::string filename, FrameB
 }
 
 
-    Image::Image(int x, int y)
-        : x_size(x), y_size(y), pixels(x * y)
-    {
-    }
+Image::Image(int x, int y)
+    : x_size(x), y_size(y), pixels(x * y)
+{
+}
 
-    ColorByte *Image::data()
-    {
-        return pixels.data();
-    }
+ColorByte *Image::data()
+{
+    return pixels.data();
+}
