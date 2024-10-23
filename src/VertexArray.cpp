@@ -53,7 +53,8 @@ void VertexArray::resize(int n_verts)
     glCheckError();
 }
 
-//! \brief initializes 
+//! \brief does gl calls which initialize the array
+//! \brief basically calls glBufferSubData
 void VertexArray::init()
 {
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
@@ -61,7 +62,7 @@ void VertexArray::init()
 
     bindVertexAttributes(m_vbo, {2, 4, 2});
 
-    if (!m_is_initialized)
+    if (!m_is_initialized) //! this way it's called just once for static draws
     {
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * m_vertices.size(), m_vertices.data());
         glCheckError();
@@ -76,11 +77,15 @@ void VertexArray::init()
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
+//! \returns returns the \p i -th vertex in the array
 Vertex &VertexArray::operator[](int i)
 {
     return m_vertices.at(i);
 }
 
+//! \brief draws directly into the associated target
+//! \param view
+//! \param indices      a vector of indices to use in the draw call
 void VertexArray::draw(View &view, const std::vector<IndexType> &indices)
 {
     if (m_shader)
@@ -115,6 +120,8 @@ void VertexArray::draw(View &view, const std::vector<IndexType> &indices)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
+//! \brief draws directly into the associated target
+//! \param view
 void VertexArray::draw(View &view)
 {
     if (m_shader)
@@ -124,7 +131,6 @@ void VertexArray::draw(View &view)
         m_shader->activateTexture(m_textures);
     }
 
-    std::cout << "START!" << "\n";
     auto m = view.getMatrix();
     int i = 0;
     for (auto &v : m_vertices)
@@ -133,7 +139,6 @@ void VertexArray::draw(View &view)
         std::cout << i << " " << pos.x << " " << pos.y << "\n";
         i++;
     }
-    std::cout << "END!" << "\n";
 
     for (int slot = 0; slot < N_MAX_TEXTURES; ++slot)
     {
@@ -154,6 +159,7 @@ void VertexArray::draw(View &view)
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
+
 
 void VertexArray::setTexture(Texture &texture)
 {
