@@ -46,6 +46,8 @@ glm::mat4 &View::getMatrix()
     return m_view_matrix;
 }
 
+//! \brief called automatically whenever the actual matrix is needed 
+//! \brief and has changed since last time 
 void View::recomputeMatrix()
 {
     m_view_matrix = glm::mat4(1.0f);
