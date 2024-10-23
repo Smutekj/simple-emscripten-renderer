@@ -63,6 +63,7 @@ public:
     std::vector<IndexType> m_indices;
 };
 
+//! \struct contains data that gets into sprite shaders as attributes
 struct Trans
 {
     Vec2 trans = {0, 0};
@@ -73,6 +74,8 @@ struct Trans
     ColorByte color = {255, 255, 255, 255};
 };
 
+//! \class manages batching of the sprite data
+//! \brief can draw the batched sprites by using the flush method
 class SpriteBatch
 {
 
