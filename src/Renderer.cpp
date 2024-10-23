@@ -71,6 +71,7 @@ utils::Vector2f Renderer::getMouseInWorld()
     return {world_coords.x, world_coords.y};
 }
 
+//! \returns the position of the mouse in the screen coordinates (upper left corner is 0,0)
 utils::Vector2i Renderer::getMouseInScreen()
 {
     int mouse_coords[2];
@@ -78,17 +79,19 @@ utils::Vector2i Renderer::getMouseInScreen()
     return {mouse_coords[0],mouse_coords[1]};
 }
 
+//! \brief useful when drawing directly on the screen (for instance UI and post processing)
+//! \returns the view looking exactly at the canvas 
+View Renderer::getDefaultView()const
+{
+    View default_view;
+    auto window_size = getTargetSize();
+    default_view.setCenter(window_size/2.f);
+    default_view.setSize(window_size);
+    return default_view;
+}
 
-    View Renderer::getDefaultView()const
-    {
-        View default_view;
-        auto window_size = getTargetSize();
-        default_view.setCenter(window_size/2.f);
-        default_view.setSize(window_size);
-        return default_view;
-    }
-
-
+//! \param shader_id    
+//! \returns true if the shader with \p shader_id exists
 bool Renderer::checkShader(const std::string &shader_id)
 {
     if (m_shaders.contains(shader_id))
@@ -107,7 +110,10 @@ bool Renderer::checkShader(const std::string &shader_id)
     }
     return false;
 }
-
+//! \brief draws a \p sprite using shader given by \p shader_id 
+//! \param sprite       contains textures info and sprite transformations
+//! \param shader_id
+//! \param draw_type    Static or Dynamic draws 
 void Renderer::drawSprite(Sprite &sprite, const std::string &shader_id, DrawType draw_type)
 {
     if (checkShader(shader_id))
@@ -116,11 +122,18 @@ void Renderer::drawSprite(Sprite &sprite, const std::string &shader_id, DrawType
                            sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
     }
 }
+
+//! TODO: Figure out what the idea was here? 
 void Renderer::drawSpriteDynamic(Sprite &sprite, const std::string &shader_id)
 {
     drawSprite(sprite, shader_id, DrawType::Dynamic);
 }
 
+
+//! \brief draws text using a font in the \p text
+//! \param text constains Font info
+//! \param shader_id
+//! \param draw_type
 void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_type)
 {
     if (!checkShader(shader_id))
@@ -176,6 +189,7 @@ void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_
     }
 }
 
+//! \brief dirty version of drawSprite...
 void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
                                   Vec2 texture_size, std::array<GLuint, N_MAX_TEXTURES> &texture_handles,
                                   const std::string &shader_id, DrawType draw_type)
@@ -207,6 +221,13 @@ void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByt
     }
 }
 
+//! \brief draws line connecting \p point_a and \p point_b 
+//! \brief does not batch the call, but instead draws directly
+//! \param point_a
+//! \param point_b
+//! \param thickness
+//! \param color
+//! TODO: connect with drawLineBatched
 void Renderer::drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color)
 {
     DrawRectangle r(m_shaders.get("ShapeDefault"));
@@ -220,6 +241,13 @@ void Renderer::drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color
     r.draw(0, m_view);
 }
 
+//! \brief draws line connecting \p point_a and \p point_b 
+//! \brief batches the call
+//! \param point_a
+//! \param point_b
+//! \param thickness
+//! \param color
+//! TODO: connect with drawLineBatched
 void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color,
                                DrawType draw_type)
 {
@@ -251,11 +279,15 @@ void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Colo
     }
 
     batch.pushVertexArray(verts);
-    // batch.pushVertex(0);
-    // batch.pushVertex(2);
 }
 
-void Renderer::drawRectangle(RectangleSimple &r, Color color, const std::string &shader_id, DrawType draw_type)
+//! \brief draws a rectangle \p rect
+//! \param rect
+//! \param color
+//! \param shader_id
+//! \param draw_type
+void Renderer::drawRectangle(RectangleSimple &rect, Color color, 
+                                const std::string &shader_id, DrawType draw_type)
 {
 
     auto &shader_name = m_shaders.contains(shader_id) ? shader_id : "VertexArrayDefault";
@@ -263,27 +295,38 @@ void Renderer::drawRectangle(RectangleSimple &r, Color color, const std::string 
     auto &batch = findBatch(0, m_shaders.get(shader_name), draw_type, 6);
 
     std::vector<Vertex> verts(6); //! this should be static?
-    verts[0] = {{-r.width / 2.f, -r.height / 2.f}, color, {0.f, 0.f}};
-    verts[1] = {{+r.width / 2.f, -r.height / 2.f}, color, {1.f, 0.f}};
-    verts[2] = {{+r.width / 2.f, +r.height / 2.f}, color, {1.f, 1.f}};
-    verts[3] = {{-r.width / 2.f, +r.height / 2.f}, color, {0.f, 1.f}};
-    verts[4] = {{-r.width / 2.f, -r.height / 2.f}, color, {0.f, 0.f}};
-    verts[5] = {{+r.width / 2.f, +r.height / 2.f}, color, {1.f, 1.f}};
+    verts[0] = {{-rect.width / 2.f, -rect.height / 2.f}, color, {0.f, 0.f}};
+    verts[1] = {{+rect.width / 2.f, -rect.height / 2.f}, color, {1.f, 0.f}};
+    verts[2] = {{+rect.width / 2.f, +rect.height / 2.f}, color, {1.f, 1.f}};
+    verts[3] = {{-rect.width / 2.f, +rect.height / 2.f}, color, {0.f, 1.f}};
+    verts[4] = {{-rect.width / 2.f, -rect.height / 2.f}, color, {0.f, 0.f}};
+    verts[5] = {{+rect.width / 2.f, +rect.height / 2.f}, color, {1.f, 1.f}};
 
     //! set color and transform positions
     for (auto &v : verts)
     {
-        r.transform(v.pos);
+        rect.transform(v.pos);
     }
 
     batch.pushVertexArray(verts);
 }
 
+//! \brief draws a circle centered at: \p center with a radius of \p radius
+//! \param center
+//! \param radius
+//! \param color
+//! \param n_verts      number of vertices making the circle
 void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_verts)
 {
     drawEllipseBatched(center, 0., utils::Vector2f{radius, radius}, color, n_verts);
 }
 
+//! \brief draws an ellipse centered at: \p center with a principal radii given by \p scale
+//! \param center       
+//! \param angle        angle of rotation
+//! \param scale        principal radii of the ellipse
+//! \param color
+//! \param n_verts      number of vertices making the circle
 void Renderer::drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f &scale, Color color, int n_verts, std::string shader_id)
 {
     auto &batch = findBatch(0, m_shaders.get(shader_id), DrawType::Dynamic, n_verts);
@@ -312,6 +355,10 @@ void Renderer::drawEllipseBatched(Vec2 center, float angle, const utils::Vector2
     }
 }
 
+//! \brief draws vertices in the \p verts VertexArray using the texture \p p_texture
+//! \param verts
+//! \param draw_type
+//! \param p_texture    pointer to a used texture
 void Renderer::drawVertices(VertexArray &verts, DrawType draw_type, std::shared_ptr<Texture> p_texture)
 {
     GLuint texture_id = p_texture ? p_texture->getHandle() : 0;
@@ -326,6 +373,7 @@ void Renderer::drawVertices(VertexArray &verts, DrawType draw_type, std::shared_
     }
 }
 
+//! \brief does GL calls for setting the blend function parameters
 static void setBlendFunc(BlendParams params = {})
 {
     auto df = static_cast<GLuint>(params.dst_factor);
@@ -336,6 +384,10 @@ static void setBlendFunc(BlendParams params = {})
     glBlendFuncSeparate(sf, df, sa, da);
 }
 
+
+//! \brief draws all the batched calls into a associated RenderTarget
+//! \brief THIS NEEDS TO BE CALLED IN ORDER TO SEE ANYTHING ON THE SCREEN
+//! \brief (the previous message is for when I forget to do that)
 void Renderer::drawAll()
 {
 
@@ -392,6 +444,12 @@ void Renderer::drawAll()
     }
 }
 
+
+//! \param texture_ids  An array containing Open GL texture ids
+//! \param shader
+//! \param draw_type
+//! \returns an existing batch with corresponding configuration 
+//! \returns a new batch in case no batch with the configuration exists
 Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type, int num_vertices_inserted)
 {
     BatchConfig config = {texture_ids, shader.getId(), draw_type};
@@ -406,6 +464,11 @@ Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shade
     return *m_config2batches.at(config).back();
 }
 
+//! \param texture_ids
+//! \param shader
+//! \param draw_type
+//! \returns an existing batch with corresponding configuration 
+//! \returns a new batch in case no batch with the configuration exists
 SpriteBatch &Renderer::findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type)
 {
     BatchConfig config = {texture_ids, shader.getId(), draw_type};
@@ -421,6 +484,11 @@ SpriteBatch &Renderer::findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> textur
     return *m_config2sprite_batches.at(config).back();
 }
 
+//! \param texture_id   
+//! \param shader
+//! \param draw_type
+//! \returns an existing batch with corresponding configuration 
+//! \returns a new batch in case no batch with the configuration exists
 Batch &Renderer::findBatch(GLuint texture_id, Shader &shader, DrawType draw_type, int num_vertices_inserted)
 {
     BatchConfig config = {texture_id, shader.getId(), draw_type};
@@ -435,6 +503,11 @@ Batch &Renderer::findBatch(GLuint texture_id, Shader &shader, DrawType draw_type
     return *m_config2batches.at(config).back();
 }
 
+//! \param texture_id
+//! \param shader
+//! \param draw_type
+//! \returns an existing batch with corresponding configuration 
+//! \returns a new batch in case no batch with the configuration exists
 SpriteBatch &Renderer::findSpriteBatch(GLuint texture_id, Shader &shader, DrawType draw_type)
 {
     BatchConfig config = {texture_id, shader.getId(), draw_type};
@@ -450,6 +523,8 @@ SpriteBatch &Renderer::findSpriteBatch(GLuint texture_id, Shader &shader, DrawTy
     return *m_config2sprite_batches.at(config).back();
 }
 
+//! \brief a factory method for a batch
+//! \returns a pointer to a batch
 Renderer::BatchPtr Renderer::createBatch(const BatchConfig &config, Shader &shader, DrawType draw_type)
 {
     return std::make_unique<Batch>(config, shader, draw_type);
@@ -469,6 +544,8 @@ Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, DrawType draw
     batches.push_back(createBatch(config, shader, draw_type));
     return *batches.back();
 }
+
+
 SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, DrawType draw_type)
 {
     auto &batches = m_config2sprite_batches.at(config);
