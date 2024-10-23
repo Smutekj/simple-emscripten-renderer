@@ -34,6 +34,8 @@ const ColorByte &Text::getColor() const
     return m_color;
 }
 
+//! \brief positions the text such that it is centered around \center
+//! \param center
 void Text::centerAround(const utils::Vector2f& center)
 {
     auto width = getTextWidth();
@@ -43,6 +45,8 @@ void Text::centerAround(const utils::Vector2f& center)
     setPosition(new_pos);
 }
 
+//! \returns calculates the width of the text;
+//! TODO: this should probably be kept as a parameter in the class
 float Text::getTextWidth() const
 {
     if (!m_font)

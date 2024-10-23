@@ -1,5 +1,7 @@
 #include "Shader.h"
 
+//! \brief read a shader file in \p filename and extracts all uniforms (that are not textures!)
+//! \brief int o
 void static extractUniformNames(VariablesData &shader_data, const std::string &filename)
 {
     const auto tmp_filename = filename + ".tmp";

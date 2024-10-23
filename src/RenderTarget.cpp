@@ -9,9 +9,9 @@ utils::Vector2i RenderTarget::getSize() const
 {
     return m_target_size;
 }
+
 void RenderTarget::bind()
 {
-
     glBindFramebuffer(GL_FRAMEBUFFER, m_target_handle);
     glCheckErrorMsg("hi");
     

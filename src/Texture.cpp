@@ -8,6 +8,9 @@
 #include <cassert>
 #include <iostream>
 
+//! \brief loads texture from file at \p filename
+//! \param filename path to file
+//! \param options  struct containing how the texture should be created
 void Texture::loadFromFile(std::string filename, TextureOptions options)
 {
     auto it = filename.find_last_of('.');
@@ -43,6 +46,9 @@ void Texture::invalidate()
     glDeleteTextures(1, &m_texture_handle);
     glCheckError();
 }
+
+//! \brief does the gl calls that set texture \p options 
+//! \param options  struct containing how the texture should be created
 void Texture::initialize(TextureOptions options)
 {
 
@@ -62,6 +68,10 @@ void Texture::initialize(TextureOptions options)
     glCheckError();
 }
 
+//! \brief creates the texture with dimensions \p width x \p height and \p options 
+//! \param width
+//! \param height
+//! \param options  struct containing how the texture should be created
 void Texture::create(int width, int height, TextureOptions options)
 {
     m_options = options;
@@ -76,6 +86,8 @@ void Texture::create(int width, int height, TextureOptions options)
     glCheckError();
 }
 
+//! \brief bind the texture to a GL slot specified by: \p slot
+//! \param slot
 void Texture::bind(int slot)
 {
     // assert(m_texture_handle != 0); //! has to be generated first
@@ -85,6 +97,8 @@ void Texture::bind(int slot)
     glCheckError();
 }
 
+//! \brief bind the texture to a GL slot specified by: \p slot
+//! \param slot
 Vec2 Texture::getSize() const
 {
     return {static_cast<float>(m_width), static_cast<float>(m_height)};
@@ -95,6 +109,10 @@ GLuint Texture::getHandle() const
     return m_texture_handle;
 }
 
+//! \brief adds texture into the holder under id \p texture_name
+//! \param texture_name our id of the texture
+//! \param texture
+//! \returns true if no texture of this name exists othrewise return false;
 bool TextureHolder::add(std::string texture_name, Texture &texture)
 {
     if (m_textures.count(texture_name) != 0)
@@ -109,7 +127,12 @@ bool TextureHolder::add(std::string texture_name, Texture &texture)
     return true;
 }
 
-bool TextureHolder::add(std::string texture_name, std::string filename)
+//! \brief reads the texture in \p texture_filename and adds it
+//! \brief into the holder under id \p texture_name
+//! \param texture_name our id of the texture
+//! \param texture_filename     filename of the texture
+//! \returns true if no texture of this name exists othrewise return false;
+bool TextureHolder::add(std::string texture_name, std::string texture_filename)
 {
     if (m_textures.count(texture_name) != 0)
     {
@@ -118,7 +141,7 @@ bool TextureHolder::add(std::string texture_name, std::string filename)
         return false;
     }
     auto tex = std::make_shared<Texture>();
-    tex->loadFromFile(filename);
+    tex->loadFromFile(texture_filename);
     m_textures[texture_name] = std::move(tex);
     return true;
 }
