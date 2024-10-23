@@ -15,6 +15,7 @@ DrawRectangle::~DrawRectangle()
     glCheckError();
 }
 
+//! \brief initializes a vertex buffer
 void DrawRectangle::initialize()
 {
 
@@ -29,6 +30,10 @@ void DrawRectangle::initialize()
     glCheckError();
 }
 
+
+//! \brief draws into a target spec using the \p view
+//! \param terget       GL handle of the render target
+//! \param view         tells us what part of the world is drawn.
 void DrawRectangle::draw(GLuint target, View &view)
 {
 
@@ -59,6 +64,7 @@ void DrawRectangle::draw(GLuint target, View &view)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+
 void DrawRectangle::setShader(Shader &shader)
 {
     m_shader = &shader;
@@ -76,6 +82,7 @@ void DrawRectangle::setColor(Color color)
         m_verts[i].color = color;
     }
 }
+
 void DrawRectangle::setTexCoords(float tex_coord_x, float tex_coord_y, float width, float height)
 {
 
