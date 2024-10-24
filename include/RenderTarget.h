@@ -23,6 +23,6 @@ public:
     void clear(Color c);
 
 protected:
-    GLuint m_target_handle = 0; //! gl id of the target (default is the window)
+    GLuint m_target_handle = 0; //!< gl id of the target (default is the window)
     utils::Vector2i m_target_size = {0,0}; 
 };
