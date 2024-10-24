@@ -12,7 +12,8 @@
 
 constexpr static int BATCH_VERTEX_CAPACITY = 65000; //! maximum number of vertices per batch
 
-//! \struct stores information which define batches
+//! \struct BatchConfig
+//! \brief stores information which define batches
 //! \brief each batch is defined by: 1. a set of GL texture ids 2. GL shader id and GL draw type
 struct BatchConfig
 {
@@ -29,6 +30,9 @@ struct BatchConfig
 };
 
 
+//! \class Batch
+//! \brief used for batching draw calls of vertices with indices
+//! \brief primitives are assumed to be triangles
 class Batch
 {
 
@@ -63,7 +67,8 @@ public:
     std::vector<IndexType> m_indices;
 };
 
-//! \struct contains data that gets into sprite shaders as attributes
+//! \struct Trans
+//! \brief contains data that gets into sprite shaders as attributes
 struct Trans
 {
     Vec2 trans = {0, 0};
@@ -74,7 +79,8 @@ struct Trans
     ColorByte color = {255, 255, 255, 255};
 };
 
-//! \class manages batching of the sprite data
+//! \class SpriteBatch
+//! \brief manages batching of the sprite data
 //! \brief can draw the batched sprites by using the flush method
 class SpriteBatch
 {

@@ -8,9 +8,10 @@
 #include <filesystem>
 
 
-//! \class manages to OpenGL FrameBuffer
-//! \brief used for off-screen rendering and stuff like bloom effect...
-//! \brief also manages it's own texture, where we can access data resulted from drawing to the buffer
+//! \class FrameBuffer
+//! \brief manages the OpenGL FrameBuffer and it's corresponding bound texture
+//!  used for off-screen rendering and stuff like bloom effect...
+//!  also manages it's own texture, where we can access data resulted from drawing to the buffer
 class FrameBuffer : public RenderTarget
 {
 
@@ -28,8 +29,9 @@ private:
 };
 
 
-//! \struct holds texture data on the CPU
-//! \brief probably useful for saving images to disk
+//! \struct Image
+//! \brief  holds texture data on the CPU
+//!  probably useful for saving images to disk and graphics debugging
 struct Image
 {
 

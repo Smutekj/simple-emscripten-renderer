@@ -11,11 +11,13 @@ using TextureHandle = GLuint;
 
 constexpr int N_MAX_TEXTURES = 2; //! maximum number of texture slots
 
-//! \enum options for texture mapping procedure
-//! \brief translates into corresponding OpenGL integers
+//! \enum TexMappingParam
+//! \brief options for texture mapping procedure
+//! translates into corresponding OpenGL integers explanations are here:
+//! \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexParameter.xhtml
 enum class TexMappingParam
 {
-    Nearest = GL_NEAREST,
+    Nearest = GL_NEAREST,                               
     Linear = GL_LINEAR,
     NearestMipmapLinear = GL_NEAREST_MIPMAP_LINEAR,
     NearestMipmapNearest = GL_NEAREST_MIPMAP_NEAREST,
@@ -23,15 +25,19 @@ enum class TexMappingParam
     LinearMipmapNearest = GL_LINEAR_MIPMAP_NEAREST,
 };
 
-//! \enum options for data types stored in texture pixels
+//! \enum TextureDataTypes
+//! \brief options for data types stored in texture pixels
+//! \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexParameter.xhtml
 enum class TextureDataTypes
 {
     Float = GL_FLOAT,
     UByte = GL_UNSIGNED_BYTE,
 };
 
-//! \enum format of the data stored in each texture pixel 
-//! \brief this needs to correspond somehow to how shaders are used 
+//! \enum TextureFormat
+//! \brief format of the data stored in each texture pixel 
+//! this will influences the data format of the texture pixels in shaders
+//! \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexParameter.xhtml
 enum class TextureFormat
 {
     RGBA = GL_RGBA,
@@ -39,14 +45,19 @@ enum class TextureFormat
     RGBA16F = GL_RGBA16F,
 };
 
-//! \enum specifies the boundary condition used in drawing textures
+//! \enum TexWrapParam
+//! \brief specifies the boundary condition used in drawing textures
+//! \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexParameter.xhtml
 enum class TexWrapParam
 {
-    Repeat = GL_REPEAT,
-    ClampEdge = GL_CLAMP_TO_EDGE
+    Repeat = GL_REPEAT,         //!< uses periodic boundary conditions in texture space (cool for making patters)
+    ClampEdge = GL_CLAMP_TO_EDGE //!< uses fixed value boundary condition in texture space, if the 
 };
 
-//! \struct aggregates different OpenGL texture configurations  
+//! \struct TextureOptions
+//! \brief aggregates different OpenGL texture configurations  
+//! based exactly on these options:
+//! \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexParameter.xhtml
 struct TextureOptions
 {
     TextureFormat format = TextureFormat::RGBA;
@@ -58,9 +69,10 @@ struct TextureOptions
     TexWrapParam wrap_y = TexWrapParam::Repeat;
 };
 
-//! \class manages data in the texture
-//! \brief This class corresponds to the actual data on the GPU
-//! \brief Textures should be created sparingly, whereas we can have as many Sprites as we want 
+//! \class Texture
+//! \brief manages data in the texture
+//!  This class corresponds to the actual data on the GPU
+//!  Textures should be created sparingly, whereas we can have as many Sprites as we want 
 class Texture
 {
     using GLuint = unsigned int;
@@ -91,7 +103,8 @@ private:
     int m_height = 0;
 };
  
- //! \class holds textures based on id given by string
+ //! \class TextureHolder
+ //! \brief holds textures based on id given by string
 class TextureHolder
 {
 

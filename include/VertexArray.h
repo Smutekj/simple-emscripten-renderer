@@ -9,6 +9,8 @@
 #include <memory>
 
 
+//! \enum DrawType
+//! \brief Corresponds to OpenGL draw buffers needed in glBufferData
 enum class DrawType
 {
     Dynamic = GL_DYNAMIC_DRAW,
@@ -20,7 +22,8 @@ enum class DrawType
 class View;
 
 
-//! \class holds vertices for drawing and does all the OpenGL stuff
+//! \class VertexArray
+//! \brief holds vertices for drawing and does all the OpenGL stuff
 class VertexArray
 {
 

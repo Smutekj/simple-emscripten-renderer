@@ -38,7 +38,9 @@ struct TextureGlData
 //! Types used in GLSL for uniforms
 using UniformType = std::variant<float, bool, int, glm::vec4, glm::vec3, glm::vec2>;
 
-//! \struct contains mappings from uniform names of uniforms and textures in corresponding shader
+//! \struct VariablesData
+//! \brief contains mappings from uniform names of uniforms and textures in corresponding shader
+
 struct VariablesData
 {
     std::unordered_map<std::string, UniformType> uniforms;
@@ -47,17 +49,17 @@ struct VariablesData
     std::string setTexture(int slot, GLuint handle);
 };
 
-//! \class contains all the data
-//! \brief combines vertex + framgnet shader
-//! \brief the shaders are load via specified paths
-//! \brief also contains uniforms and textures present in the FragmentShader
+//! \class Shader
+//! \brief combines vertex + framgnet shader and holds uniform info of the fragment shader
+//!  the shaders are load via specified paths
+//!  TODO:  use std::filesystem::path instead of strings like a retard
 class Shader
 {
 
 public:
     Shader() = default;
-    Shader(const std::string& vertex_path, const std::string& fragment_path);
-    Shader(const std::string& vertex_path, const std::string& fragment_path, const std::string& shader_name);
+    Shader(const std::string &vertex_path, const std::string &fragment_path);
+    Shader(const std::string &vertex_path, const std::string &fragment_path, const std::string &shader_name);
 
     VariablesData &getVariables();
     GLuint getId() const;
@@ -91,28 +93,29 @@ public:
     void activateTexture(std::array<GLuint, 2> handles);
 
 public:
-    void setUniform2(const std::string& uniform_name, UniformType uniform_value);
+    void setUniform2(const std::string &uniform_name, UniformType uniform_value);
 
-    void saveUniformValue(const std::string& uniform_name, UniformType uniform_value);
+    void saveUniformValue(const std::string &uniform_name, UniformType uniform_value);
 
     friend ShaderHolder;
 
 private:
     void retrieveCode(const char *code_path, std::string &code);
 
-    unsigned int m_id = -1; // the program ID
+    unsigned int m_id = -1; //!< OpenGL id of the program
     std::string m_vertex_path;
     std::string m_fragment_path;
-    std::string m_shader_name = "default_name";
-    std::filesystem::file_time_type m_last_writetime;
+    std::string m_shader_name = "default_name";       //!< shader_id
+    std::filesystem::file_time_type m_last_writetime; //!< last time of change of the fragment shader file.
 
-    VariablesData m_variables;
+    VariablesData m_variables; //!< contains data about uniforms and textures in the fragment shader.
 
 public:
     inline static float m_time;
 };
 
-//! \struct Not sure?
+//! \struct ShaderUIData
+//! \brief ???
 struct ShaderUIData
 {
 
@@ -124,7 +127,8 @@ struct ShaderUIData
     std::filesystem::file_time_type last_write_time;
 };
 
-//! \class holds shaders themselves and also data about uniforms and textures in them
+//! \class ShaderHolder
+//! \brief holds shaders themselves and also data about uniforms and textures in them
 class ShaderHolder
 {
 
@@ -141,10 +145,9 @@ public:
     void erase(const std::string &shader_id);
 
     const ShaderMap &getShaders() const;
-    ShaderUIData &getData(const std::string& name);
+    ShaderUIData &getData(const std::string &name);
 
     bool contains(const std::string &shader_id) const;
-
 
     ShaderHolder::ShaderUIDataMap &getAllData();
 

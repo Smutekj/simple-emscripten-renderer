@@ -5,6 +5,8 @@
 
 using Vec2 = utils::Vector2f;
 
+//! \struct Vertex
+//! \brief Vertex data sent into shaders
 struct Vertex
 {
     Vec2 pos;

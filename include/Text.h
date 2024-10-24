@@ -4,10 +4,11 @@
 #include "Font.h"
 
 
-//! \class contains necessary data to draw texts
-//! \brief contains string to draw, color and pointer to font
-//! \brief when drawn, the characters are stored as distance fields, therefore
-//! \brief effects like borders should be done using suitable shader.
+//! \class Text
+//! \brief contains necessary data to draw texts
+//!  contains string to draw, color and pointer to font
+//! when drawn, the characters are stored as distance fields, therefore
+//!  effects like borders should be done using suitable shader.
 //! \todo add italics/underscores/boldness, 
 //! \todo add possibility to define how to draw on multiple lines 
 class Text : public Transform

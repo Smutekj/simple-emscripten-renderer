@@ -8,6 +8,9 @@
 
 #include "Vertex.h"
 
+//! \class Transform
+//! \brief basic class which encapsulates a transformation matrix
+//! the matrix is recomputed only when needed because an internal flag remembers when some change happened 
 class Transform
 {
     

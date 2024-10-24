@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+//! \class Window
+//! \brief A class containing SDL handles to a window
 class Window : public RenderTarget
 {
 public:
@@ -19,6 +21,6 @@ public:
 
 private:
     bool m_should_close = false;
-    SDL_Window *m_handle;
-    SDL_GLContext m_gl_context;
+    SDL_Window *m_handle = nullptr;
+    SDL_GLContext m_gl_context = nullptr;
 };
