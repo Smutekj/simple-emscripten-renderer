@@ -19,16 +19,12 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-//! helper type for the visitor (stolen from cpp_reference)
-template <class... Ts>
-struct overloads : Ts...
-{
-    using Ts::operator()...;
-};
+
 
 class ShaderHolder;
 
-//! \struct slot in Sprite + GL handle
+//! \struct TextureGlData
+//! \brief combines slot in Sprite + GL handle
 struct TextureGlData
 {
     int slot = 0;
@@ -160,6 +156,8 @@ private:
     ShaderUIDataMap m_shader_data;
 };
 
+
+
 std::vector<std::string> inline separateLine(std::string line, char delimiter = ' ');
 
 inline std::string trim(std::string input);
@@ -167,3 +165,10 @@ inline std::string trim(std::string input);
 inline bool replace(std::string &str, const std::string &from, const std::string &to);
 
 inline UniformType extractValue(std::string type_string, std::string initial_value);
+
+//! helper type for the visitor (stolen from cpp_reference)
+template <class... Ts>
+struct overloads : Ts...
+{
+    using Ts::operator()...;
+};
