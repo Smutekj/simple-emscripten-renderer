@@ -46,6 +46,8 @@ void Batch::flush(View &view)
 }
 
 
+//! \brief copies given vertices into the batch      
+//! TODO: This seems unnecessary
 void Batch::pushVertexArray(std::vector<Vertex> &verts)
 {
     for (auto &v : verts)
@@ -264,7 +266,7 @@ void SpriteBatch::flush(View &view)
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-//! \return this looks the same as countFreeSpots?
+//! \returns this looks the same as countFreeSpots?
 int SpriteBatch::getFreeVerts() const
 {
     return m_transforms.size() - m_end;
