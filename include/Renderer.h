@@ -12,7 +12,9 @@
 #include <set>
 
 
-
+//! \enum BlendFactor
+//! \brief a factor in the color blending equation
+//! for details see: \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glBlendFuncSeparate.xhtml
 enum class BlendFactor
 {
     One = GL_ONE,
@@ -22,10 +24,10 @@ enum class BlendFactor
     SrcColor = GL_SRC_COLOR,
 };
 
-//! \struct holds info for color blending for OpenGL
-//! \brief the order of parameters corresponds to the order in
-//! \brief glBlendFunSeparate(...);
-//! \brief https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glBlendFuncSeparate.xhtml
+//! \struct BlendParams
+//! \brief holds info for color blending for OpenGL
+//!  the order of parameters corresponds to the order in glBlendFunSeparate(...);
+//! for details see: \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glBlendFuncSeparate.xhtml
 struct BlendParams
 {
     BlendFactor src_factor = BlendFactor::One;
