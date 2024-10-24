@@ -34,7 +34,7 @@ private:
 };
 
 
-struct TextLineData
-{
+// struct TextLineData
+// {
 
-};
+// };

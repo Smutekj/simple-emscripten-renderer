@@ -1,9 +1,10 @@
 #pragma once
 
 
-//! \struct represents an axis-aligned rectangle
-//! \brief position is defined by lower-left coordinate: pos_x, pos_y
-//! \brief and size is defined by width and height
+//! \struct Rect
+//! \brief represents an axis-aligned rectangle
+//! position is defined by lower-left coordinate: pos_x, pos_y
+//! and size is defined by width and height
 template <class T>
 struct Rect
 {

@@ -11,7 +11,8 @@ class Shader;
 class View;
 
 
-//! \class rectangle, which holds it's vertices and all draw info like textures/shader/color
+//! \class DrawRectangle
+//! \brief represents a rectangle, which holds it's vertices and all draw info like textures/shader/color
 class DrawRectangle : public Transform
 {
 
