@@ -43,8 +43,8 @@ class Font;
 //! \class Renderer
 //! \brief acts as a canvas, with draw functions for:
 //! \brief sprites, circles, rectangles, text, and vertex arrays
-//! \brief internally batches draw calls. Once the user wants to actually perform the batched draw calls (that is call the GL functions) 
-//! \brief drawAll() method should be used
+//! internally batches draw calls. Once the user wants to actually perform the batched draw calls (that is call the GL functions) 
+//! drawAll() method should be used to do the actual GL calls and to do the actual screen drawing
 class Renderer
 {
     using BatchPtr = std::unique_ptr<Batch>;

@@ -3,7 +3,6 @@
 #include "Utils/RandomTools.h"
 #include "Renderer.h"
 
-
 Particle::Particle(utils::Vector2f init_pos, utils::Vector2f init_vel, utils::Vector2f acc, utils::Vector2f scale,
                    Color color, float life_time)
     : pos(init_pos), vel(init_vel), acc(acc), scale(scale), color(color), life_time(life_time)
@@ -30,12 +29,11 @@ void Particles::setPeriod(int spawn_period)
 }
 int Particles::getPeriod() const
 {
-    return m_spawn_period;  
+    return m_spawn_period;
 }
 
-
-//! \brief creates particle/s if needed then does one integration of updater 
-//! \brief afterwards destroys particles that are dead 
+//! \brief creates particle/s if needed then does one integration of updater
+//! \brief afterwards destroys particles that are dead
 //! \param dt time step
 void Particles::update(float dt)
 {
@@ -97,7 +95,6 @@ void Particles::destroyDeadParticles()
         m_particle_pool.removeByEntityInd(part_ind);
     }
 }
-
 
 Color static interpolate(Color start, Color end, float lambda)
 {
@@ -169,6 +166,22 @@ void Particles::setLifetime(float life_time)
 {
     m_lifetime = life_time;
 }
+
+utils::Vector2f Particles::getSpawnPos() const
+{
+    return m_spawn_pos;
+}
+
+    bool Particles::getRepeat() const
+    {
+        return m_repeats;
+    }
+
+        void Particles::setShader(const std::string &shader_id)
+    {
+        m_shader_id = shader_id;
+    }
+
 
 TexturedParticles::TexturedParticles(Texture &texture)
     : m_texture(&texture), Particles(20)

@@ -8,12 +8,8 @@
 
 #include <functional>
 
-namespace sf
-{
-    class RenderTarget;
-}
-
-//! \struct contains data used in particle drawing + lifetime management
+//! \struct Particle
+//! \brief contains data used in particle drawing + lifetime management
 struct Particle
 {
     utils::Vector2f pos;
@@ -34,6 +30,12 @@ struct Particle
 
 class Renderer;
 
+//! \class Particles
+//! \brief contains a managed array of particles
+//! takes care of their lifetimes and kills particles who are too old
+//! can specify integration step using the setUpdaterFull(...) method
+//! spawning of particles can be controlled using the setEmitter(...) method
+//! both of them take a single lambda function
 class Particles
 {
 
@@ -46,10 +48,7 @@ public:
     virtual void draw(Renderer &target);
 
     void setSpawnPos(utils::Vector2f pos);
-    utils::Vector2f getSpawnPos() const
-    {
-        return m_spawn_pos;
-    }
+    utils::Vector2f getSpawnPos() const;
 
     void setInitColor(Color color);
     void setFinalColor(Color color);
@@ -57,10 +56,7 @@ public:
     void setLifetime(float lifetime);
 
     void setRepeat(bool repeats);
-    bool getRepeat() const
-    {
-        return m_repeats;
-    }
+    bool getRepeat() const;
 
     void setPeriod(int period);
     int getPeriod() const;
@@ -70,16 +66,13 @@ public:
     void setEmitter(std::function<Particle(utils::Vector2f)> new_emitter);
     void setOnParticleDeathCallback(std::function<void(Particle &)> new_updater);
 
-    void setShader(const std::string &shader_id)
-    {
-        m_shader_id = shader_id;
-    }
+    void setShader(const std::string &shader_id);
 
 public:
     Color m_init_color;
     Color m_final_color;
     utils::Vector2f m_spawn_pos;
-    std::function<void(std::vector<Particle> &, int, float)> m_updater_full;
+    std::function<void(std::vector<Particle> &, int, float)> m_updater_full; 
 
 private:
     void integrate(float dt);
@@ -94,16 +87,19 @@ protected:
 
     VectorMap<Particle> m_particle_pool;
 
-    int m_spawn_period = 1; //! m_spawn_period frames need to pass for one particle
-    int m_spawn_timer = 0;  //! measures frames since last spawn
+    int m_spawn_period = 1; //!< m_spawn_period frames need to pass for one particle
+    int m_spawn_timer = 0;  //!< measures frames since last spawn
 
-    bool m_repeats = true; //! true if particles should be created continuously
-    int n_spawned = 0;
+    bool m_repeats = true; //!< true if particles should be created continuously
+    int n_spawned = 0;      //!< number of live particles
 
-    float m_lifetime = 1.f;
-    std::string m_shader_id = "VertexArrayDefault";
+    float m_lifetime = 1.f; //!< maximum time of life of the particle (when particle lives this long, it gets killed)
+    std::string m_shader_id = "VertexArrayDefault"; //!< shader id
 };
 
+//! \class TexturedParticles
+//! \brief probably not working at the moment :(
+//! \todo will fix when necessary
 class TexturedParticles : public Particles
 {
 
