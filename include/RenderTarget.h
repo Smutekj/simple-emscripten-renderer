@@ -5,9 +5,9 @@
 #include "IncludesGl.h"
 
 
-//! \class OpenGL Target to draw into.
-//! \brief defines it's size in pixels 
-//! \brief manages it's OpenGL handle
+//! \class RenderTarget
+//! \brief  OpenGL Target to draw into.
+//! defines it's size in pixels and manages it's OpenGL handle
 class RenderTarget
 {
 
