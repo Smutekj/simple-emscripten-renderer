@@ -111,7 +111,7 @@ void Particles::integrate(float dt)
         auto &particle = particles[p_ind];
         particle.time += dt;
         particle.color = interpolate(m_init_color, m_final_color, particle.time / particle.life_time);
-        m_updater(particle);
+        m_updater(particle, dt);
     }
 }
 
@@ -139,7 +139,7 @@ void Particles::draw(Renderer &canvas)
     }
 }
 
-void Particles::setUpdater(std::function<void(Particle &)> new_updater)
+void Particles::setUpdater(std::function<void(Particle &, float)> new_updater)
 {
     m_updater = new_updater;
 }

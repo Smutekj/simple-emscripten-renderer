@@ -61,7 +61,7 @@ public:
     void setPeriod(int period);
     int getPeriod() const;
 
-    void setUpdater(std::function<void(Particle &)> new_updater);
+    void setUpdater(std::function<void(Particle &, float dt)> new_updater);
     void setUpdaterFull(std::function<void(std::vector<Particle> &, int, float)> new_updater);
     void setEmitter(std::function<Particle(utils::Vector2f)> new_emitter);
     void setOnParticleDeathCallback(std::function<void(Particle &)> new_updater);
@@ -80,7 +80,7 @@ private:
     void createParticle();
 
 protected:
-    std::function<void(Particle &)> m_updater = [](Particle &) {};
+    std::function<void(Particle &, float)> m_updater = [](Particle &, float) {};
     std::function<void(Particle &)> m_on_particle_death = [](Particle &) {};
     std::function<Particle(utils::Vector2f)> m_emitter = [](utils::Vector2f)
     { return Particle{}; };
