@@ -110,6 +110,21 @@ public:
     inline static float m_time;
 };
 
+struct ShaderUIData
+{
+
+    ShaderUIData(Shader &program)
+        : p_program(&program), filename(program.getFragmentPath()), variables(program.getVariables())
+    {
+        last_write_time = std::filesystem::last_write_time(filename);
+    }
+
+    Shader *p_program = nullptr;
+    std::string filename = "";
+    VariablesData &variables;
+    std::filesystem::file_time_type last_write_time;
+};
+
 
 
 //! \class ShaderHolder
@@ -118,7 +133,7 @@ class ShaderHolder
 {
 
     using ShaderMap = std::unordered_map<std::string, std::unique_ptr<Shader>>;
-    // using ShaderUIDataMap = std::unordered_map<std::string, ShaderUIData>;
+    using ShaderUIDataMap = std::unordered_map<std::string, ShaderUIData>;
 
 public:
     Shader &get(const std::string &id);
@@ -130,11 +145,11 @@ public:
     void erase(const std::string &shader_id);
 
     const ShaderMap &getShaders() const;
-    // ShaderUIData &getData(const std::string &name);
+    ShaderUIData &getData(const std::string &name);
 
     bool contains(const std::string &shader_id) const;
 
-    // ShaderHolder::ShaderUIDataMap &getAllData();
+    ShaderHolder::ShaderUIDataMap &getAllData();
 
     void refresh();
 
@@ -142,7 +157,7 @@ public:
 
 private:
     ShaderMap m_shaders;
-    // ShaderUIDataMap m_shader_data;
+    ShaderUIDataMap m_shader_data;
 };
 
 
