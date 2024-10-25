@@ -113,11 +113,7 @@ public:
 struct ShaderUIData
 {
 
-    ShaderUIData(Shader &program)
-        : p_program(&program), filename(program.getFragmentPath()), variables(program.getVariables())
-    {
-        last_write_time = std::filesystem::last_write_time(filename);
-    }
+    ShaderUIData(Shader &program);
 
     Shader *p_program = nullptr;
     std::string filename = "";
