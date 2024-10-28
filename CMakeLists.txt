@@ -40,7 +40,6 @@ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS} --embed-file ../Resources --emb
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
 set(CMAKE_EXECUTABLE_SUFFIX .html)
 else()
-    find_package(SDL2 REQUIRED)
 endif()
 
 include_directories(SYSTEM external/stbimage)
