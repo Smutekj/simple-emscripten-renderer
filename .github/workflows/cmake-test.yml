@@ -1,0 +1,4 @@
+name: Open Web Client Directory
+  working-directory: "src/webclient"
+  run: |
+    ls -la
