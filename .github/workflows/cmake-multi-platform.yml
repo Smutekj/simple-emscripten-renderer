@@ -45,10 +45,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Prepare MSVC
-      uses: bus1/cabuild/action/msdevshell@v1
-      with:
-        architecture: x64
     - name: Setup Python
       uses: actions/setup-python@v2
       with:
