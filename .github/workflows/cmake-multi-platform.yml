@@ -49,7 +49,12 @@ jobs:
       uses: bus1/cabuild/action/msdevshell@v1
       with:
         architecture: x64
-        
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install Python Dependencies
+      run: pip install meson ninja
     - name: Install Packages
       shell: bash
       run: |
@@ -58,8 +63,8 @@ jobs:
           sudo apt-get install --fix-missing libgl1-mesa-dev 
         elif [ "$RUNNER_OS" == "Windows" ] ; then 
           meson setup builddir --backend=vs
-cd builddir
-msbuild mesa.sln /m
+          cd builddir
+          msbuild mesa.sln /m
           choco install libgles2-mesa-dev
         else 
           echo "$RUNNER_OS not supported" 
