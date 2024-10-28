@@ -64,7 +64,7 @@ include_directories(SYSTEM external/freetype)
 
 add_library(${PROJECT_NAME} STATIC)
 target_sources(${PROJECT_NAME} PRIVATE ${SRC})
-target_link_libraries(${PROJECT_NAME} glm GLESv2 ${SDL2_LIBRARIES} freetype)
+target_link_libraries(${PROJECT_NAME} glm GLESv2 SDL2 freetype)
 target_include_directories(${PROJECT_NAME}
     PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
