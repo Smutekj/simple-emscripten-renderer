@@ -52,7 +52,7 @@ jobs:
         if [ "$RUNNER_OS" == "Linux" ] ; then 
           sudo apt-get install --fix-missing libgl1-mesa-dev 
         elif [ "$RUNNER_OS" == "Windows" ] ; then 
-          choco install libgl1-mesa-dev 
+          choco install libgles2-mesa-dev
         else 
           echo "$RUNNER_OS not supported" 
           exit 1 
