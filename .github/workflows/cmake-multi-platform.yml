@@ -46,12 +46,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Install Packages
-      run: |
-        if [ "$RUNNER_OS" == "Linux" ]; then
-              sudo apt-get install --fix-missing libgl1-mesa-dev
-        elif [ "$RUNNER_OS" == "Windows" ]; then
-              choco install libgl1-mesa-dev
       shell: bash
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then \
+              sudo apt-get install --fix-missing libgl1-mesa-dev \
+        elif [ "$RUNNER_OS" == "Windows" ]; then \
+              choco install libgl1-mesa-dev \
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
       id: strings
