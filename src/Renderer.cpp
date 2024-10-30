@@ -246,7 +246,7 @@ void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_
     line_pos = center_pos;
     line_pos.y -= (lowest_c.size.y - lowest_c.bearing.y)*text.getScale().y;
 
-    if (m_text.m_draw_bounding_box)
+    if (text.m_draw_bounding_box)
     {
         drawLineBatched(line_pos, {line_pos.x + text_size.x, line_pos.y}, 1, {0, 1, 0, 1});
         drawLineBatched({line_pos.x + text_size.x, line_pos.y}, {line_pos.x + text_size.x, line_pos.y + text_size.y}, 1, {0, 1, 0, 1});
