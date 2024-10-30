@@ -31,7 +31,7 @@ ShaderHolder &Renderer::getShaders()
     return m_shaders;
 }
 
-bool Renderer::hasShader(std::string id) 
+bool Renderer::hasShader(std::string id)
 {
     return m_shaders.getShaders().count(id) > 0;
 }
@@ -76,21 +76,21 @@ utils::Vector2i Renderer::getMouseInScreen()
 {
     int mouse_coords[2];
     auto button = SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
-    return {mouse_coords[0],mouse_coords[1]};
+    return {mouse_coords[0], mouse_coords[1]};
 }
 
 //! \brief useful when drawing directly on the screen (for instance UI and post processing)
-//! \returns the view looking exactly at the canvas 
-View Renderer::getDefaultView()const
+//! \returns the view looking exactly at the canvas
+View Renderer::getDefaultView() const
 {
     View default_view;
     auto window_size = getTargetSize();
-    default_view.setCenter(window_size/2.f);
+    default_view.setCenter(window_size / 2.f);
     default_view.setSize(window_size);
     return default_view;
 }
 
-//! \param shader_id    
+//! \param shader_id
 //! \returns true if the shader with \p shader_id exists
 bool Renderer::checkShader(const std::string &shader_id)
 {
@@ -110,10 +110,10 @@ bool Renderer::checkShader(const std::string &shader_id)
     }
     return false;
 }
-//! \brief draws a \p sprite using shader given by \p shader_id 
+//! \brief draws a \p sprite using shader given by \p shader_id
 //! \param sprite       contains textures info and sprite transformations
 //! \param shader_id
-//! \param draw_type    Static or Dynamic draws 
+//! \param draw_type    Static or Dynamic draws
 void Renderer::drawSprite(Sprite &sprite, const std::string &shader_id, DrawType draw_type)
 {
     if (checkShader(shader_id))
@@ -123,12 +123,52 @@ void Renderer::drawSprite(Sprite &sprite, const std::string &shader_id, DrawType
     }
 }
 
-//! TODO: Figure out what the idea was here? 
+//! TODO: Figure out what the idea was here?
 void Renderer::drawSpriteDynamic(Sprite &sprite, const std::string &shader_id)
 {
     drawSprite(sprite, shader_id, DrawType::Dynamic);
 }
 
+
+void  compute_string_bbox( FT_BBox  *abbox, Text& text )
+{
+//   FT_BBox  bbox;
+
+//     auto font = text.getFont();
+
+
+//   bbox.xMin = bbox.yMin =  32000;
+//   bbox.xMax = bbox.yMax = -32000;
+
+//   for ( auto c  : text.getText())
+//   {
+//     FT_BBox  glyph_bbox;
+//     FT_Glyph_Get_CBox( font->m_characters.at(c) ft_glyph_bbox_pixels,
+//                        &glyph_bbox );
+
+//     if (glyph_bbox.xMin < bbox.xMin)
+//       bbox.xMin = glyph_bbox.xMin;
+
+//     if (glyph_bbox.yMin < bbox.yMin)
+//       bbox.yMin = glyph_bbox.yMin;
+
+//     if (glyph_bbox.xMax > bbox.xMax)
+//       bbox.xMax = glyph_bbox.xMax;
+
+//     if (glyph_bbox.yMax > bbox.yMax)
+//       bbox.yMax = glyph_bbox.yMax;
+//   }
+
+//   if ( bbox.xMin > bbox.xMax )
+//   {
+//     bbox.xMin = 0;
+//     bbox.yMin = 0;
+//     bbox.xMax = 0;
+//     bbox.yMax = 0;
+//   }
+
+//   *abbox = bbox;
+}
 
 //! \brief draws text using a font in the \p text
 //! \param text constains Font info
@@ -148,44 +188,74 @@ void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_
     }
     Sprite glyph_sprite(font->getTexture());
 
-    //! find dimensions of the text
-    // auto text_size_x =
-    //     std::accumulate(string.begin(), string.end(), 0, [](auto character)
-    //                     {
-    //     return font->m_characters.at(character).size.x; });
-    // auto text_size_y =
-    //     *std::max_element(string.begin(), string.end(), [](auto character)
-    //                       {
-    //     return font->m_characters.at(character).size.y; });
+    // ! find dimensions of the text
+    auto text_size_x =
+        std::accumulate(string.begin(), string.end(), 0, [font](int x, auto character)
+                        { return font->m_characters.at(character).size.x + x; });
+    auto largest_char =
+        *std::max_element(string.begin(), string.end(), [font](auto c1, auto c2)
+                          {
+        auto car1 = font->m_characters.at(c1);
+        auto car2 = font->m_characters.at(c2);
+        return car1.size.y < car2.bearing.y; });
+    auto lowest_char =
+        *std::max_element(string.begin(), string.end(), [font](auto c1, auto c2)
+                          {
+        auto car1 = font->m_characters.at(c1);
+        auto car2 = font->m_characters.at(c2);
+        return car1.size.y - -car1.bearing.y < car2.size.y - car2.bearing.y; });
 
-    // utils::Vector2f text_size = {text_size_x, text_size_y};
+    auto largest_c = font->m_characters.at(largest_char);
+    auto lowest_c = font->m_characters.at(lowest_char);
+    utils::Vector2f text_size = {text_size_x, largest_c.bearing.y + lowest_c.size.y - lowest_c.bearing.y};
+
+    FT_BBox bbox;
+    for(auto c : text.getText())
+    {
+
+    }
 
     auto text_scale = text.getScale();
     auto center_pos = text.getPosition();
-    auto upper_left_pos = center_pos;
+    auto line_pos = center_pos;
     utils::Vector2f glyph_pos = center_pos;
     for (std::size_t glyph_ind = 0; glyph_ind < string.size(); ++glyph_ind)
     {
         auto character = font->m_characters.at(string.at(glyph_ind));
-
-        float dy = character.size.y - character.bearing.y;
-        glyph_pos.x = upper_left_pos.x + character.bearing.x * text_scale.x;
-        glyph_pos.y = upper_left_pos.y + dy * text_scale.y;
-
         float width = character.size.x * text_scale.x;
         float height = character.size.y * text_scale.y;
+        float dy = character.size.y - character.bearing.y;
+
+        glyph_pos.x = line_pos.x + character.bearing.x * text_scale.x + width / 2.f;
+        glyph_pos.y = line_pos.y + height / 2.f - dy * text_scale.y;
 
         glyph_sprite.m_tex_rect = {character.tex_coords.x, character.tex_coords.y,
                                    character.size.x, character.size.y};
 
         //! setPosition sets center of the sprite not the corner position. so we must correct for that
-        glyph_pos += utils::Vector2f{width, height - 4. * dy} / 2.f; //! the 4 is weird :(
         glyph_sprite.setPosition(glyph_pos);
         glyph_sprite.setScale(width / 2., height / 2.);
         glyph_sprite.m_color = text.getColor();
 
-        upper_left_pos.x += (character.advance >> 6) * text_scale.x;
+        line_pos.x += (character.advance >> 6) * text_scale.x;
         drawSprite(glyph_sprite, shader_id, draw_type);
+    }
+
+    text_size.x = line_pos.x - center_pos.x;
+    text_size.y *= text.getScale().y;
+    line_pos = center_pos;
+    line_pos.y -= (lowest_c.size.y - lowest_c.bearing.y)*text.getScale().y;
+
+    if (true)
+    {
+        drawLineBatched(line_pos, {line_pos.x + text_size.x, line_pos.y}, 1, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x + text_size.x, line_pos.y}, {line_pos.x + text_size.x, line_pos.y + text_size.y}, 1, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x + text_size.x, line_pos.y + text_size.y}, {line_pos.x, line_pos.y + text_size.y}, 1, {0, 1, 0, 1});
+        drawLineBatched({
+                            line_pos.x,
+                            line_pos.y + text_size.y,
+                        },
+                        line_pos, 1, {0, 1, 0, 1});
     }
 }
 
@@ -221,7 +291,7 @@ void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByt
     }
 }
 
-//! \brief draws line connecting \p point_a and \p point_b 
+//! \brief draws line connecting \p point_a and \p point_b
 //! \brief does not batch the call, but instead draws directly
 //! \param point_a
 //! \param point_b
@@ -241,7 +311,7 @@ void Renderer::drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color
     r.draw(0, m_view);
 }
 
-//! \brief draws line connecting \p point_a and \p point_b 
+//! \brief draws line connecting \p point_a and \p point_b
 //! \brief batches the call
 //! \param point_a
 //! \param point_b
@@ -286,8 +356,8 @@ void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Colo
 //! \param color
 //! \param shader_id
 //! \param draw_type
-void Renderer::drawRectangle(RectangleSimple &rect, Color color, 
-                                const std::string &shader_id, DrawType draw_type)
+void Renderer::drawRectangle(RectangleSimple &rect, Color color,
+                             const std::string &shader_id, DrawType draw_type)
 {
 
     auto &shader_name = m_shaders.contains(shader_id) ? shader_id : "VertexArrayDefault";
@@ -322,7 +392,7 @@ void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_v
 }
 
 //! \brief draws an ellipse centered at: \p center with a principal radii given by \p scale
-//! \param center       
+//! \param center
 //! \param angle        angle of rotation
 //! \param scale        principal radii of the ellipse
 //! \param color
@@ -384,7 +454,6 @@ static void setBlendFunc(BlendParams params = {})
     glBlendFuncSeparate(sf, df, sa, da);
 }
 
-
 //! \brief draws all the batched calls into a associated RenderTarget
 //! \brief THIS NEEDS TO BE CALLED IN ORDER TO SEE ANYTHING ON THE SCREEN
 //! \brief (the previous message is for when I forget to do that)
@@ -444,11 +513,10 @@ void Renderer::drawAll()
     }
 }
 
-
 //! \param texture_ids  An array containing Open GL texture ids
 //! \param shader
 //! \param draw_type
-//! \returns an existing batch with corresponding configuration 
+//! \returns an existing batch with corresponding configuration
 //! \returns a new batch in case no batch with the configuration exists
 Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type, int num_vertices_inserted)
 {
@@ -467,7 +535,7 @@ Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shade
 //! \param texture_ids
 //! \param shader
 //! \param draw_type
-//! \returns an existing batch with corresponding configuration 
+//! \returns an existing batch with corresponding configuration
 //! \returns a new batch in case no batch with the configuration exists
 SpriteBatch &Renderer::findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type)
 {
@@ -484,10 +552,10 @@ SpriteBatch &Renderer::findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> textur
     return *m_config2sprite_batches.at(config).back();
 }
 
-//! \param texture_id   
+//! \param texture_id
 //! \param shader
 //! \param draw_type
-//! \returns an existing batch with corresponding configuration 
+//! \returns an existing batch with corresponding configuration
 //! \returns a new batch in case no batch with the configuration exists
 Batch &Renderer::findBatch(GLuint texture_id, Shader &shader, DrawType draw_type, int num_vertices_inserted)
 {
@@ -506,7 +574,7 @@ Batch &Renderer::findBatch(GLuint texture_id, Shader &shader, DrawType draw_type
 //! \param texture_id
 //! \param shader
 //! \param draw_type
-//! \returns an existing batch with corresponding configuration 
+//! \returns an existing batch with corresponding configuration
 //! \returns a new batch in case no batch with the configuration exists
 SpriteBatch &Renderer::findSpriteBatch(GLuint texture_id, Shader &shader, DrawType draw_type)
 {
@@ -545,7 +613,6 @@ Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, DrawType draw
     return *batches.back();
 }
 
-
 SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, DrawType draw_type)
 {
     auto &batches = m_config2sprite_batches.at(config);
@@ -558,5 +625,3 @@ SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, D
     m_config2sprite_batches.at(config).push_back(std::make_unique<SpriteBatch>(config, shader));
     return *batches.back();
 }
-
-
