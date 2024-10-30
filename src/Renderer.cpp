@@ -259,7 +259,14 @@ void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_
     }
 }
 
-//! \brief dirty version of drawSprite...
+//! \brief draws Sprite defined by:
+//! \param center coordinate of the center
+//! \param scale scaling factor
+//! \param angle rotation in radians
+//! \param color color as 4 0-255 unsigned chars
+//! \param tex_rect texture rectangle
+//! \param shader_id 
+//! \param draw_type
 void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
                                   Vec2 texture_size, std::array<GLuint, N_MAX_TEXTURES> &texture_handles,
                                   const std::string &shader_id, DrawType draw_type)
