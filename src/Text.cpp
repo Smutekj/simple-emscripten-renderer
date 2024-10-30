@@ -38,10 +38,19 @@ const ColorByte &Text::getColor() const
 //! \param center
 void Text::centerAround(const utils::Vector2f& center)
 {
+    utils::Vector2f new_pos = center;
+    
+    auto highest_char =
+    *std::max_element(m_text.begin(), m_text.end(), [this](auto c1, auto c2){
+        return m_font->m_characters.at(c1).size.y < m_font->m_characters.at(c2).size.y;
+    });
+    auto max_height = m_font->m_characters.at(highest_char).bearing.y - m_font->m_characters.at(highest_char).size.y/2.f;
+    new_pos.y -= max_height; 
+    
     auto width = getTextWidth();
     auto curr_pos = getPosition();
-    utils::Vector2f new_pos = center;
     new_pos.x -= width/2.f;
+    
     setPosition(new_pos);
 }
 
