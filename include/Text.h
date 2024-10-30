@@ -27,6 +27,9 @@ public:
     float getTextWidth()const;
     void centerAround(const utils::Vector2f& center);
 
+public:
+    bool m_draw_bounding_box = true; 
+
 private:
     Font* m_font = nullptr;
     std::string m_text = "";
