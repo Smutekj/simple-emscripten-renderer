@@ -28,7 +28,7 @@ public:
     void centerAround(const utils::Vector2f& center);
 
 public:
-    bool m_draw_bounding_box = true; 
+    bool m_draw_bounding_box = false; 
 
 private:
     Font* m_font = nullptr;
