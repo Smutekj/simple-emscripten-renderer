@@ -168,7 +168,7 @@ SpriteBatch::SpriteBatch(GLuint texture_id, Shader &shader)
 //! \param  transform  of the sprite, includes translation, scale, rotation, texture info and color 
 bool SpriteBatch::addSprite(Trans transform)
 {
-    if (m_end >= 2000)
+    if (m_end >= N_MAX_SPRITES_PER_BATCH)
     {
         return false;
     }

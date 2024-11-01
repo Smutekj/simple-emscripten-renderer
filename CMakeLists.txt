@@ -33,7 +33,8 @@ FetchContent_MakeAvailable(SDL2)
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 set(USE_FLAGS "-s USE_SDL=2 -s FULL_ES3=1 -s OFFSCREEN_FRAMEBUFFER=1")
 set(USE_FLAGS "${USE_FLAGS} -s MIN_WEBGL_VERSION=1 -s MAX_WEBGL_VERSION=2")
-set(USE_FLAGS "${USE_FLAGS} -s -sASSERTIONS -sALLOW_MEMORY_GROWTH")
+set(USE_FLAGS "${USE_FLAGS} -sASSERTIONS -sALLOW_MEMORY_GROWTH")
+set(USE_FLAGS "${USE_FLAGS}  -s EXPORTED_FUNCTIONS=\"['_run_lua', '_main']\" -s EXPORTED_RUNTIME_METHODS=\"['ccall', 'cwrap']\"")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}  --embed-file ../Resources --embed-file ../external/lygia")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS} --embed-file ../Resources --embed-file ../external/lygia")
@@ -81,9 +82,13 @@ target_include_directories(${PROJECT_NAME}
 
 if(BUILD_EXAMPLE)
 
-    add_executable(Example src/Example/main.cpp src/Example/Application.h src/Example/Application.cpp 
-      src/Example/ShaderUI.h src/Example/ShaderUI.cpp )
-    target_link_libraries(Example  ${PROJECT_NAME} GLESv2 ) ## DO NOT FORGET GLESv2!!!!
+  file(GLOB EXAMPLE_SRC
+      "src/Example/*.cpp"
+      "src/Example/*.h"
+  )
+
+  add_executable(Example ${EXAMPLE_SRC})
+  target_link_libraries(Example  ${PROJECT_NAME} GLESv2 ) ## DO NOT FORGET GLESv2!!!!
 endif()
 
 

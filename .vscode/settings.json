@@ -64,5 +64,8 @@
         "ratio": "cpp",
         "regex": "cpp",
         "stop_token": "cpp"
+    },
+    "cmake.configureEnvironment": {
+        "CMAKE_BUILD_TYPE": "Release"
     }
 }

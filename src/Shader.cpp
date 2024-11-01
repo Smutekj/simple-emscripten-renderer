@@ -90,7 +90,7 @@ void static extractTextureNames(VariablesData &shader_data, std::string filename
 
 //! \brief connects a slot in shader with GL handle of the texture
 //! \param slot   the slot where the texture will be bound
-//! \param handle the GL handle of the texture  
+//! \param handle the GL handle of the texture
 //! \returns name of the texture at the slot
 std::string VariablesData::setTexture(int slot, GLuint handle)
 {
@@ -115,7 +115,7 @@ void ShaderHolder::use(const std::string &id)
     m_shaders.at(id)->use();
 }
 
-//! \brief loads shader with id \p name 
+//! \brief loads shader with id \p name
 //! \brief vertex shader is located at: \p vertex_filename
 //! \brief fragment shader is located at: \p fragment_filename
 //! \brief the uniform names-values pairs are stored in \p shader_data
@@ -123,12 +123,11 @@ void ShaderHolder::use(const std::string &id)
 //! \param vertex_filename
 //! \param fragment_filename
 void ShaderHolder::load(const std::string &name,
-                         const std::string &vertex_filename, const std::string &fragment_filename)
+                        const std::string &vertex_filename, const std::string &fragment_filename)
 {
     if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
     {
         m_shaders.erase(name);
-        m_shader_data.erase(name);
     }
 
     std::filesystem::path vertex_path = "../Resources/Shaders/" + vertex_filename; //! no idea if this works on windows?????
@@ -137,15 +136,9 @@ void ShaderHolder::load(const std::string &name,
     m_shaders[name] = std::make_unique<Shader>(vertex_path, fragment_path);
     auto &shader = m_shaders.at(name);
     shader->m_shader_name = name;
-    m_shader_data.insert({name, *shader});
 
     shader->use();
-    extractUniformNames(m_shader_data.at(name).variables, shader->getFragmentPath());
-}
-
-ShaderUIData &ShaderHolder::getData(const std::string &name)
-{
-    return m_shader_data.at(name);
+    extractUniformNames(shader->m_variables, shader->getFragmentPath());
 }
 
 //! \brief updates all uniform values based on the data in fragment shader file
@@ -153,9 +146,7 @@ void ShaderHolder::initializeUniforms()
 {
     for (auto &[shader_name, shader] : m_shaders)
     {
-        m_shader_data.insert({shader_name, *shader});
-
-        extractUniformNames(m_shader_data.at(shader_name).variables, shader->getFragmentPath());
+        extractUniformNames(shader->m_variables, shader->getFragmentPath());
     }
 }
 void ShaderHolder::refresh()
@@ -164,9 +155,9 @@ void ShaderHolder::refresh()
     for (auto &[shader_name, shader] : m_shaders)
     {
 
-        std::filesystem::path f_path =  shader->getFragmentPath();
+        std::filesystem::path f_path = shader->getFragmentPath();
         auto last_time = std::filesystem::last_write_time(f_path);
-        if (last_time != m_shader_data.at(shader_name).last_write_time)
+        if (last_time != shader->getLastChangeTime())
         {
             to_refresh.push_back(shader_name);
         }
@@ -340,8 +331,13 @@ Shader::Shader(const std::string &vertex_path, const std::string &fragment_path)
     recompile();
 }
 
-//! \brief extracts uniforms and textures then 
-//! \brief does all the GL calls to load the shader on the GPU 
+void Shader::recompile(const char* fragment_code)
+{
+
+}
+
+//! \brief extracts uniforms and textures then
+//! \brief does all the GL calls to load the shader on the GPU
 void Shader::recompile()
 {
     extractTextureNames(m_variables, m_fragment_path);
@@ -351,7 +347,7 @@ void Shader::recompile()
     glsl_include::ShaderLoader fragment_loader = glsl_include::ShaderLoader("#include");
     std::string vertex_code = vertex_loader.load_shader(m_vertex_path);
     std::string fragment_code = vertex_loader.load_shader(m_fragment_path);
-
+    
     const char *vShaderCode = vertex_code.c_str();
     const char *fShaderCode = fragment_code.c_str();
 
@@ -407,7 +403,7 @@ void Shader::recompile()
     glCheckError();
 }
 
-//! \brief calls glUseProgram(id) 
+//! \brief calls glUseProgram(id)
 //! \brief the shader is recompiled in case the fragment shaderfile
 //! \brief  has been changed since the last time
 void Shader::use()
@@ -504,61 +500,9 @@ const std::string &Shader::getVertexPath()
     return m_vertex_path;
 }
 
-ShaderUIData::ShaderUIData(Shader &program)
-    : p_program(&program), filename(program.getFragmentPath()), variables(program.getVariables())
-{
-    last_write_time = std::filesystem::last_write_time(filename);
-}
-
-// template <class ValueType>
-// constexpr void Shader::setUniform(const std::string &name, const ValueType &value)
-// {
-
-//     if constexpr (std::is_same_v<ValueType, float>)
-//     {
-//         setFloat(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, bool>)
-//     {
-//         setBool(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, int>)
-//     {
-//         setInt(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::vec2>)
-//     {
-//         setVec2(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::vec3>)
-//     {
-//         setVec3(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::vec4>)
-//     {
-//         setVec4(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::mat2>)
-//     {
-//         setMat2(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::mat3>)
-//     {
-//         setMat3(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::mat4>)
-//     {
-//         setMat4(name, value);
-//     }else
-//     {
-
-//     }
-// }
-
 void ShaderHolder::erase(const std::string &shader_id)
 {
     m_shaders.erase(shader_id);
-    m_shader_data.erase(shader_id);
 }
 
 const ShaderHolder::ShaderMap &ShaderHolder::getShaders() const
@@ -571,14 +515,8 @@ bool ShaderHolder::contains(const std::string &shader_id) const
     return m_shaders.count(shader_id) > 0;
 }
 
-ShaderHolder::ShaderUIDataMap &ShaderHolder::getAllData()
-{
-    return m_shader_data;
-}
-
-
 //! \brief some utility functions
-//! \returns a vector of strings obtained from line 
+//! \returns a vector of strings obtained from line
 std::vector<std::string> separateLine(std::string line, char delimiter)
 {
     std::vector<std::string> result;
@@ -620,7 +558,7 @@ bool replace(std::string &str, const std::string &from, const std::string &to)
 
 //! \brief extracts the value from the string obtained by reading a framgent shader
 //! \param type_string  should contain part of the GLSL uniform definition with type and variable name
-//! \param initial_value should contain part behind the equal sign containing the initial value   
+//! \param initial_value should contain part behind the equal sign containing the initial value
 UniformType extractValue(std::string type_string, std::string initial_value)
 {
     UniformType value;
@@ -682,4 +620,9 @@ UniformType extractValue(std::string type_string, std::string initial_value)
         }
     }
     return value;
+}
+
+std::filesystem::file_time_type Shader::getLastChangeTime() const
+{
+    return m_last_writetime;
 }

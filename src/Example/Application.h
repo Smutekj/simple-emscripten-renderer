@@ -1,7 +1,7 @@
 #pragma once
 
-
 #include "ShaderUI.h"
+#include "GridNeighbourSearcher.h"
 
 #include <chrono>
 #include <vector>
@@ -38,11 +38,22 @@ private:
     void onKeyRelease(SDL_Keycode key);
     void onWheelMove(SDL_MouseWheelEvent event);
     void initializeSimulation();
-    void doBloom(Texture& source, Renderer& target);
+    void doBloom(Texture &source, Renderer &target);
 
     friend void gameLoop(void *);
 
+    void calculateAndapplyForce();
+    void batchDemoUpdate(float dt);
+    void shaderToyDemoUpdate(float dt);
+
+
+
 private:
+
+    std::deque<float> m_average_dt;
+
+    float m_dt = 0.016;
+
     Window m_window;
     View m_view;
 
@@ -57,12 +68,12 @@ private:
 
     Renderer m_window_renderer;
     TextureHolder m_textures;
-    
-    float m_time = 0.f;
 
+    float m_time = 0.f;
 
     std::unique_ptr<Particles> m_particles;
     Color m_particle_color = {0.2, 2.0, 4.0};
+    bool m_particles_on = true;
 
     std::chrono::high_resolution_clock::time_point tic;
 
@@ -70,6 +81,19 @@ private:
     std::vector<ShaderSlot> m_slots;
     int m_simulation_slot = 0;
 
-    std::shared_ptr<Font> m_test_font;  
+    std::shared_ptr<Font> m_test_font;
 
+    GridNeighbourSearcher m_searcher;
+    std::vector<utils::Vector2f> positions;
+    std::vector<utils::Vector2f> velocities;
+    std::vector<std::string> characters;
+
+    utils::Vector2f m_box_size;
+
+    float m_force_factor = 5000.f;
+    float m_max_force = 5000.f;
+
+    int m_draw_characters = 50;
+
+    void initializePositions();
 };

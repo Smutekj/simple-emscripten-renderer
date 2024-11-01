@@ -11,6 +11,7 @@
 #include <memory>
 
 constexpr static int BATCH_VERTEX_CAPACITY = 65000; //! maximum number of vertices per batch
+constexpr static int N_MAX_SPRITES_PER_BATCH = 50000; //! maximum number of vertices per batch
 
 //! \struct BatchConfig
 //! \brief stores information which define batches

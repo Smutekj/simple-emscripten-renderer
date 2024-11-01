@@ -10,7 +10,39 @@
                 "CMAKE_INSTALL_PREFIX": "${sourceDir}/build-${presetName}",
                 "CMAKE_C_COMPILER": "/usr/bin/gcc",
                 "CMAKE_CXX_COMPILER": "/usr/bin/g++",
+                "CMAKE_BUILD_TYPE": "Release",
+                "BUILD_EXAMPLE":  {
+                    "type": "BOOL",
+                    "value": "ON"
+                  }
+            }
+        },
+        {
+            "name": "ExampleDebug",
+            "displayName": "Debug",
+            "description": "Using compilers: C = /usr/bin/gcc, CXX = /usr/bin/g++",
+            "binaryDir": "${sourceDir}/build-${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build-${presetName}",
+                "CMAKE_C_COMPILER": "/usr/bin/gcc",
+                "CMAKE_CXX_COMPILER": "/usr/bin/g++",
                 "CMAKE_BUILD_TYPE": "Debug",
+                "BUILD_EXAMPLE":  {
+                    "type": "BOOL",
+                    "value": "ON"
+                  }
+            }
+        },
+        {
+            "name": "ExampleWeb",
+            "displayName": "EMCC",
+            "description": "Using compilers: C = em/usr/bin/gcc, CXX = /usr/bin/g++",
+            "binaryDir": "${sourceDir}/build-${presetName}",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build-${presetName}",
+                "CMAKE_C_COMPILER": "/usr/bin/gcc",
+                "CMAKE_CXX_COMPILER": "/usr/bin/g++",
+                "CMAKE_BUILD_TYPE": "Release",
                 "BUILD_EXAMPLE":  {
                     "type": "BOOL",
                     "value": "ON"

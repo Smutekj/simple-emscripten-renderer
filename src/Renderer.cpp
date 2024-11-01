@@ -218,6 +218,7 @@ void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByt
     auto &batch = findSpriteBatch(texture_handles, shader, draw_type);
     if (batch.addSprite(t))
     {
+        
     }
 }
 

@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <variant>
 
+#include "Texture.h"
 #include "Window.h"
 #include "FrameBuffer.h"
 #include "Utils/IO.h"
@@ -11,7 +12,6 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 
-
 #include <magic_enum.hpp>
 #include <magic_enum_utility.hpp>
 
@@ -19,7 +19,7 @@ UIWindow::UIWindow(std::string name) : name(name)
 {
 }
 
-UI::UI(Window &window,TextureHolder &textures,
+UI::UI(Window &window, TextureHolder &textures,
        std::vector<ShaderSlot> &slots)
 {
     // Setup Dear ImGui context
@@ -118,10 +118,10 @@ void ShadersWindow::drawShaderSlot(ShaderSlot &slot)
     if (ImGui::BeginListBox("Shaders", shader_box_size))
     {
 
-        for (auto &[id, shader_data] : m_slots.at(0).m_canvas.getShaders().getAllData())
+        for (auto &[id, shader] : m_slots.at(0).m_canvas.getShaders().getShaders())
         {
             const bool is_selected = (slot.m_selected_shader == id);
-            if (ImGui::Selectable(shader_data.p_program->getName().c_str(), is_selected))
+            if (ImGui::Selectable(shader->getName().c_str(), is_selected))
             {
                 slot.m_selected_shader = id;
                 slot.m_selected_uniform = ""; //! unselect uniform
@@ -167,11 +167,14 @@ void ShadersWindow::drawShaderSlot(ShaderSlot &slot)
         }
     }
 
+
     if (slot.m_selected_uniform != "")
     {
         drawUniformValue(slot.m_selected_uniform.c_str(),
                          shader_variables.uniforms.at(slot.m_selected_uniform));
     }
+
+    ImGui::InputFloat4("background", &slot.m_background_color.r);
 }
 
 void ShadersWindow::refresh()
@@ -181,13 +184,13 @@ void ShadersWindow::refresh()
 
     std::vector<std::string> new_shader_paths;
 
-    auto& default_slot = m_slots.at(0); 
+    auto &default_slot = m_slots.at(0);
     for (auto &shader_filename : shader_filenames)
     {
 
         auto pos_right = shader_filename.find_last_of('.');
         std::string shader_name = shader_filename.substr(0, pos_right);
-        if (default_slot.m_canvas.getShaders().getAllData().count(shader_name) == 0)
+        if (!default_slot.m_canvas.getShaders().contains(shader_name))
         {
             for (auto &slot : m_slots)
             {
@@ -202,42 +205,35 @@ void ShadersWindow::refresh()
 
 void ShadersWindow::draw()
 {
+
+    std::filesystem::path path = "../Resources/";
+    auto names = extractNamesInDirectory(path, ".png");
+
+    ImGui::Begin("Shader Slots");
+    int i = 0;
+    if (ImGui::Button("Refresh"))
     {
-        std::filesystem::path path = "../Resources/";
-        auto names = extractNamesInDirectory(path, ".png");
-
-        ImGui::Begin("Shader Manager");
-        auto shader_names = extractNamesInDirectory(path, ".frag");
-        if (ImGui::Button("Refresh"))
-        {
-            refresh();
-        }
-        ImGui::End();
-
-
-
-        ImGui::Begin("Shader Slots");
-        int i = 0;
-        for (auto &slot : m_slots)
-        {
-            if (ImGui::TreeNode(("Slot: " + std::to_string(i)).c_str()))
-            {
-                drawShaderSlot(slot);
-                m_output_image_name.resize(50);
-                if (ImGui::InputText("File name: ", m_output_image_name.data(), m_output_image_name.size()))
-                {
-                }
-                if (ImGui::Button("Draw Texture"))
-                {
-                    writeTextureToFile("./", m_output_image_name, slot.m_pixels);
-                }
-                ImGui::TreePop();
-            }
-
-            i++;
-        }
-        ImGui::End();
+        refresh();
     }
+    for (auto &slot : m_slots)
+    {
+        if (ImGui::TreeNode(("Slot: " + std::to_string(i)).c_str()))
+        {
+            drawShaderSlot(slot);
+            m_output_image_name.resize(50);
+            if (ImGui::InputText("File name: ", m_output_image_name.data(), m_output_image_name.size()))
+            {
+            }
+            if (ImGui::Button("Draw Texture"))
+            {
+                writeTextureToFile("./", m_output_image_name, slot.m_pixels);
+            }
+            ImGui::TreePop();
+        }
+
+        i++;
+    }
+    ImGui::End();
 }
 
 UIWindow::~UIWindow()
@@ -255,44 +251,27 @@ void UI::draw(Window &window)
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
 
-    bool show_demo_window = true;
-    if (show_demo_window)
-        ImGui::ShowDemoWindow(&show_demo_window);
-
     std::vector<UIWindowType> active_windows;
-    ImGui::Begin("Control Panel"); // Create a window called "Hello, world!" and append into it.
+    ImGui::Begin("Control Panel");
     for (auto &[type, data] : m_window_data)
     {
-        if (ImGui::Button(data.name.c_str()))
-            data.is_active = !data.is_active;
-    }
-    
-        ImGui::Begin("Simulation");
-        if(ImGui::Button("Start"))
-        {
-            m_simulation_on = true;
-        }
-        if(ImGui::Button("Stop"))
-        {
-            m_simulation_on = false;
-        }
-        if(ImGui::Button("Reset"))
-        {
-            m_simulation_on = false;
-            m_reset = true;
-        }
-        if(ImGui::InputInt("Simulation slot", &m_simulation_slot))
-        {
-            if(m_simulation_slot > 4)
-            {
-                m_simulation_slot = 0;
-            }
-        }
-        
-        ImGui::InputFloat4("Particle Init Color", &m_particle_init_color.r);
-        ImGui::InputFloat4("Particle End Color", &m_particle_end_color.r);
+        // if (ImGui::Button(data.name.c_str()))
+        //     data.is_active = !data.is_active;
 
-        ImGui::End();
+    }
+    ImGui::InputInt("N Sprites", &m_draw_particles);
+
+    ImGui::InputFloat2("Box Size", &m_box_size.x);
+    if(ImGui::Button("Add Forces"))
+    {
+        m_simulation_on = !m_simulation_on;
+    }
+
+    for(auto& [id, multiplier] : m_force_field)
+    {
+        auto multiplier_name = std::string(magic_enum::enum_name(id)); 
+        ImGui::InputFloat(multiplier_name.c_str(), &multiplier);
+    }
 
 
 
@@ -313,3 +292,27 @@ void UI::handleEvent(SDL_Event event)
 {
     ImGui_ImplSDL2_ProcessEvent(&event);
 }
+
+void ShaderSlot::draw(Sprite &test_sprite)
+{
+
+    auto &shader = m_canvas.getShader(m_selected_shader);
+    for (auto &[texture_name, texture_data] : shader.getVariables().textures)
+    {
+        test_sprite.m_texture_handles.at(texture_data.slot) = texture_data.handle;
+    }
+
+    m_layer->m_canvas.clear({0,0,0,0});
+    m_layer->m_canvas.m_view = m_canvas.m_view;
+    m_layer->m_canvas.drawSprite(test_sprite, m_selected_shader, DrawType::Dynamic);
+    // m_canvas.clear(m_background_color);
+    m_canvas.clear(m_background_color);
+    // m_canvas.m_blend_factors.src_factor = BlendFactor::SrcAlpha;
+    // m_canvas.m_blend_factors.dst_alpha = BlendFactor::SrcAlpha;
+    m_layer->draw(m_canvas);
+
+    // m_canvas.drawSprite(test_sprite, m_selected_shader, DrawType::Dynamic);
+    // m_canvas.drawAll();
+}
+
+// static TextureOptions options = TextureFormat format = TextureFormat::RGBA;

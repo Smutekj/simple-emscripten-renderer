@@ -7,6 +7,7 @@
 #include "Window.h"
 #include "Renderer.h"
 #include "FrameBuffer.h"
+#include "DrawLayer.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
@@ -36,12 +37,30 @@ struct ShaderUIData
     std::filesystem::file_time_type last_write_time;
 };
 
+
+enum class Multiplier
+{
+    SCATTER,
+    ALIGN,
+    SEEK,
+    MAX_VEL,
+    SLOW_DOWN,
+    REPULSE,
+    AVOID
+};
+
 struct ShaderSlot
 {
 
     ShaderSlot(int width, int height)
         : m_pixels(width, height), m_canvas(m_pixels)
     {
+        TextureOptions internal_format;
+        internal_format.wrap_x =  TexWrapParam::ClampEdge;
+        internal_format.wrap_y =  TexWrapParam::ClampEdge;
+        m_layer = std::make_unique<DrawLayer>(width, height, internal_format);
+        m_layer->m_canvas.addShader("Instanced", "basicinstanced.vert", "texture.frag");
+        m_layer->addEffect(std::make_unique<Bloom3>(width, height));
     }
 
     utils::Vector2i getSize()
@@ -49,19 +68,7 @@ struct ShaderSlot
         return m_pixels.getSize();
     }
 
-    void draw(Sprite &test_sprite)
-    {
-
-        auto &shader = m_canvas.getShader(m_selected_shader);
-        for (auto &[texture_name, texture_data] : shader.getVariables().textures)
-        {
-            test_sprite.m_texture_handles.at(texture_data.slot) = texture_data.handle;
-        }
-
-        m_canvas.clear({1, 1, 1, 1});
-        m_canvas.drawSprite(test_sprite, m_selected_shader, DrawType::Dynamic);
-        m_canvas.drawAll();
-    }
+    void draw(Sprite &test_sprite);
 
     GLuint getTextureHandle()
     {
@@ -72,12 +79,22 @@ struct ShaderSlot
     {
     }
 
+    Texture& getPixels()
+    {
+        return m_layer->m_pixels.getTexture();
+    }
+
 public:
+    std::unique_ptr<DrawLayer> m_layer;
+
     FrameBuffer m_pixels;
     Renderer m_canvas;
+
     std::string m_selected_uniform = "";
     std::string m_selected_texture = "";
     std::string m_selected_shader = "";
+
+    Color m_background_color;
 };
 
 constexpr int N_UI_WINDOWS = static_cast<int>(UIWindowType::COUNT);
@@ -200,9 +217,20 @@ public:
         return m_particle_end_color;
     }
 
+    int getNParticles()
+    {
+        return m_draw_particles;
+    }
+
+    public:
+
+    std::unordered_map<Multiplier, float> m_force_field;
+    utils::Vector2f m_box_size = {500, 500};
+    bool m_simulation_on = true;
+
 private:
+    int m_draw_particles = 500;
     int m_simulation_slot = 0;
-    bool m_simulation_on = false;
     bool m_reset = false;
     float value;
     utils::Vector2f m_mouse_coords_on_click;
@@ -210,3 +238,5 @@ private:
     Color m_particle_end_color = {1,0,0,1};
     std::unordered_map<UIWindowType, UIWindowData> m_window_data;
 };
+
+

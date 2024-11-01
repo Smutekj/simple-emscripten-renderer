@@ -55,20 +55,23 @@ void drawProgramToTexture(Sprite &rect, Renderer &target, std::string program)
 }
 
 Application::Application(int width, int height) : m_window(width, height),
-                                                  m_window_renderer(m_window)
+                                                  m_window_renderer(m_window),
+                                                  m_searcher(10, utils::Vector2f{width, height} / 2.f, {width, height}),
+                                                  m_box_size(width*2./3., height*2./3.)
 {
-
     m_test_font = std::make_shared<Font>("arial.ttf");
 
     int n_slots_x = 2;
     int n_slots_y = 2;
     m_slots.reserve(n_slots_x * n_slots_y);
-    // for (int i = 0; i < n_slots_x * n_slots_y; ++i)
-    // {
-    //     m_slots.emplace_back(width / n_slots_x, height / n_slots_y);
-    // }
+    for (int i = 0; i < n_slots_x * n_slots_y; ++i)
+    {
+        m_slots.emplace_back(width / n_slots_x, height / n_slots_y);
+    }
 
-    std::filesystem::path path{"../Resources/Shaders"};
+    m_window_renderer.m_blend_factors = {BlendFactor::One, BlendFactor::OneMinusSrcAlpha};
+
+    std::filesystem::path path{"../Resources/Shaders/"};
     auto shader_filenames = extractNamesInDirectory(path, ".frag");
     for (auto &shader_filename : shader_filenames)
     {
@@ -76,7 +79,7 @@ Application::Application(int width, int height) : m_window(width, height),
         std::string shader_name = shader_filename.substr(0, pos_right);
         for (auto &slot : m_slots)
         {
-            slot.m_canvas.addShader(shader_name, "basicinstanced.vert", path.string() + shader_filename);
+            slot.m_canvas.addShader(shader_name, "basicinstanced.vert", shader_filename);
         }
     }
 
@@ -88,7 +91,6 @@ Application::Application(int width, int height) : m_window(width, height),
     m_window_renderer.addShader("Instanced", "basicinstanced.vert", "texture.frag");
     m_window_renderer.addShader("Text", "basicinstanced.vert", "textBorder.frag");
     m_window_renderer.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
-
 
     auto texture_filenames = extractNamesInDirectory(path, ".png");
     for (auto &texture_filename : texture_filenames)
@@ -103,6 +105,7 @@ Application::Application(int width, int height) : m_window(width, height),
         m_textures.add("Slot: " + std::to_string(slot_id), slot.m_pixels.getTexture());
         slot_id++;
     }
+    m_textures.add("arrow", "../Resources/Textures/arrow.png");
 
     //! set view and add it to renderers
     m_view.setSize(m_window.getSize().x, m_window.getSize().y);
@@ -110,6 +113,13 @@ Application::Application(int width, int height) : m_window(width, height),
     m_window_renderer.m_view = m_view;
 
     m_ui = std::make_unique<UI>(m_window, m_textures, m_slots);
+    m_ui->m_force_field[Multiplier::ALIGN] = 1.;
+    m_ui->m_force_field[Multiplier::AVOID] = 1.;
+    m_ui->m_force_field[Multiplier::SCATTER] = 1.;
+    m_ui->m_force_field[Multiplier::SEEK] = 0.05;
+    m_ui->m_force_field[Multiplier::MAX_VEL] = 100.;
+    m_ui->m_force_field[Multiplier::REPULSE] = 500.;
+    m_ui->m_force_field[Multiplier::SLOW_DOWN] = 0.09;
 
     m_particles = std::make_unique<Particles>(2000);
     m_particles->setLifetime(2.f);
@@ -129,6 +139,8 @@ Application::Application(int width, int height) : m_window(width, height),
                                 p.scale = {10.2, 10.2};
                                 return p; });
     m_particles->setRepeat(true);
+
+    initializePositions();
 }
 
 void Application::run()
@@ -252,6 +264,24 @@ void Application::onKeyRelease(SDL_Keycode key)
     }
 }
 
+void Application::initializePositions()
+{
+    positions.resize(m_draw_characters);
+    velocities.resize(m_draw_characters);
+    characters.resize(m_draw_characters);
+
+    m_searcher.clear();
+
+    for (int i = 0; i < m_draw_characters; ++i)
+    {
+        positions[i] = {randf(0, m_box_size.x), randf(0, m_box_size.y)};
+        velocities[i].x = randf(-200, 200);
+        char c = 'a' + rand() % 26;
+        characters[i] = c;
+        m_searcher.insertEntity(positions[i], i);
+    }
+}
+
 void moveView(utils::Vector2f dr, Renderer &target)
 {
     auto &view = target.m_view;
@@ -260,8 +290,181 @@ void moveView(utils::Vector2f dr, Renderer &target)
     view.setCenter(new_view_center.x, new_view_center.y);
 }
 
+void Application::calculateAndapplyForce()
+{
+
+    auto repulse = m_ui->m_force_field[Multiplier::REPULSE];
+
+    for (int part_ind = 0; part_ind < m_draw_characters; ++part_ind)
+    {
+        auto pos = positions[part_ind];
+        auto neighbour_inds = m_searcher.getNeighboursOfExcept(pos, positions, 50, part_ind);
+        utils::Vector2f force = {0};
+        for (auto neighbour : neighbour_inds)
+        {
+            auto neighbour_pos = positions[neighbour];
+            auto dr = neighbour_pos - pos;
+            auto l2 = utils::norm2(dr);
+            if (l2 > 0.f)
+            {
+                force += -repulse * dr * (1. / l2 + 0.05 / l2 / l2);
+            }
+        }
+        utils::truncate(force, m_max_force);
+        velocities[part_ind] += force;
+    }
+}
+
+void Application::shaderToyDemoUpdate(float dt)
+{
+    int slot_ind = 0;
+    for (auto &shader_slot : m_slots)
+    {
+        auto slot_size = shader_slot.getSize();
+
+        Sprite test_sprite(*m_textures.get("arrow"));
+        test_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
+        test_sprite.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
+        if (!shader_slot.m_selected_shader.empty())
+        {
+            test_sprite.m_color = {255, 255, 255, 255};
+            shader_slot.m_canvas.m_view.setCenter(test_sprite.getPosition().x, test_sprite.getPosition().y);
+            shader_slot.m_canvas.m_view.setSize(slot_size.x, slot_size.y);
+            shader_slot.draw(test_sprite);
+        }
+        slot_ind++;
+    }
+
+    m_window_renderer.getShaders().refresh();
+
+    int row = 0;
+    int col = 0;
+    float left_margin = 0;
+    float top_margin = 0;
+
+    auto old_factors = m_window_renderer.m_blend_factors;
+    m_window_renderer.m_blend_factors = {BlendFactor::One, BlendFactor::Zero};
+    for (auto &shader_slot : m_slots)
+    {
+        auto slot_size = shader_slot.getSize();
+
+        Sprite screen_sprite(shader_slot.m_pixels.getTexture());
+        screen_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
+        screen_sprite.setPosition(left_margin + slot_size.x / 2.f, top_margin + slot_size.y / 2.f);
+        m_window_renderer.drawSprite(screen_sprite, "toneMap", DrawType::Dynamic);
+
+        left_margin += slot_size.x;
+        row++;
+        if (row == 2)
+        {
+            row = 0;
+            col++;
+            left_margin = 0;
+            top_margin += slot_size.y;
+        }
+    }
+    m_window_renderer.m_blend_factors = old_factors;
+    m_window_renderer.clear({1, 1, 1, 1});
+    m_window_renderer.drawAll();
+
+
+}
+void Application::batchDemoUpdate(float dt)
+{
+    auto mouse_coords = m_window_renderer.getMouseInWorld();
+
+    if (m_draw_characters != m_ui->getNParticles())
+    {
+        m_draw_characters = m_ui->getNParticles();
+        initializePositions();
+    }
+    if(m_box_size != m_ui->m_box_size)
+    {
+        m_box_size = m_ui->m_box_size;
+        initializePositions();
+    }
+
+    Text t;
+    t.setFont(m_test_font.get());
+    for (int i = 0; i < m_draw_characters; ++i)
+    {
+
+        auto dr = mouse_coords - positions[i];
+        auto f_to_mouse = m_ui->m_force_field.at(Multiplier::SEEK) * dr;
+        utils::truncate(f_to_mouse, 100.);
+        velocities[i] += f_to_mouse;
+        velocities[i].y -= 1;
+        utils::truncate(velocities[i], m_ui->m_force_field[Multiplier::MAX_VEL]);
+        velocities[i] -= velocities[i] * m_ui->m_force_field[Multiplier::SLOW_DOWN];
+        positions[i] += dt * velocities[i];
+
+        auto &vel = velocities[i];
+        auto &pos = positions[i];
+        if (pos.x >= m_box_size.x)
+        {
+            pos.x = m_box_size.x - 0.01;
+            velocities[i].x = -std::abs(vel.x);
+        }
+        if (pos.x <= 0)
+        {
+            pos.x = 0.1;
+            velocities[i].x = std::abs(vel.x);
+        }
+        if (pos.y >= m_box_size.y)
+        {
+            pos.y = m_box_size.y - 0.01;
+            velocities[i].y = -std::abs(vel.y);
+        }
+        if (pos.y <= 0)
+        {
+            pos.y = 0.1;
+            velocities[i].y = std::abs(vel.y); // randf(50, 2000);
+        }
+        m_searcher.moveEntity(pos, i);
+    }
+    if(m_ui->m_simulation_on)
+    {
+        calculateAndapplyForce();
+    }
+
+    for (int i = 0; i < m_draw_characters; ++i)
+    {
+        t.setText(characters[i]);
+        t.setPosition(positions[i]);
+        t.setColor({0, 0, 0, 255});
+        t.setScale(0.3, 0.3);
+        m_window_renderer.drawText(t, "Text", DrawType::Dynamic);
+    }
+
+    auto avg_frame_time = std::accumulate(m_average_dt.begin(), m_average_dt.end(), 0.) / m_average_dt.size();
+    auto time_text = std::to_string(avg_frame_time*1000.);
+    time_text = time_text.substr(0, 4);
+    Text test_text("Frame Time: " + time_text + " ms" );
+    test_text.setFont(m_test_font.get());
+    test_text.setPosition(m_box_size.x + 50, m_box_size.y + 50);
+    test_text.setScale(1, 1);
+    test_text.setColor({255, 0, 255, 255});
+    m_window_renderer.drawText(test_text, "Text", DrawType::Dynamic);
+
+    m_window_renderer.getShaders().refresh();
+
+    m_window_renderer.drawLineBatched({0, 0}, {m_box_size.x, 0}, 2, {0, 0, 0, 1});
+    m_window_renderer.drawLineBatched({0, 0}, {0, m_box_size.y}, 2, {0, 0, 0, 1});
+    m_window_renderer.drawLineBatched({m_box_size.x, 0}, {m_box_size.x, m_box_size.y}, 2, {0, 0, 0, 1});
+    m_window_renderer.drawLineBatched({0, m_box_size.y}, {m_box_size.x, m_box_size.y}, 2, {0, 0, 0, 1});
+    m_window_renderer.clear({1, 1, 1, 1});
+    m_window_renderer.m_view = m_view;
+    m_window_renderer.drawAll();
+}
+
 void Application::update(float dt)
 {
+
+    m_average_dt.push_back(dt);
+    if(m_average_dt.size() > 60)
+    {
+        m_average_dt.pop_front();
+    }
 
     if (m_wheel_is_held)
     {
@@ -274,96 +477,15 @@ void Application::update(float dt)
         }
     }
 
-    m_time += 0.016f;
+    m_time += dt;
+    Shader::m_time = m_time;
 
-    // auto &shader_slot = m_slots.at(0);
-    // auto slot_size = shader_slot.getSize();
-    // int slot_ind = 0;
-    // for (auto &shader_slot : m_slots)
-    // {
-    //     // if (slot_ind == m_ui->getSimulationSlot())
-    //     // {
-    //     // slot_ind++;
-    //     // continue;
-    //     // }
-    //     auto slot_size = shader_slot.getSize();
-
-    //     Sprite test_sprite(shader_slot.m_pixels.getTexture());
-    //     test_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
-    //     test_sprite.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
-    //     if (!shader_slot.m_selected_shader.empty())
-    //     {
-    //         auto &shader = shader_slot.m_canvas.getShader(shader_slot.m_selected_shader);
-    //         shader.setUniform2("u_time", m_time);
-    //         for (auto &[texture_name, texture_data] : shader.getVariables().textures)
-    //         {
-    //             test_sprite.m_texture_handles.at(texture_data.slot) = texture_data.handle;
-    //         }
-    //         shader_slot.m_canvas.m_view.setCenter(test_sprite.getPosition().x, test_sprite.getPosition().y);
-    //         shader_slot.m_canvas.m_view.setSize(slot_size.x, slot_size.y);
-    //         shader_slot.draw(test_sprite);
-    //     }
-    //     slot_ind++;
-    // }
-
-    // m_swirl_renderer1.clear({0, 0, 0, 1});
-    // m_swirl_renderer1.m_view = m_view;
-    // m_particles->setSpawnPos({mouse_coords.x, mouse_coords.y});
-    // m_particles->update(0.01f);
-    // m_particles->setInitColor(m_ui->getParticleInitColor());
-    // m_particles->setFinalColor(m_ui->getParticleEndColor());
-    // m_particles->draw(m_swirl_renderer1);
-
-    Text test_text("brown fox jumps over the lazy dog");
-    test_text.setFont(m_test_font.get());
-    test_text.setPosition(400, 300);
-    test_text.setScale(1, 1);
-    test_text.setColor({255, 0,255,255});
-
-    m_window_renderer.getShaders().refresh();
-
-    auto mouse_coords = m_window_renderer.getMouseInWorld();
-    Sprite test_sprite(m_test_font->getTexture());//*m_textures.get("arrow"));
-    test_sprite.m_color = {0, 0, 0, 255};
-    test_sprite.setScale(400, 300);
-    test_sprite.setPosition(400, 300);
-    m_window.clear({1, 1, 1, 1});
-    m_window_renderer.getShader("Text").use();
-    m_window_renderer.getShader("Text").setUniform2("u_time", m_time);
-    m_window_renderer.drawSprite(test_sprite, "Text", DrawType::Dynamic);
-    test_text.setPosition(mouse_coords);
-    m_window_renderer.drawText(test_text, "Text", DrawType::Dynamic);
-    m_window_renderer.drawAll();
-
-    // m_window_renderer.drawAll();
-    // doBloom(b1.getTexture(), m_window_renderer);
-
-    // int row = 0;
-    // int col = 0;
-    // float left_margin = 0;
-    // float top_margin = 0;
-
-    // for (auto &shader_slot : m_slots)
-    // {
-    //     auto slot_size = shader_slot.getSize();
-
-    //     Sprite screen_sprite(shader_slot.m_pixels.getTexture());
-    //     screen_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
-    //     screen_sprite.setPosition(left_margin + slot_size.x / 2.f, top_margin + slot_size.y / 2.f);
-    //     // m_window_renderer.drawSprite(screen_sprite, "Instanced", GL_DYNAMIC_DRAW);
-
-    //     left_margin += slot_size.x;
-    //     row++;
-    //     if (row == 2)
-    //     {
-    //         row = 0;
-    //         col++;
-    //         left_margin = 0;
-    //         top_margin += slot_size.y;
-    //     }
-    // }
-    m_window_renderer.m_view = m_view;
-    // m_window_renderer.drawAll();
+    if(m_ui->m_simulation_on)
+    {
+        batchDemoUpdate(dt);
+    }else{
+        shaderToyDemoUpdate(dt);
+    }
 
     m_ui->draw(m_window);
 }
@@ -377,7 +499,7 @@ void inline gameLoop(void *mainLoopArg)
     // auto tic = std::chrono::high_resolution_clock::now();
     Application *p_app = (Application *)mainLoopArg;
 
-    p_app->update(0);
+    p_app->update(p_app->m_dt);
     p_app->handleInput();
 
     // Swap front/back framebuffers
@@ -386,9 +508,11 @@ void inline gameLoop(void *mainLoopArg)
     // auto toc =  std::chrono::high_resolution_clock::now();
 
     // std::cout << "frame took: " << std::chrono::duration_cast<std::chrono::microseconds>(toc - tic) << "\n";
-    double dt = (double)(toc - tic) / CLOCKS_PER_SEC * 1000.f;
-    // std::cout << "frame took: " << (dt) << "\n";
-    SDL_Delay(10);
+    double dt = (double)(toc - tic) / CLOCKS_PER_SEC * 1000.;
+    p_app->m_dt = dt/1000.;
+
+    std::cout << "frame took: " << (dt) << "\n";
+    // SDL_Delay(10);
 #ifdef __EMSCRIPTEN__
     // emscripten_trace_record_frame_end();
 #endif

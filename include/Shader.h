@@ -59,7 +59,10 @@ public:
 
     VariablesData &getVariables();
     GLuint getId() const;
+    
     void recompile();
+    void recompile(const char* fragment_text);
+
     const std::string &getFragmentPath();
     const std::string &getVertexPath();
     // use/activate the shader
@@ -88,12 +91,12 @@ public:
 
     void activateTexture(std::array<GLuint, 2> handles);
 
-public:
     void setUniform2(const std::string &uniform_name, UniformType uniform_value);
 
     void saveUniformValue(const std::string &uniform_name, UniformType uniform_value);
 
-    friend ShaderHolder;
+
+    std::filesystem::file_time_type getLastChangeTime() const;
 
 private:
     void retrieveCode(const char *code_path, std::string &code);
@@ -108,6 +111,8 @@ private:
 
 public:
     inline static float m_time;
+    
+    friend ShaderHolder;
 };
 
 
@@ -118,7 +123,6 @@ class ShaderHolder
 {
 
     using ShaderMap = std::unordered_map<std::string, std::unique_ptr<Shader>>;
-    // using ShaderUIDataMap = std::unordered_map<std::string, ShaderUIData>;
 
 public:
     Shader &get(const std::string &id);
@@ -130,11 +134,8 @@ public:
     void erase(const std::string &shader_id);
 
     const ShaderMap &getShaders() const;
-    // ShaderUIData &getData(const std::string &name);
 
     bool contains(const std::string &shader_id) const;
-
-    // ShaderHolder::ShaderUIDataMap &getAllData();
 
     void refresh();
 
@@ -142,7 +143,6 @@ public:
 
 private:
     ShaderMap m_shaders;
-    // ShaderUIDataMap m_shader_data;
 };
 
 
