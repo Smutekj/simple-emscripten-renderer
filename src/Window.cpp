@@ -36,7 +36,7 @@ Window::Window(int width, int height)
     SDL_GL_GetDrawableSize(m_handle, &size_check.x, &size_check.y);
     printf("INFO: GL window size = %dx%d\n", size_check.x, size_check.y);
     printf("INFO: Desired Window size = %dx%d\n", width, height);
-
+ 
     glViewport(0, 0, size_check.x, size_check.y);
 }
 
