@@ -2,7 +2,7 @@
 
 //! \brief constructs batch from \p texture_id a \p shader and \p draw_type
 //! \param texture_id GL id of the texture (all the other textures will have 0 id)
-//! \param shader   
+//! \param shader
 //! \param draw_type    Can be either Static or Dynamic
 Batch::Batch(GLuint texture_id, Shader &shader, DrawType draw_type)
     : m_config(texture_id, shader.getId(), draw_type),
@@ -12,7 +12,7 @@ Batch::Batch(GLuint texture_id, Shader &shader, DrawType draw_type)
 
 //! \brief constructs batch from configuration a \p shader and \p draw_type
 //! \param config batch configuration inlcuding texture ids
-//! \param shader   
+//! \param shader
 //! \param draw_type    Can be either Static or Dynamic
 Batch::Batch(const BatchConfig &config, Shader &shader, DrawType draw_type)
     : m_config(config),
@@ -25,6 +25,9 @@ Batch::Batch(const BatchConfig &config, Shader &shader, DrawType draw_type)
         m_verts.setTexture(slot, m_config.texture_ids.at(slot)); });
 }
 
+Batch::~Batch()
+{}
+
 //! \brief sets number of used vertices to 0 and clears index buffer
 void Batch::clear()
 {
@@ -33,7 +36,7 @@ void Batch::clear()
 }
 
 //! \brief draws batched vertices and (in case draw type is not static), clears the buffers
-//! \param view    used in drawing 
+//! \param view    used in drawing
 void Batch::flush(View &view)
 {
 
@@ -45,8 +48,7 @@ void Batch::flush(View &view)
     }
 }
 
-
-//! \brief copies given vertices into the batch      
+//! \brief copies given vertices into the batch
 //! TODO: This seems unnecessary
 void Batch::pushVertexArray(std::vector<Vertex> &verts)
 {
@@ -56,8 +58,8 @@ void Batch::pushVertexArray(std::vector<Vertex> &verts)
     }
 }
 
-//! \brief inserts a vertex \p v by writing it at the end of the vertex buffer and 
-//! \brief corresponding index in indices buffer is created 
+//! \brief inserts a vertex \p v by writing it at the end of the vertex buffer and
+//! \brief corresponding index in indices buffer is created
 //! \param v vertex to be inserted
 void Batch::pushVertex(Vertex v)
 {
@@ -68,12 +70,11 @@ void Batch::pushVertex(Vertex v)
 }
 
 //! \brief insert an existing vertex by specifying the index in the vertex buffer
-//! \param ind  vertex index 
+//! \param ind  vertex index
 void Batch::pushVertex(int ind)
 {
     m_indices.push_back(ind);
 }
-
 
 BatchConfig Batch::getConfig() const
 {
@@ -102,7 +103,6 @@ BatchConfig::BatchConfig(const GLuint &tex_id, const GLuint &shader_id, DrawType
     texture_ids[0] = tex_id;
 }
 
-
 //! \brief are two configurations the same?
 //! \brief needed by the hash table
 bool BatchConfig::operator==(const BatchConfig &other) const
@@ -113,16 +113,15 @@ bool BatchConfig::operator==(const BatchConfig &other) const
     return shaders_same && textures_same && drawtypes_same;
 }
 
-//! \returns number of unused vertices spots in vertex array buffer 
+//! \returns number of unused vertices spots in vertex array buffer
 int Batch::getFreeVerts() const
 {
     return m_capacity - m_used_vertices;
 }
 
-
-//! \brief calls OpenGL glBufferData thus creating a corresponding 
+//! \brief calls OpenGL glBufferData thus creating a corresponding
 //! \brief creates a buffer for indices (just 6 indices ) a buffer for vertices and a buffer for transforms
-//! \brief since all sprites are assumed to be rectangles, 
+//! \brief since all sprites are assumed to be rectangles,
 void SpriteBatch::createBuffers()
 {
     glGenBuffers(1, &m_indices_buffer);
@@ -147,7 +146,7 @@ void SpriteBatch::createBuffers()
 }
 
 //! \brief construct form batch configuration and a shader (no idea what the shader is for btw?)
-//! \param BatchConfig  batch configuration 
+//! \param BatchConfig  batch configuration
 //! \param shader       associated shader object
 SpriteBatch::SpriteBatch(BatchConfig config, Shader &shader)
     : m_config(config), m_shader(shader)
@@ -164,8 +163,15 @@ SpriteBatch::SpriteBatch(GLuint texture_id, Shader &shader)
     createBuffers();
 }
 
+SpriteBatch::~SpriteBatch()
+{
+    glDeleteBuffers(1, &m_vbo);
+    glDeleteBuffers(1, &m_transform_buffer);
+    glDeleteBuffers(1, &m_indices_buffer);
+}
+
 //! \brief adds a sprite if there is enough space by specifying it's transform data
-//! \param  transform  of the sprite, includes translation, scale, rotation, texture info and color 
+//! \param  transform  of the sprite, includes translation, scale, rotation, texture info and color
 bool SpriteBatch::addSprite(Trans transform)
 {
     if (m_end >= 2000)
@@ -178,8 +184,8 @@ bool SpriteBatch::addSprite(Trans transform)
 };
 
 //! TODO: I should probably start using VAOs... since I can apparently use GLES 3.0
-//! \brief creates VertexAttributeArrays. 
-//! \brief CAREFUL!!! THE Attributes in your shaders MUST match attribute locations used here! 
+//! \brief creates VertexAttributeArrays.
+//! \brief CAREFUL!!! THE Attributes in your shaders MUST match attribute locations used here!
 void SpriteBatch::bindAttributes()
 {
 
@@ -233,7 +239,7 @@ int SpriteBatch::countFreeSpots() const
 }
 
 //! \brief draws batched sprites and (in case draw type is not static), clears the buffers
-//! \param view    used in drawing 
+//! \param view    used in drawing
 void SpriteBatch::flush(View &view)
 {
     m_shader.use();

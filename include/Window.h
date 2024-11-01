@@ -10,6 +10,7 @@ class Window : public RenderTarget
 {
 public:
     Window(int width, int height);
+    ~Window();
 
     SDL_Window *getHandle() const;
     SDL_GLContext* getContext();

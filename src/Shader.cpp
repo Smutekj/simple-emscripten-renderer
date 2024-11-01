@@ -341,6 +341,14 @@ Shader::Shader(const std::string &vertex_path, const std::string &fragment_path)
     recompile();
 }
 
+Shader::~Shader()
+{
+    if(m_id != -1)
+    {
+        glDeleteProgram(m_id);
+    }
+}
+
 //! \brief extracts uniforms and textures then 
 //! \brief does all the GL calls to load the shader on the GPU 
 void Shader::recompile()

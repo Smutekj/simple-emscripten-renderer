@@ -109,8 +109,6 @@ public:
 private:
     ShaderHolder m_shaders; //!< stores shaders that we can use in this canvas (will probably just use singleton later on...)
 
-    std::unordered_map<BatchConfig, int> m_config2next_free_batch;
-    
     std::unordered_map<BatchConfig, std::vector<BatchPtr>> m_config2batches; //!< stores batches
     std::unordered_map<BatchConfig, std::vector<SpriteBatchPtr>> m_config2sprite_batches;
 

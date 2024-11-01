@@ -39,6 +39,7 @@ class Batch
 public:
     Batch(GLuint texture_id, Shader &shader, DrawType draw_type);
     Batch(const BatchConfig &config, Shader &shader, DrawType draw_type);
+    ~Batch();
 
     void clear();
 
@@ -88,6 +89,8 @@ class SpriteBatch
 public:
     SpriteBatch(BatchConfig config, Shader &shader);
     SpriteBatch(GLuint texture_id, Shader &shader);
+    ~SpriteBatch();
+
 
     bool addSprite(Trans t);
     void bindAttributes();

@@ -56,6 +56,7 @@ public:
     Shader() = default;
     Shader(const std::string &vertex_path, const std::string &fragment_path);
     Shader(const std::string &vertex_path, const std::string &fragment_path, const std::string &shader_name);
+    ~Shader();
 
     VariablesData &getVariables();
     GLuint getId() const;

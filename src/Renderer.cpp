@@ -129,45 +129,43 @@ void Renderer::drawSpriteDynamic(Sprite &sprite, const std::string &shader_id)
     drawSprite(sprite, shader_id, DrawType::Dynamic);
 }
 
-
-void  compute_string_bbox( FT_BBox  *abbox, Text& text )
+void compute_string_bbox(FT_BBox *abbox, Text &text)
 {
-//   FT_BBox  bbox;
+    //   FT_BBox  bbox;
 
-//     auto font = text.getFont();
+    //     auto font = text.getFont();
 
+    //   bbox.xMin = bbox.yMin =  32000;
+    //   bbox.xMax = bbox.yMax = -32000;
 
-//   bbox.xMin = bbox.yMin =  32000;
-//   bbox.xMax = bbox.yMax = -32000;
+    //   for ( auto c  : text.getText())
+    //   {
+    //     FT_BBox  glyph_bbox;
+    //     FT_Glyph_Get_CBox( font->m_characters.at(c) ft_glyph_bbox_pixels,
+    //                        &glyph_bbox );
 
-//   for ( auto c  : text.getText())
-//   {
-//     FT_BBox  glyph_bbox;
-//     FT_Glyph_Get_CBox( font->m_characters.at(c) ft_glyph_bbox_pixels,
-//                        &glyph_bbox );
+    //     if (glyph_bbox.xMin < bbox.xMin)
+    //       bbox.xMin = glyph_bbox.xMin;
 
-//     if (glyph_bbox.xMin < bbox.xMin)
-//       bbox.xMin = glyph_bbox.xMin;
+    //     if (glyph_bbox.yMin < bbox.yMin)
+    //       bbox.yMin = glyph_bbox.yMin;
 
-//     if (glyph_bbox.yMin < bbox.yMin)
-//       bbox.yMin = glyph_bbox.yMin;
+    //     if (glyph_bbox.xMax > bbox.xMax)
+    //       bbox.xMax = glyph_bbox.xMax;
 
-//     if (glyph_bbox.xMax > bbox.xMax)
-//       bbox.xMax = glyph_bbox.xMax;
+    //     if (glyph_bbox.yMax > bbox.yMax)
+    //       bbox.yMax = glyph_bbox.yMax;
+    //   }
 
-//     if (glyph_bbox.yMax > bbox.yMax)
-//       bbox.yMax = glyph_bbox.yMax;
-//   }
+    //   if ( bbox.xMin > bbox.xMax )
+    //   {
+    //     bbox.xMin = 0;
+    //     bbox.yMin = 0;
+    //     bbox.xMax = 0;
+    //     bbox.yMax = 0;
+    //   }
 
-//   if ( bbox.xMin > bbox.xMax )
-//   {
-//     bbox.xMin = 0;
-//     bbox.yMin = 0;
-//     bbox.xMax = 0;
-//     bbox.yMax = 0;
-//   }
-
-//   *abbox = bbox;
+    //   *abbox = bbox;
 }
 
 //! \brief draws text using a font in the \p text
@@ -210,9 +208,8 @@ void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_
     utils::Vector2f text_size = {text_size_x, largest_c.bearing.y + lowest_c.size.y - lowest_c.bearing.y};
 
     FT_BBox bbox;
-    for(auto c : text.getText())
+    for (auto c : text.getText())
     {
-
     }
 
     auto text_scale = text.getScale();
@@ -244,7 +241,7 @@ void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_
     text_size.x = line_pos.x - center_pos.x;
     text_size.y *= text.getScale().y;
     line_pos = center_pos;
-    line_pos.y -= (lowest_c.size.y - lowest_c.bearing.y)*text.getScale().y;
+    line_pos.y -= (lowest_c.size.y - lowest_c.bearing.y) * text.getScale().y;
 
     if (text.m_draw_bounding_box)
     {
@@ -265,7 +262,7 @@ void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_
 //! \param angle rotation in radians
 //! \param color color as 4 0-255 unsigned chars
 //! \param tex_rect texture rectangle
-//! \param shader_id 
+//! \param shader_id
 //! \param draw_type
 void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
                                   Vec2 texture_size, std::array<GLuint, N_MAX_TEXTURES> &texture_handles,
@@ -485,7 +482,7 @@ void Renderer::drawAll()
             batch->flush(m_view);
         }
         //! clear dynamic batches
-        if (config.draw_type != DrawType::Dynamic)
+        if (config.draw_type != DrawType::Static)
         {
             to_delete.push_back(config);
         }
@@ -493,6 +490,8 @@ void Renderer::drawAll()
 
     while (!to_delete.empty())
     {
+        m_config2sprite_batches.at(to_delete.back()).clear();
+        m_config2sprite_batches.erase(to_delete.back());
         to_delete.pop_back();
     }
     for (auto &[config, batches] : m_config2batches)
@@ -504,7 +503,7 @@ void Renderer::drawAll()
         }
 
         //! clear dynamic batches
-        if (config.draw_type != DrawType::Dynamic)
+        if (config.draw_type != DrawType::Static)
         {
             to_delete.push_back(config);
         }
@@ -513,9 +512,8 @@ void Renderer::drawAll()
     while (!to_delete.empty())
     {
         assert(m_config2batches.count(to_delete.back()) != 0);
-        // m_config2batches.at(to_delete.back()).clear();
-        // m_config2batches.erase(to_delete.back());
-        // m_config2next_free_batch.at(to_delete.back()) = 0;
+        m_config2batches.at(to_delete.back()).clear();
+        m_config2batches.erase(to_delete.back());
         to_delete.pop_back();
     }
 }
