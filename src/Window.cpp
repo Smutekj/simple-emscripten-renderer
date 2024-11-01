@@ -40,6 +40,13 @@ Window::Window(int width, int height)
     glViewport(0, 0, size_check.x, size_check.y);
 }
 
+Window::~Window()
+{
+    SDL_GL_DeleteContext(m_gl_context);
+    SDL_DestroyWindow(m_handle);
+    SDL_Quit();
+}
+
 bool Window::shouldClose() const
 {
     return m_should_close;
@@ -69,5 +76,4 @@ void Window::setSize(int width, int height)
 void Window::close()
 {
     m_should_close = true;
-    SDL_Quit();
 }
