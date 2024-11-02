@@ -61,20 +61,20 @@ jobs:
     - name: Install Packages
       shell: bash
       run: |
-        echo "OS IS: $RUNNER_OS"                              \
-        if [ "$RUNNER_OS" == "Linux" ] ; then                 \
-          sudo apt-get install --fix-missing libgl2-mesa-dev  \
-        elif [ "$RUNNER_OS" == "Windows" ] ; then             \
-          # choco install python3 winflexbison pkgconfiglite  \
-          # choco install ninja mingw                         \
-          # py -3 -m pip install meson packaging mako         \
-          # meson setup builddir --backend=vs                 \  
-          # cd builddir                                       \
-          # msbuild mesa.sln /m                               \
-        else                                                  \
-          echo "$RUNNER_OS not supported"                     \
-          exit 1                                              \ 
-        fi                                                    \
+        echo "OS IS: $RUNNER_OS"                              
+        if [ "$RUNNER_OS" == "Linux" ]; then                 
+          sudo apt-get install --fix-missing libgl2-mesa-dev  
+        elif [ "$RUNNER_OS" == "Windows" ]; then             
+          # choco install python3 winflexbison pkgconfiglite  
+          # choco install ninja mingw                         
+          # py -3 -m pip install meson packaging mako         
+          # meson setup builddir --backend=vs                   
+          # cd builddir                                       
+          # msbuild mesa.sln /m                               
+        else                                                  
+          echo "$RUNNER_OS not supported"                     
+          exit 1                                              
+        fi                                                    
     - name: Set reusable strings
       # Turn repeated input strings (such as the build output directory) into step outputs. These step outputs can be used throughout the workflow file.
       id: strings
