@@ -70,7 +70,8 @@ jobs:
           # py -3 -m pip install meson packaging mako         
           # meson setup builddir --backend=vs                   
           # cd builddir                                       
-          # msbuild mesa.sln /m                               
+          # msbuild mesa.sln /m                 
+          echo "HELLO"              
         else                                                  
           echo "$RUNNER_OS not supported"                     
           exit 1                                              
