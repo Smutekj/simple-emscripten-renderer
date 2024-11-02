@@ -63,7 +63,7 @@ jobs:
       run: |
         echo "OS IS: $RUNNER_OS"                              
         if [ "$RUNNER_OS" == "Linux" ]; then                 
-          sudo apt-get install --fix-missing libgl2-mesa-dev  
+          sudo apt-get install --fix-missing libgl1-mesa-dev  
         elif [ "$RUNNER_OS" == "Windows" ]; then             
           # choco install python3 winflexbison pkgconfiglite  
           # choco install ninja mingw                         
