@@ -6,7 +6,6 @@
 
 #include <array>
 
-
 //! \struct RectangleSimple
 //! \brief a transform with width and height, which represents a rectangle
 struct RectangleSimple : public Transform
@@ -28,9 +27,12 @@ struct Sprite : public RectangleSimple
     void setTexture(int slot, Texture &texture);
     void setTextureP(int slot, Texture *texture = nullptr);
 
-    Texture *m_texture = nullptr;                                         
-    std::array<TextureHandle, N_MAX_TEXTURES> m_texture_handles = {0, 0};  //!< GL handles of the bound textures
-    utils::Vector2i m_tex_size = {0, 0};        //!< ???
-    Rect<int> m_tex_rect;                       //!< defines part of the texture that will be drawn
-    ColorByte m_color = {255, 255, 255, 255};  //!< can be used in shaders
+    const ColorByte &getColor() const;
+    void setColor(ColorByte &color);
+
+    Texture *m_texture = nullptr;
+    std::array<TextureHandle, N_MAX_TEXTURES> m_texture_handles = {0, 0}; //!< GL handles of the bound textures
+    utils::Vector2i m_tex_size = {0, 0};                                  //!< ???
+    Rect<int> m_tex_rect;                                                 //!< defines part of the texture that will be drawn
+    ColorByte m_color = {255, 255, 255, 255};                             //!< can be used in shaders
 };
