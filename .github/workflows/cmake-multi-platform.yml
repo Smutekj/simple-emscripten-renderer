@@ -49,21 +49,21 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-    - name: Install Mesa
-      shell: cmd
-      run: |
-        curl.exe -L --output mesa.7z --url https://github.com/pal1000/mesa-dist-win/releases/download/20.3.2/mesa3d-20.3.2-release-msvc.7z
-        "C:\Program Files\7-Zip\7z.exe" x mesa.7z
-        mklink opengl32.dll "x64\opengl32.dll"
-        mklink libglapi.dll "x64\libglapi.dll"
-      working-directory: build\tests\Debug
+    # - name: Install Mesa
+    #   shell: cmd
+    #   run: |
+    #     curl.exe -L --output mesa.7z --url https://github.com/pal1000/mesa-dist-win/releases/download/20.3.2/mesa3d-20.3.2-release-msvc.7z
+    #     "C:\Program Files\7-Zip\7z.exe" x mesa.7z
+    #     mklink opengl32.dll "x64\opengl32.dll"
+    #     mklink libglapi.dll "x64\libglapi.dll"
+    #   working-directory: build\tests\Debug
 
     - name: Install Packages
       shell: bash
       run: |
         echo "OS IS: $RUNNER_OS" 
         if [ "$RUNNER_OS" == "Linux" ] ; then 
-          sudo apt-get install --fix-missing libgl1-mesa-dev 
+          sudo apt-get install --fix-missing libgl2-mesa-dev 
         elif [ "$RUNNER_OS" == "Windows" ] ; then 
           # choco install python3 winflexbison pkgconfiglite
           # choco install ninja mingw
