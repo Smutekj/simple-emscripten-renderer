@@ -101,29 +101,4 @@ jobs:
       # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest --build-config ${{ matrix.build_type }}
-  ci-msvc:
-    name: CI with MSVC
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-2016, windows-latest]
-
-    steps:
-    - name: Fetch Sources
-      uses: actions/checkout@v2
-    - name: Setup Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-    - name: Install Python Dependencies
-      run: pip install meson ninja
-    - name: Prepare MSVC
-      uses: bus1/cabuild/action/msdevshell@v1
-      with:
-        architecture: x64
-    - name: Prepare Build
-      run: meson setup build
-    - name: Run Build
-      run: meson compile -v -C build
-    - name: Run Test Suite
-      run: meson test -v -C build
+  

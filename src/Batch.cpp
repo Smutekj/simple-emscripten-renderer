@@ -270,6 +270,11 @@ void SpriteBatch::flush(View &view)
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    for(int i = 0; i <= 6; ++i)
+    {
+        glDisableVertexAttribArray(i);
+    }
 }
 
 //! \returns this looks the same as countFreeSpots?

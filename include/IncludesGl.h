@@ -67,6 +67,10 @@ GLenum inline glCheckError_(const char *file, int line, const char *message = ""
 
 void inline bindVertexAttributes(GLuint buffer, std::vector<int> sizes)
 {
+    for (std::size_t i = 0; i < sizes.size(); ++i)
+    {
+        glDisableVertexAttribArray(i);
+    }
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glCheckError();
     int offset = 0;
