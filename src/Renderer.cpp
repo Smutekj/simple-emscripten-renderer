@@ -490,8 +490,8 @@ void Renderer::drawAll()
 
     while (!to_delete.empty())
     {
-        m_config2sprite_batches.at(to_delete.back()).clear();
-        m_config2sprite_batches.erase(to_delete.back());
+        // m_config2sprite_batches.at(to_delete.back()).clear();
+        // m_config2sprite_batches.erase(to_delete.back());
         to_delete.pop_back();
     }
     for (auto &[config, batches] : m_config2batches)
@@ -512,8 +512,8 @@ void Renderer::drawAll()
     while (!to_delete.empty())
     {
         assert(m_config2batches.count(to_delete.back()) != 0);
-        m_config2batches.at(to_delete.back()).clear();
-        m_config2batches.erase(to_delete.back());
+        // m_config2batches.at(to_delete.back()).clear();
+        // m_config2batches.erase(to_delete.back());
         to_delete.pop_back();
     }
 }
