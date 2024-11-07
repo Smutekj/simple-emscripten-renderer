@@ -21,6 +21,7 @@ public:
     {
         setPosition(new_pos.x, new_pos.y);
     }
+    
     template <class VecType>
     void setScale(VecType s)
     {

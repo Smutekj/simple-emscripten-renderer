@@ -3,6 +3,7 @@
 #include "Rectangle.h"
 #include "Texture.h"
 #include "Font.h"
+#include "Rect.h"
 
 #include <chrono>
 #include <numbers>
@@ -11,6 +12,7 @@ BlendParams::BlendParams(BlendFactor src_fact, BlendFactor dst_fact)
     : src_factor(src_fact), dst_factor(dst_fact)
 {
 }
+
 BlendParams::BlendParams(BlendFactor src_fact, BlendFactor dst_fact, BlendFactor src_a, BlendFactor dst_a)
     : src_factor(src_fact), dst_factor(dst_fact), src_alpha(src_a), dst_alpha(dst_a)
 {
@@ -148,45 +150,44 @@ void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_
     }
     Sprite glyph_sprite(font->getTexture());
 
-    //! find dimensions of the text
-    // auto text_size_x =
-    //     std::accumulate(string.begin(), string.end(), 0, [](auto character)
-    //                     {
-    //     return font->m_characters.at(character).size.x; });
-    // auto text_size_y =
-    //     *std::max_element(string.begin(), string.end(), [](auto character)
-    //                       {
-    //     return font->m_characters.at(character).size.y; });
-
-    // utils::Vector2f text_size = {text_size_x, text_size_y};
 
     auto text_scale = text.getScale();
     auto center_pos = text.getPosition();
-    auto upper_left_pos = center_pos;
+    auto line_pos = center_pos;
     utils::Vector2f glyph_pos = center_pos;
     for (std::size_t glyph_ind = 0; glyph_ind < string.size(); ++glyph_ind)
     {
         auto character = font->m_characters.at(string.at(glyph_ind));
-
-        float dy = character.size.y - character.bearing.y;
-        glyph_pos.x = upper_left_pos.x + character.bearing.x * text_scale.x;
-        glyph_pos.y = upper_left_pos.y + dy * text_scale.y;
-
         float width = character.size.x * text_scale.x;
         float height = character.size.y * text_scale.y;
+        float dy = character.size.y - character.bearing.y;
+
+        glyph_pos.x = line_pos.x + character.bearing.x * text_scale.x + width / 2.f;
+        glyph_pos.y = line_pos.y + height / 2.f - dy * text_scale.y;
 
         glyph_sprite.m_tex_rect = {character.tex_coords.x, character.tex_coords.y,
                                    character.size.x, character.size.y};
 
         //! setPosition sets center of the sprite not the corner position. so we must correct for that
-        glyph_pos += utils::Vector2f{width, height - 4. * dy} / 2.f; //! the 4 is weird :(
         glyph_sprite.setPosition(glyph_pos);
         glyph_sprite.setScale(width / 2., height / 2.);
         glyph_sprite.m_color = text.getColor();
 
-        upper_left_pos.x += (character.advance >> 6) * text_scale.x;
+        line_pos.x += (character.advance >> 6) * text_scale.x;
         drawSprite(glyph_sprite, shader_id, draw_type);
     }
+
+    auto bounding_box = text.getBoundingBox();
+    line_pos = {bounding_box.pos_x, bounding_box.pos_y};
+    utils::Vector2f text_size = {bounding_box.width, bounding_box.height};
+    if(text.m_draw_bounding_box)
+    {
+        drawLineBatched(line_pos, {line_pos.x + text_size.x, line_pos.y}, 1, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x + text_size.x, line_pos.y}, {line_pos.x + text_size.x, line_pos.y + text_size.y}, 1, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x + text_size.x, line_pos.y + text_size.y}, {line_pos.x, line_pos.y + text_size.y}, 1, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x, line_pos.y + text_size.y}, line_pos, 1, {0, 1, 0, 1});
+    }
+
 }
 
 //! \brief dirty version of drawSprite...

@@ -441,8 +441,9 @@ void Application::batchDemoUpdate(float dt)
     time_text = time_text.substr(0, 4);
     Text test_text("Frame Time: " + time_text + " ms" );
     test_text.setFont(m_test_font.get());
-    test_text.setPosition(m_box_size.x + 50, m_box_size.y + 50);
-    test_text.setScale(1, 1);
+    test_text.setPosition(mouse_coords);// m_box_size.x + 50, m_box_size.y + 50);
+    test_text.m_draw_bounding_box = true;
+    test_text.setScale(2, 2);
     test_text.setColor({255, 0, 255, 255});
     m_window_renderer.drawText(test_text, "Text", DrawType::Dynamic);
 

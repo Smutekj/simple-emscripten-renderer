@@ -88,7 +88,7 @@ if(BUILD_EXAMPLE)
   )
 
   add_executable(Example ${EXAMPLE_SRC})
-  target_link_libraries(Example  ${PROJECT_NAME} GLESv2 ) ## DO NOT FORGET GLESv2!!!!
+  target_link_libraries(Example  ${PROJECT_NAME} GLESv2 ) ## DO NOT FORGET GLESv2!!!
 endif()
 
 
