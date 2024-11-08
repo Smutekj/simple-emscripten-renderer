@@ -34,14 +34,13 @@ if(NOT PVR_PREBUILD_DEPENDENCIES)
 	  GIT_REPOSITORY https://github.com/freetype/freetype.git
 	  GIT_TAG        master
 	)
-
 	FetchContent_MakeAvailable(freetype)
 	
 	add_subdirectory(external/powervr-sdk)
 endif()
-#find_package(PVRShell REQUIRED MODULE)
 
-## add_subdirectory(external/freetype)
+#find_package(PVRShell REQUIRED MODULE)
+# add_subdirectory(external/freetype)
 	
 ###########################################
 
@@ -65,11 +64,10 @@ file(GLOB MY_HDR_FILES
 	
 #add_platform_specific_executable(Renderer ${SRC_FILES} ${MY_SRC_FILES} ${MY_HDR_FILES} )
 add_library(${PROJECT_NAME} STATIC ${MY_HDR_FILES} ${MY_SRC_FILES} ${SRC_FILES})
-    
+
 include_directories(SYSTEM ${FREETYPE_INCLUDE_DIRECTORIES}) #external/freetype/include)
 include_directories(SYSTEM external/magic_enum)
 include_directories(SYSTEM external/stbimage)
-
 
 target_include_directories(${PROJECT_NAME}
     PUBLIC 
