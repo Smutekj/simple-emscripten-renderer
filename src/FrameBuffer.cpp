@@ -7,31 +7,31 @@
 
 FrameBuffer::FrameBuffer()
 {
-    glGenFramebuffers(1, &m_target_handle);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_target_handle);
+    gl::GenFramebuffers(1, &m_target_handle);
+    gl::BindFramebuffer(GL_FRAMEBUFFER, m_target_handle);
     glCheckError();
 }
 
 FrameBuffer::FrameBuffer(int width, int height, TextureOptions options)
     : RenderTarget(width, height), m_options(options)
 {
-    glGenFramebuffers(1, &m_target_handle);
-    glBindFramebuffer(GL_FRAMEBUFFER, m_target_handle);
+    gl::GenFramebuffers(1, &m_target_handle);
+    gl::BindFramebuffer(GL_FRAMEBUFFER, m_target_handle);
     glCheckError();
-    glViewport(0, 0, width, height);
+    gl::Viewport(0, 0, width, height);
     glCheckError();
 
     m_texture = std::make_shared<Texture>();
     m_texture->create(width, height, m_options);
     m_texture->bind();
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture->getHandle(), 0); // texture, 0);//
+    gl::FramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_texture->getHandle(), 0); // texture, 0);//
     glCheckError();
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    if (gl::CheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
         throw std::runtime_error("FRAMEBUFFER NOT COMPLETE!");
     }
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    gl::BindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 //! \brief construct by specifying the buffer \p width and \p height
@@ -69,7 +69,7 @@ void writeTextureToFile(std::filesystem::path path, std::string filename, FrameB
     int height = buffer.getSize().y;
     Image image(width, height);
     buffer.bind();
-    glReadPixels(0, 0, width, height, GL_RGBA, GL_HALF_FLOAT, image.data());
+    gl::ReadPixels(0, 0, width, height, GL_RGBA, GL_HALF_FLOAT, image.data());
 
     auto full_path = (path.string() + filename);
     int check = stbi_write_png(full_path.c_str(), width, height, 4, image.data(), 8 * width);

@@ -20,7 +20,7 @@ void Texture::loadFromFile(std::string filename, TextureOptions options)
     //! load texture from file
     int channels_count;
     unsigned char *data = stbi_load(filename.c_str(), &m_width, &m_height, &channels_count, 0);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    gl::PixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     if (data)
     {
@@ -28,9 +28,9 @@ void Texture::loadFromFile(std::string filename, TextureOptions options)
         initialize(options);
         glCheckError();
         auto format = channels_count == 4 ? GL_RGBA : GL_RGB;
-        glTexImage2D(GL_TEXTURE_2D, 0, format, m_width, m_height, 0, format, GL_UNSIGNED_BYTE, data);
+        gl::TexImage2D(GL_TEXTURE_2D, 0, format, m_width, m_height, 0, format, GL_UNSIGNED_BYTE, data);
         glCheckError();
-        glGenerateMipmap(GL_TEXTURE_2D);
+        gl::GenerateMipmap(GL_TEXTURE_2D);
         glCheckError();
 
         stbi_image_free(data);
@@ -43,7 +43,7 @@ void Texture::loadFromFile(std::string filename, TextureOptions options)
 
 void Texture::invalidate()
 {
-    glDeleteTextures(1, &m_texture_handle);
+    gl::DeleteTextures(1, &m_texture_handle);
     glCheckError();
 }
 
@@ -52,19 +52,19 @@ void Texture::invalidate()
 void Texture::initialize(TextureOptions options)
 {
 
-    glGenTextures(1, &m_texture_handle);
-    glBindTexture(GL_TEXTURE_2D, m_texture_handle);
+    gl::GenTextures(1, &m_texture_handle);
+    gl::BindTexture(GL_TEXTURE_2D, m_texture_handle);
     glCheckError();
 
     // Set filtering
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(options.wrap_x));
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(options.wrap_y));
+    gl::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, static_cast<GLint>(options.wrap_x));
+    gl::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, static_cast<GLint>(options.wrap_y));
     glCheckError();
 
     assert(options.mag_param == TexMappingParam::Linear || options.mag_param == TexMappingParam::Nearest);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(options.min_param));
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(options.mag_param));
+    gl::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, static_cast<GLint>(options.min_param));
+    gl::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, static_cast<GLint>(options.mag_param));
     glCheckError();
 }
 
@@ -78,7 +78,7 @@ void Texture::create(int width, int height, TextureOptions options)
     m_width = width;
     m_height = height;
     initialize(options);
-    glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(options.internal_format),
+    gl::TexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(options.internal_format),
                  width, height, 0,
                  static_cast<GLint>(options.format),
                  static_cast<GLint>(options.data_type),
@@ -91,9 +91,9 @@ void Texture::create(int width, int height, TextureOptions options)
 void Texture::bind(int slot)
 {
     // assert(m_texture_handle != 0); //! has to be generated first
-    glActiveTexture(GL_TEXTURE0 + slot);
+    gl::ActiveTexture(GL_TEXTURE0 + slot);
     glCheckError();
-    glBindTexture(GL_TEXTURE_2D, m_texture_handle);
+    gl::BindTexture(GL_TEXTURE_2D, m_texture_handle);
     glCheckError();
 }
 

@@ -59,15 +59,7 @@ Application::Application(int width, int height) : m_window(width, height),
 {
 
     m_test_font = std::make_shared<Font>("arial.ttf");
-
-    int n_slots_x = 2;
-    int n_slots_y = 2;
-    m_slots.reserve(n_slots_x * n_slots_y);
-    // for (int i = 0; i < n_slots_x * n_slots_y; ++i)
-    // {
-    //     m_slots.emplace_back(width / n_slots_x, height / n_slots_y);
-    // }
-
+    
     std::filesystem::path path{"../Resources/Shaders"};
     auto shader_filenames = extractNamesInDirectory(path, ".frag");
     for (auto &shader_filename : shader_filenames)
@@ -111,24 +103,6 @@ Application::Application(int width, int height) : m_window(width, height),
 
     m_ui = std::make_unique<UI>(m_window, m_textures, m_slots);
 
-    m_particles = std::make_unique<Particles>(2000);
-    m_particles->setLifetime(2.f);
-    m_particles->setUpdater([this](Particle &p)
-                            {
-                                auto t_left = p.life_time - p.time;
-                                p.acc = {0, 0};
-                                p.vel += p.time *p.acc;
-                                p.pos += p.vel * 0.016f;
-                                p.scale += utils::Vector2f{0.5f};
-                                p.angle += randf(0, 3.); });
-    m_particles->setEmitter([](utils::Vector2f spawn_pos)
-                            {
-                                Particle p;
-                                p.pos = spawn_pos + utils::Vector2f{randf(-50,50), randf(0, 10.f)};
-                                p.vel = {30+randf(-20, 20), randf(40, 50)};
-                                p.scale = {10.2, 10.2};
-                                return p; });
-    m_particles->setRepeat(true);
 }
 
 void Application::run()
@@ -276,43 +250,6 @@ void Application::update(float dt)
 
     m_time += 0.016f;
 
-    // auto &shader_slot = m_slots.at(0);
-    // auto slot_size = shader_slot.getSize();
-    // int slot_ind = 0;
-    // for (auto &shader_slot : m_slots)
-    // {
-    //     // if (slot_ind == m_ui->getSimulationSlot())
-    //     // {
-    //     // slot_ind++;
-    //     // continue;
-    //     // }
-    //     auto slot_size = shader_slot.getSize();
-
-    //     Sprite test_sprite(shader_slot.m_pixels.getTexture());
-    //     test_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
-    //     test_sprite.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
-    //     if (!shader_slot.m_selected_shader.empty())
-    //     {
-    //         auto &shader = shader_slot.m_canvas.getShader(shader_slot.m_selected_shader);
-    //         shader.setUniform2("u_time", m_time);
-    //         for (auto &[texture_name, texture_data] : shader.getVariables().textures)
-    //         {
-    //             test_sprite.m_texture_handles.at(texture_data.slot) = texture_data.handle;
-    //         }
-    //         shader_slot.m_canvas.m_view.setCenter(test_sprite.getPosition().x, test_sprite.getPosition().y);
-    //         shader_slot.m_canvas.m_view.setSize(slot_size.x, slot_size.y);
-    //         shader_slot.draw(test_sprite);
-    //     }
-    //     slot_ind++;
-    // }
-
-    // m_swirl_renderer1.clear({0, 0, 0, 1});
-    // m_swirl_renderer1.m_view = m_view;
-    // m_particles->setSpawnPos({mouse_coords.x, mouse_coords.y});
-    // m_particles->update(0.01f);
-    // m_particles->setInitColor(m_ui->getParticleInitColor());
-    // m_particles->setFinalColor(m_ui->getParticleEndColor());
-    // m_particles->draw(m_swirl_renderer1);
 
     Text test_text("brown fox jumps over the lazy dog");
     test_text.setFont(m_test_font.get());
@@ -335,35 +272,7 @@ void Application::update(float dt)
     m_window_renderer.drawText(test_text, "Text", DrawType::Dynamic);
     m_window_renderer.drawAll();
 
-    // m_window_renderer.drawAll();
-    // doBloom(b1.getTexture(), m_window_renderer);
-
-    // int row = 0;
-    // int col = 0;
-    // float left_margin = 0;
-    // float top_margin = 0;
-
-    // for (auto &shader_slot : m_slots)
-    // {
-    //     auto slot_size = shader_slot.getSize();
-
-    //     Sprite screen_sprite(shader_slot.m_pixels.getTexture());
-    //     screen_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
-    //     screen_sprite.setPosition(left_margin + slot_size.x / 2.f, top_margin + slot_size.y / 2.f);
-    //     // m_window_renderer.drawSprite(screen_sprite, "Instanced", GL_DYNAMIC_DRAW);
-
-    //     left_margin += slot_size.x;
-    //     row++;
-    //     if (row == 2)
-    //     {
-    //         row = 0;
-    //         col++;
-    //         left_margin = 0;
-    //         top_margin += slot_size.y;
-    //     }
-    // }
     m_window_renderer.m_view = m_view;
-    // m_window_renderer.drawAll();
 
     m_ui->draw(m_window);
 }

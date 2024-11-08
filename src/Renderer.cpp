@@ -63,20 +63,22 @@ utils::Vector2f Renderer::getMouseInWorld()
 {
     int mouse_coords[2];
 
-    auto m = glm::inverse(m_view.getMatrix());
-    auto button = SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
-    glm::vec4 world_coords = m * glm::vec4(
-                                     2. * mouse_coords[0] / m_target.getSize().x - 1.,
-                                     -2. * mouse_coords[1] / m_target.getSize().y + 1.f, 0, 1);
-    return {world_coords.x, world_coords.y};
+    // auto m = glm::inverse(m_view.getMatrix());
+    // auto button = SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
+    // glm::vec4 world_coords = m * glm::vec4(
+    //                                  2. * mouse_coords[0] / m_target.getSize().x - 1.,
+    //                                  -2. * mouse_coords[1] / m_target.getSize().y + 1.f, 0, 1);
+    // return {world_coords.x, world_coords.y};
+    return {0,0};
 }
 
 //! \returns the position of the mouse in the screen coordinates (upper left corner is 0,0)
 utils::Vector2i Renderer::getMouseInScreen()
 {
     int mouse_coords[2];
-    auto button = SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
-    return {mouse_coords[0], mouse_coords[1]};
+    // auto button = SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
+    // return {mouse_coords[0], mouse_coords[1]};
+    return {0,0};
 }
 
 //! \brief useful when drawing directly on the screen (for instance UI and post processing)
@@ -455,7 +457,7 @@ static void setBlendFunc(BlendParams params = {})
     auto sf = static_cast<GLuint>(params.src_factor);
     auto sa = static_cast<GLuint>(params.src_alpha);
 
-    glBlendFuncSeparate(sf, df, sa, da);
+    gl::BlendFuncSeparate(sf, df, sa, da);
 }
 
 //! \brief draws all the batched calls into a associated RenderTarget
@@ -469,7 +471,7 @@ void Renderer::drawAll()
     m_target.bind(); //! binds the corresponding opengl framebuffer (or window)
     //! set proper view
 
-    glViewport(m_viewport.pos_x * m_target.getSize().x,
+    gl::Viewport(m_viewport.pos_x * m_target.getSize().x,
                m_viewport.pos_y * m_target.getSize().y,
                m_viewport.width * m_target.getSize().x,
                m_viewport.height * m_target.getSize().y);
@@ -622,7 +624,7 @@ SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, D
 {
     auto &batches = m_config2sprite_batches.at(config);
     auto it = std::find_if(batches.begin(), batches.end(), [](auto &batch)
-                           { return batch->getFreeVerts() >= 1; });
+                        { return batch->getFreeVerts() >= 1; });
     if (it != batches.end())
     {
         return **it;

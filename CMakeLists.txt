@@ -1,92 +1,115 @@
-cmake_minimum_required(VERSION 3.15)
-
-
-project(renderer)
-option(BUILD_EXAMPLE OFF)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra")
-
-if(NOT CMAKE_BUILD_TYPE) 
-set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
-endif()
-
-add_subdirectory(external/freetype)
+cmake_minimum_required(VERSION 3.20)
+project(Renderer)
 
 include(FetchContent)
-FetchContent_Declare(
-  glm
-  GIT_REPOSITORY https://github.com/g-truc/glm.git
-  GIT_TAG master
-)
-FetchContent_MakeAvailable(glm)
 
-FetchContent_Declare(
-  SDL2
-  GIT_REPOSITORY https://github.com/libsdl-org/SDL
-  GIT_TAG SDL2
-)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSDL_TEST_LIBRARY=OFF -DSDL2_DISABLE_INSTALL=ON")
-FetchContent_MakeAvailable(SDL2)
+set(PVR_BUILD_EXAMPLES OFF)
+set(PVR_PREBUILT_DEPENDENCIES OFF)
 
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-set(USE_FLAGS "-s USE_SDL=2 -s FULL_ES3=1 -s OFFSCREEN_FRAMEBUFFER=1")
-set(USE_FLAGS "${USE_FLAGS} -s MIN_WEBGL_VERSION=1 -s MAX_WEBGL_VERSION=2")
-set(USE_FLAGS "${USE_FLAGS} -s -sASSERTIONS -sALLOW_MEMORY_GROWTH")
+if(ANDROID)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}  --embed-file ../Resources --embed-file ../external/lygia")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS} --embed-file ../Resources --embed-file ../external/lygia")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
-set(CMAKE_EXECUTABLE_SUFFIX .html)
-else()
+elseif(APPLE)
+	if (IOS)
+		find_library(lib-gles OpenGLES)
+		list(APPEND Renderer_LINK_LIBS ${lib-gles})
+	endif()
+elseif(UNIX)
+	
+	if(NOT PVR_WINDOW_SYSTEM)
+		set(PVR_WINDOW_SYSTEM X11)
+	endif()
+
+	if(PVR_WINDOW_SYSTEM AND ("${PVR_WINDOW_SYSTEM}" STREQUAL Wayland))
+		list(APPEND Renderer_LINK_LIBS ${WAYLAND_EGL_LIBRARIES})
+		list(APPEND Renderer_INCLUDE_DIRECTORIES ${WAYLAND_EGL_INCLUDE_DIR})
+	endif()
 endif()
 
+
+
+if(NOT PVR_PREBUILD_DEPENDENCIES)
+	
+	FetchContent_Declare(
+	  freetype
+	  GIT_REPOSITORY https://github.com/freetype/freetype.git
+	  GIT_TAG        master
+	)
+
+	FetchContent_MakeAvailable(freetype)
+	
+	add_subdirectory(external/powervr-sdk)
+endif()
+#find_package(PVRShell REQUIRED MODULE)
+
+## add_subdirectory(external/freetype)
+	
+###########################################
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
+
+set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT )
+
+set(SRC_FILES 
+	${CMAKE_CURRENT_LIST_DIR}/external/powervr-sdk/include/DynamicGles.h
+	${CMAKE_CURRENT_LIST_DIR}/external/powervr-sdk/include/DynamicEgl.h
+)
+
+file(GLOB MY_SRC_FILES
+		${CMAKE_CURRENT_LIST_DIR}/src/*.cpp
+		${CMAKE_CURRENT_LIST_DIR}/src/Utils/*.cpp 
+		${CMAKE_CURRENT_LIST_DIR}/src/Gui/*.cpp )
+file(GLOB MY_HDR_FILES 
+		${CMAKE_CURRENT_LIST_DIR}/include/*.h
+		${CMAKE_CURRENT_LIST_DIR}/include/Utils/*.h 
+		${CMAKE_CURRENT_LIST_DIR}/include/Gui/*.h ) 
+	
+#add_platform_specific_executable(Renderer ${SRC_FILES} ${MY_SRC_FILES} ${MY_HDR_FILES} )
+add_library(${PROJECT_NAME} STATIC ${MY_HDR_FILES} ${MY_SRC_FILES} ${SRC_FILES})
+    
+include_directories(SYSTEM ${FREETYPE_INCLUDE_DIRECTORIES}) #external/freetype/include)
+include_directories(SYSTEM external/magic_enum)
 include_directories(SYSTEM external/stbimage)
 
 
-file(GLOB HDR
-     "include/*.h"
-     "include/Utils/*.h"
-     "include/Gui/*.h"
-     "include/Gui/backends/*.h"
-)
-file(GLOB SRC
-     "src/*.cpp"
-     "src/Utils/*.cpp"
-     "src/Gui/*.cpp"
-     "src/Gui/backends/*.cpp"
-)
-
-include_directories(${CMAKE_SOURCE_DIR}/include  ${SDL2_INCLUDE_DIRS})
-include_directories(SYSTEM external/magic_enum)
-include_directories(SYSTEM external/freetype)
-
-add_library(${PROJECT_NAME} STATIC)
-target_sources(${PROJECT_NAME} PRIVATE ${SRC})
-target_link_libraries(${PROJECT_NAME} glm GLESv2 SDL2 freetype)
 target_include_directories(${PROJECT_NAME}
     PUBLIC 
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	${CMAKE_CURRENT_LIST_DIR}/external/powervr-sdk/include
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Utils>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui/backends>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     PRIVATE
-    SDL2
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/backends
+	${Renderer_INCLUDE_DIRECTORIES}
 )
 
+
+# Apply SDK specific compile and linker options
+include(cmake/utilities/compile_options.cmake)
+apply_example_compile_options_to_target(Renderer)
+
+set_property(TARGET Renderer PROPERTY CXX_STANDARD 20)
+set(CMAKE_BINARY_DIR ${CMAKE_CURRENT_LIST_DIR}/bin/${CMAKE_BUILD_TYPE})
+
+set_target_properties( Renderer
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
+)
+
+target_link_libraries(Renderer PUBLIC
+	PVRShell
+	freetype
+	${Renderer_LINK_LIBS}
+)
+
+option(BUILD_EXAMPLE ON)
 if(BUILD_EXAMPLE)
-
-    add_executable(Example src/Example/main.cpp src/Example/Application.h src/Example/Application.cpp 
-      src/Example/ShaderUI.h src/Example/ShaderUI.cpp )
-    target_link_libraries(Example  ${PROJECT_NAME} GLESv2 ) ## DO NOT FORGET GLESv2!!!!
+	add_subdirectory(Example)
 endif()
-
-
-
 
 

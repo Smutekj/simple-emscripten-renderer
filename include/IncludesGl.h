@@ -1,18 +1,10 @@
 #pragma once
 
-#ifdef __EMSCRIPTEN__
-#include <emscripten.h>
-#include <SDL.h>
-#include <SDL_opengles2.h>
+#include "EglContext.h"
+
 #include <GLES3/gl3platform.h>
 #include <GLES3/gl3.h>
-#else
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengles2.h>
-#include <GLES3/gl3platform.h>
-#include <GLES3/gl3.h>
-#include <GLES3/gl3ext.h>
-#endif
+// #include <GLES3/gl3ext.h>
 
 #include <iostream>
 
@@ -21,7 +13,7 @@ using IndexType = unsigned short;
 GLenum inline glCheckError_(const char *file, int line, const char *message = "")
 {
     GLenum errorCode;
-    while ((errorCode = glGetError()) != GL_NO_ERROR)
+    while ((errorCode = gl::GetError()) != GL_NO_ERROR)
     {
         std::string error;
         switch (errorCode)
@@ -67,16 +59,16 @@ GLenum inline glCheckError_(const char *file, int line, const char *message = ""
 
 void inline bindVertexAttributes(GLuint buffer, std::vector<int> sizes)
 {
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    gl::BindBuffer(GL_ARRAY_BUFFER, buffer);
     glCheckError();
     int offset = 0;
     auto total_size = std::accumulate(sizes.begin(), sizes.end(), 0);
     for (std::size_t i = 0; i < sizes.size(); ++i)
     {
-        glEnableVertexAttribArray(i);
-        glVertexAttribPointer(i, sizes.at(i), GL_FLOAT, GL_FALSE,
+        gl::EnableVertexAttribArray(i);
+        gl::VertexAttribPointer(i, sizes.at(i), GL_FLOAT, GL_FALSE,
                               total_size * sizeof(float), (void *)(offset * sizeof(float)));
-        glVertexAttribDivisor(i, 0);
+        gl::VertexAttribDivisor(i, 0);
         glCheckError();
         offset += sizes.at(i);
     }

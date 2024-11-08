@@ -239,8 +239,8 @@ namespace utils
     }
 
     //! ANGLES AND DIRECTIONS
-    const auto to_radains = std::numbers::pi_v<float> / 180.f;
-    const auto to_degrees = 180.f / std::numbers::pi_v<float>;
+    const auto to_radains = 3.141592f / 180.f;
+    const auto to_degrees = 180.f / 3.141592f;
     inline utils::Vector2f angle2dir(float angle)
     {
         return {std::cos(angle * to_radains), std::sin(angle * to_radains)};

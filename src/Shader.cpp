@@ -90,7 +90,7 @@ void static extractTextureNames(VariablesData &shader_data, std::string filename
 
 //! \brief connects a slot in shader with GL handle of the texture
 //! \param slot   the slot where the texture will be bound
-//! \param handle the GL handle of the texture  
+//! \param handle the GL handle of the texture
 //! \returns name of the texture at the slot
 std::string VariablesData::setTexture(int slot, GLuint handle)
 {
@@ -115,7 +115,7 @@ void ShaderHolder::use(const std::string &id)
     m_shaders.at(id)->use();
 }
 
-//! \brief loads shader with id \p name 
+//! \brief loads shader with id \p name
 //! \brief vertex shader is located at: \p vertex_filename
 //! \brief fragment shader is located at: \p fragment_filename
 //! \brief the uniform names-values pairs are stored in \p shader_data
@@ -123,11 +123,11 @@ void ShaderHolder::use(const std::string &id)
 //! \param vertex_filename
 //! \param fragment_filename
 void ShaderHolder::load(const std::string &name,
-                         const std::string &vertex_filename, const std::string &fragment_filename)
+                        const std::string &vertex_filename, const std::string &fragment_filename)
 {
     if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
     {
-        return; //! erasing fucks somethign up :( 
+        return; //! erasing fucks somethign up :(
         m_shaders.erase(name);
         m_shader_data.erase(name);
     }
@@ -135,7 +135,7 @@ void ShaderHolder::load(const std::string &name,
     std::filesystem::path vertex_path = "../Resources/Shaders/" + vertex_filename; //! no idea if this works on windows?????
     std::filesystem::path fragment_path = "../Resources/Shaders/" + fragment_filename;
 
-    m_shaders[name] = std::make_unique<Shader>(vertex_path, fragment_path);
+    m_shaders[name] = std::make_unique<Shader>(vertex_path.string(), fragment_path.string());
     auto &shader = m_shaders.at(name);
     shader->m_shader_name = name;
     m_shader_data.insert({name, *shader});
@@ -165,7 +165,7 @@ void ShaderHolder::refresh()
     for (auto &[shader_name, shader] : m_shaders)
     {
 
-        std::filesystem::path f_path =  shader->getFragmentPath();
+        std::filesystem::path f_path = shader->getFragmentPath();
         auto last_time = std::filesystem::last_write_time(f_path);
         if (last_time != m_shader_data.at(shader_name).last_write_time)
         {
@@ -343,14 +343,14 @@ Shader::Shader(const std::string &vertex_path, const std::string &fragment_path)
 
 Shader::~Shader()
 {
-    if(m_id != -1)
+    if (m_id != -1)
     {
-        glDeleteProgram(m_id);
+        gl::DeleteProgram(m_id);
     }
 }
 
-//! \brief extracts uniforms and textures then 
-//! \brief does all the GL calls to load the shader on the GPU 
+//! \brief extracts uniforms and textures then
+//! \brief does all the GL calls to load the shader on the GPU
 void Shader::recompile()
 {
     extractTextureNames(m_variables, m_fragment_path);
@@ -370,53 +370,53 @@ void Shader::recompile()
     char infoLog[512];
 
     // vertex Shader
-    vertex = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex, 1, &vShaderCode, NULL);
-    glCompileShader(vertex);
+    vertex = gl::CreateShader(GL_VERTEX_SHADER);
+    gl::ShaderSource(vertex, 1, &vShaderCode, NULL);
+    gl::CompileShader(vertex);
     // print compile errors if any
-    glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+    gl::GetShaderiv(vertex, GL_COMPILE_STATUS, &success);
     if (!success)
     {
-        glGetShaderInfoLog(vertex, 512, NULL, infoLog);
+        gl::GetShaderInfoLog(vertex, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
                   << infoLog << std::endl;
     };
 
     // fragment Shader
-    fragment = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment, 1, &fShaderCode, NULL);
-    glCompileShader(fragment);
+    fragment = gl::CreateShader(GL_FRAGMENT_SHADER);
+    gl::ShaderSource(fragment, 1, &fShaderCode, NULL);
+    gl::CompileShader(fragment);
     // print compile errors if any
-    glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+    gl::GetShaderiv(fragment, GL_COMPILE_STATUS, &success);
     if (!success)
     {
-        glGetShaderInfoLog(fragment, 512, NULL, infoLog);
+        gl::GetShaderInfoLog(fragment, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
                   << infoLog << "\n"
                   << "PROGRAM: " << m_fragment_path << "\n";
     };
 
     // shader Program
-    m_id = glCreateProgram();
-    glAttachShader(m_id, vertex);
-    glAttachShader(m_id, fragment);
-    glLinkProgram(m_id);
+    m_id = gl::CreateProgram();
+    gl::AttachShader(m_id, vertex);
+    gl::AttachShader(m_id, fragment);
+    gl::LinkProgram(m_id);
     // print linking errors if any
-    glGetProgramiv(m_id, GL_LINK_STATUS, &success);
+    gl::GetProgramiv(m_id, GL_LINK_STATUS, &success);
     if (!success)
     {
-        glGetProgramInfoLog(m_id, 512, NULL, infoLog);
+        gl::GetProgramInfoLog(m_id, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
                   << infoLog << std::endl;
     }
 
     // delete the shaders as they're linked into our program now and no longer necessary
-    glDeleteShader(vertex);
-    glDeleteShader(fragment);
+    gl::DeleteShader(vertex);
+    gl::DeleteShader(fragment);
     glCheckError();
 }
 
-//! \brief calls glUseProgram(id) 
+//! \brief calls glUseProgram(id)
 //! \brief the shader is recompiled in case the fragment shaderfile
 //! \brief  has been changed since the last time
 void Shader::use()
@@ -426,28 +426,28 @@ void Shader::use()
     {
         if (m_id != -1)
         {
-            glDeleteProgram(m_id);
+            gl::DeleteProgram(m_id);
         }
         recompile();
         m_last_writetime = last_time;
     }
-    glUseProgram(m_id);
+    gl::UseProgram(m_id);
     glCheckError();
 }
 
 // utility uniform functions
 void Shader::setBool(const std::string &name, bool value) const
 {
-    glUniform1i(glGetUniformLocation(m_id, name.c_str()), (int)value);
+    gl::Uniform1i(gl::GetUniformLocation(m_id, name.c_str()), (int)value);
 }
 
 void Shader::setInt(const std::string &name, int value) const
 {
-    glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
+    gl::Uniform1i(gl::GetUniformLocation(m_id, name.c_str()), value);
 };
 void Shader::setFloat(const std::string &name, float value) const
 {
-    glUniform1f(glGetUniformLocation(m_id, name.c_str()), value);
+    gl::Uniform1f(gl::GetUniformLocation(m_id, name.c_str()), value);
 };
 
 GLuint Shader::getId() const
@@ -457,46 +457,46 @@ GLuint Shader::getId() const
 
 void Shader::setVec2(const std::string &name, const glm::vec2 &value) const
 {
-    glUniform2fv(glGetUniformLocation(m_id, name.c_str()), 1, &value[0]);
+    gl::Uniform2fv(gl::GetUniformLocation(m_id, name.c_str()), 1, &value[0]);
 }
 void Shader::setVec2(const std::string &name, float x, float y) const
 {
-    glUniform2f(glGetUniformLocation(m_id, name.c_str()), x, y);
+    gl::Uniform2f(gl::GetUniformLocation(m_id, name.c_str()), x, y);
 }
 // ------------------------------------------------------------------------
 void Shader::setVec3(const std::string &name, const glm::vec3 &value) const
 {
-    glUniform3fv(glGetUniformLocation(m_id, name.c_str()), 1, &value[0]);
+    gl::Uniform3fv(gl::GetUniformLocation(m_id, name.c_str()), 1, &value[0]);
     glCheckError();
 }
 void Shader::setVec3(const std::string &name, float x, float y, float z) const
 {
-    glUniform3f(glGetUniformLocation(m_id, name.c_str()), x, y, z);
+    gl::Uniform3f(gl::GetUniformLocation(m_id, name.c_str()), x, y, z);
 }
 // ------------------------------------------------------------------------
 void Shader::setVec4(const std::string &name, const glm::vec4 &value) const
 {
-    glUniform4fv(glGetUniformLocation(m_id, name.c_str()), 1, &value[0]);
+    gl::Uniform4fv(gl::GetUniformLocation(m_id, name.c_str()), 1, &value[0]);
 }
 
 void Shader::setVec4(const std::string &name, float x, float y, float z, float w) const
 {
-    glUniform4f(glGetUniformLocation(m_id, name.c_str()), x, y, z, w);
+    gl::Uniform4f(gl::GetUniformLocation(m_id, name.c_str()), x, y, z, w);
 }
 // ------------------------------------------------------------------------
 void Shader::setMat2(const std::string &name, const glm::mat2 &mat) const
 {
-    glUniformMatrix2fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+    gl::UniformMatrix2fv(gl::GetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
 // ------------------------------------------------------------------------
 void Shader::setMat3(const std::string &name, const glm::mat3 &mat) const
 {
-    glUniformMatrix3fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+    gl::UniformMatrix3fv(gl::GetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
 // ------------------------------------------------------------------------
 void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
 {
-    glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+    gl::UniformMatrix4fv(gl::GetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
 }
 
 VariablesData &Shader::getVariables()
@@ -519,50 +519,6 @@ ShaderUIData::ShaderUIData(Shader &program)
     last_write_time = std::filesystem::last_write_time(filename);
 }
 
-// template <class ValueType>
-// constexpr void Shader::setUniform(const std::string &name, const ValueType &value)
-// {
-
-//     if constexpr (std::is_same_v<ValueType, float>)
-//     {
-//         setFloat(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, bool>)
-//     {
-//         setBool(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, int>)
-//     {
-//         setInt(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::vec2>)
-//     {
-//         setVec2(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::vec3>)
-//     {
-//         setVec3(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::vec4>)
-//     {
-//         setVec4(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::mat2>)
-//     {
-//         setMat2(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::mat3>)
-//     {
-//         setMat3(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::mat4>)
-//     {
-//         setMat4(name, value);
-//     }else
-//     {
-
-//     }
-// }
 
 void ShaderHolder::erase(const std::string &shader_id)
 {
@@ -585,9 +541,8 @@ ShaderHolder::ShaderUIDataMap &ShaderHolder::getAllData()
     return m_shader_data;
 }
 
-
 //! \brief some utility functions
-//! \returns a vector of strings obtained from line 
+//! \returns a vector of strings obtained from line
 std::vector<std::string> separateLine(std::string line, char delimiter)
 {
     std::vector<std::string> result;
@@ -629,7 +584,7 @@ bool replace(std::string &str, const std::string &from, const std::string &to)
 
 //! \brief extracts the value from the string obtained by reading a framgent shader
 //! \param type_string  should contain part of the GLSL uniform definition with type and variable name
-//! \param initial_value should contain part behind the equal sign containing the initial value   
+//! \param initial_value should contain part behind the equal sign containing the initial value
 UniformType extractValue(std::string type_string, std::string initial_value)
 {
     UniformType value;

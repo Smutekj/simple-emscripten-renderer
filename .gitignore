@@ -1,4 +1,6 @@
-# SDL
-/build*
-token.txt
-docs
+build*
+bin*
+Example/bin
+Example/build*
+
+external/powervr-sdk/external/*/source

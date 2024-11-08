@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Vector2.h"
+#include "Utils/Vector2.h"
 #include "Vertex.h"
 #include "IncludesGl.h"
 

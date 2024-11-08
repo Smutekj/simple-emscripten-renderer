@@ -6,7 +6,7 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "Vector2.h"
+#include "Utils/Vector2.h"
 
 
 //! \class View

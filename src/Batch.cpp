@@ -21,12 +21,13 @@ Batch::Batch(const BatchConfig &config, Shader &shader, DrawType draw_type)
     m_indices.reserve(m_capacity * 3);
     std::for_each(config.texture_ids.begin(), config.texture_ids.end(), [&config, this](auto &id)
                   {
-        int slot = &id - config.texture_ids.begin();
+        int slot = static_cast<int>(&id - &config.texture_ids[0]);
         m_verts.setTexture(slot, m_config.texture_ids.at(slot)); });
 }
 
 Batch::~Batch()
-{}
+{
+}
 
 //! \brief sets number of used vertices to 0 and clears index buffer
 void Batch::clear()
@@ -119,30 +120,30 @@ int Batch::getFreeVerts() const
     return m_capacity - m_used_vertices;
 }
 
-//! \brief calls OpenGL glBufferData thus creating a corresponding
+//! \brief calls OpenGL gl::BufferData thus creating a corresponding
 //! \brief creates a buffer for indices (just 6 indices ) a buffer for vertices and a buffer for transforms
 //! \brief since all sprites are assumed to be rectangles,
 void SpriteBatch::createBuffers()
 {
-    glGenBuffers(1, &m_indices_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indices_buffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * 6, m_indices, GL_STATIC_DRAW);
+    gl::GenBuffers(1, &m_indices_buffer);
+    gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indices_buffer);
+    gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * 6, m_indices, GL_STATIC_DRAW);
     glCheckError();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-    glGenBuffers(1, &m_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2) * 4, m_prototype, GL_STATIC_DRAW);
-    glCheckError();
-
-    glGenBuffers(1, &m_transform_buffer);
-    glCheckError();
-    glBindBuffer(GL_ARRAY_BUFFER, m_transform_buffer);
-    glCheckError();
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Trans) * BATCH_VERTEX_CAPACITY, m_transforms.data(), GL_DYNAMIC_DRAW);
+    gl::GenBuffers(1, &m_vbo);
+    gl::BindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    gl::BufferData(GL_ARRAY_BUFFER, sizeof(Vec2) * 4, m_prototype, GL_STATIC_DRAW);
     glCheckError();
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    gl::GenBuffers(1, &m_transform_buffer);
+    glCheckError();
+    gl::BindBuffer(GL_ARRAY_BUFFER, m_transform_buffer);
+    glCheckError();
+    gl::BufferData(GL_ARRAY_BUFFER, sizeof(Trans) * BATCH_VERTEX_CAPACITY, m_transforms.data(), GL_DYNAMIC_DRAW);
+    glCheckError();
+
+    gl::BindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 //! \brief construct form batch configuration and a shader (no idea what the shader is for btw?)
@@ -165,9 +166,9 @@ SpriteBatch::SpriteBatch(GLuint texture_id, Shader &shader)
 
 SpriteBatch::~SpriteBatch()
 {
-    glDeleteBuffers(1, &m_vbo);
-    glDeleteBuffers(1, &m_transform_buffer);
-    glDeleteBuffers(1, &m_indices_buffer);
+    gl::DeleteBuffers(1, &m_vbo);
+    gl::DeleteBuffers(1, &m_transform_buffer);
+    gl::DeleteBuffers(1, &m_indices_buffer);
 }
 
 //! \brief adds a sprite if there is enough space by specifying it's transform data
@@ -189,31 +190,31 @@ bool SpriteBatch::addSprite(Trans transform)
 void SpriteBatch::bindAttributes()
 {
 
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec2), (void *)(0 * sizeof(float)));
-    glVertexAttribDivisor(0, 0);
+    gl::BindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    gl::EnableVertexAttribArray(0);
+    gl::VertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec2), (void *)(0 * sizeof(float)));
+    gl::VertexAttribDivisor(0, 0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, m_transform_buffer);
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(0 * sizeof(float)));
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(2 * sizeof(float)));
-    glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(4 * sizeof(float)));
-    glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(5 * sizeof(float)));
-    glEnableVertexAttribArray(5);
-    glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(7 * sizeof(float)));
-    glEnableVertexAttribArray(6);
-    glVertexAttribPointer(6, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Trans), (void *)(9 * sizeof(float)));
+    gl::BindBuffer(GL_ARRAY_BUFFER, m_transform_buffer);
+    gl::EnableVertexAttribArray(1);
+    gl::VertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(0 * sizeof(float)));
+    gl::EnableVertexAttribArray(2);
+    gl::VertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(2 * sizeof(float)));
+    gl::EnableVertexAttribArray(3);
+    gl::VertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(4 * sizeof(float)));
+    gl::EnableVertexAttribArray(4);
+    gl::VertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(5 * sizeof(float)));
+    gl::EnableVertexAttribArray(5);
+    gl::VertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(7 * sizeof(float)));
+    gl::EnableVertexAttribArray(6);
+    gl::VertexAttribPointer(6, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Trans), (void *)(9 * sizeof(float)));
 
-    glVertexAttribDivisor(1, 1);
-    glVertexAttribDivisor(2, 1);
-    glVertexAttribDivisor(3, 1);
-    glVertexAttribDivisor(4, 1);
-    glVertexAttribDivisor(5, 1);
-    glVertexAttribDivisor(6, 1);
+    gl::VertexAttribDivisor(1, 1);
+    gl::VertexAttribDivisor(2, 1);
+    gl::VertexAttribDivisor(3, 1);
+    gl::VertexAttribDivisor(4, 1);
+    gl::VertexAttribDivisor(5, 1);
+    gl::VertexAttribDivisor(6, 1);
     glCheckError();
 }
 
@@ -221,11 +222,11 @@ void SpriteBatch::bindAttributes()
 void SpriteBatch::initialize()
 {
 
-    glBindBuffer(GL_ARRAY_BUFFER, m_transform_buffer);
+    gl::BindBuffer(GL_ARRAY_BUFFER, m_transform_buffer);
     glCheckError();
-    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Trans) * m_end, m_transforms.data());
+    gl::BufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Trans) * m_end, m_transforms.data());
     glCheckError();
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    gl::BindBuffer(GL_ARRAY_BUFFER, 0);
     glCheckError();
 
     bindAttributes();
@@ -252,24 +253,24 @@ void SpriteBatch::flush(View &view)
         auto texture_id = m_config.texture_ids.at(slot);
         if (texture_id != 0)
         {
-            glActiveTexture(GL_TEXTURE0 + slot);
+            gl::ActiveTexture(GL_TEXTURE0 + slot);
             glCheckError();
-            glBindTexture(GL_TEXTURE_2D, texture_id);
+            gl::BindTexture(GL_TEXTURE_2D, texture_id);
             glCheckError();
         }
     }
     initialize();
 
     //! THE ACTUAL DRAW CALL (YAY!)
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indices_buffer);
-    glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, m_end);
+    gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indices_buffer);
+    gl::DrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, m_end);
     glCheckError();
 
     //! reset instance count
     m_end = 0;
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    gl::BindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 //! \returns this looks the same as countFreeSpots?

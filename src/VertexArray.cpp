@@ -6,9 +6,9 @@
 VertexArray::VertexArray(Shader &shader)
     : m_shader(&shader)
 {
-    glGenBuffers(1, &m_vbo);
+    gl::GenBuffers(1, &m_vbo);
     glCheckError();
-    glGenBuffers(1, &m_ebo);
+    gl::GenBuffers(1, &m_ebo);
     glCheckError();
 
     m_textures.fill(0);
@@ -16,8 +16,8 @@ VertexArray::VertexArray(Shader &shader)
 
 VertexArray::~VertexArray()
 {
-    glDeleteBuffers(1, &m_vbo);
-    glDeleteBuffers(1, &m_ebo);
+    gl::DeleteBuffers(1, &m_vbo);
+    gl::DeleteBuffers(1, &m_ebo);
 }
 
 void VertexArray::setTexture(int slot, GLuint texture)
@@ -28,9 +28,9 @@ void VertexArray::setTexture(int slot, GLuint texture)
 VertexArray::VertexArray(Shader &shader, GLenum draw_type)
     : m_shader(&shader), m_draw_type(static_cast<DrawType>(draw_type))
 {
-    glGenBuffers(1, &m_vbo);
+    gl::GenBuffers(1, &m_vbo);
     glCheckError();
-    glGenBuffers(1, &m_ebo);
+    gl::GenBuffers(1, &m_ebo);
     glCheckError();
 }
 
@@ -43,13 +43,13 @@ VertexArray::VertexArray(Shader &shader, GLenum draw_type, int n_verts)
 void VertexArray::resize(int n_verts)
 {
     m_vertices.resize(n_verts);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    gl::BindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glCheckError();
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * n_verts, m_vertices.data(), static_cast<GLuint>(m_draw_type));
+    gl::BufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * n_verts, m_vertices.data(), static_cast<GLuint>(m_draw_type));
     glCheckError();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+    gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glCheckError();
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(IndexType) * n_verts, NULL, static_cast<GLuint>(m_draw_type));
+    gl::BufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(IndexType) * n_verts, NULL, static_cast<GLuint>(m_draw_type));
     glCheckError();
 }
 
@@ -57,14 +57,14 @@ void VertexArray::resize(int n_verts)
 //! \brief basically calls glBufferSubData
 void VertexArray::init()
 {
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    gl::BindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glCheckError();
 
     bindVertexAttributes(m_vbo, {2, 4, 2});
 
     if (!m_is_initialized) //! this way it's called just once for static draws
     {
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * m_vertices.size(), m_vertices.data());
+        gl::BufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * m_vertices.size(), m_vertices.data());
         glCheckError();
     }
 
@@ -73,8 +73,8 @@ void VertexArray::init()
         m_is_initialized = true;
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    gl::BindBuffer(GL_ARRAY_BUFFER, 0);
+    gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 //! \returns returns the \p i -th vertex in the array
@@ -101,23 +101,23 @@ void VertexArray::draw(View &view, const std::vector<IndexType> &indices)
         auto texture_id = m_textures.at(slot);
         if (texture_id != 0)
         {
-            glActiveTexture(GL_TEXTURE0 + slot);
-            glBindTexture(GL_TEXTURE_2D, texture_id);
+            gl::ActiveTexture(GL_TEXTURE0 + slot);
+            gl::BindTexture(GL_TEXTURE_2D, texture_id);
             glCheckError();
         }
     }
 
     init();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(IndexType) * indices.size(), indices.data());
+    gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+    gl::BufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(IndexType) * indices.size(), indices.data());
     glCheckError();
 
-    glDrawElements(m_primitives, indices.size(), GL_UNSIGNED_SHORT, 0);
+    gl::DrawElements(m_primitives, indices.size(), GL_UNSIGNED_SHORT, 0);
     glCheckError();
 
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    gl::BindTexture(GL_TEXTURE_2D, 0);
+    gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    gl::BindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 //! \brief draws directly into the associated target
@@ -145,19 +145,19 @@ void VertexArray::draw(View &view)
         auto texture = m_textures.at(slot);
         if (texture != 0)
         {
-            glActiveTexture(GL_TEXTURE0 + slot);
-            glBindTexture(GL_TEXTURE_2D, texture);
+            gl::ActiveTexture(GL_TEXTURE0 + slot);
+            gl::BindTexture(GL_TEXTURE_2D, texture);
             glCheckError();
         }
     }
 
     init();
 
-    glDrawArrays(m_primitives, 0, m_vertices.size());
+    gl::DrawArrays(m_primitives, 0, m_vertices.size());
     glCheckError();
 
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    gl::BindTexture(GL_TEXTURE_2D, 0);
+    gl::BindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 

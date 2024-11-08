@@ -74,7 +74,7 @@ bool Font::loadFromFile(std::string font_filename)
 
     FT_GlyphSlot slot = face->glyph; 
 
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
+    gl::PixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
     glCheckError();
 
     unsigned int max_width = 0;
@@ -93,7 +93,7 @@ bool Font::loadFromFile(std::string font_filename)
 
 
     unsigned int textures[128];
-    glGenTextures(128, textures);
+    gl::GenTextures(128, textures);
 
     int safety_pixels_x = 3;
     int safety_pixels_y = 10;
@@ -116,8 +116,8 @@ bool Font::loadFromFile(std::string font_filename)
 
         FT_Render_Glyph(slot, FT_RENDER_MODE_SDF); 
 
-        glBindTexture(GL_TEXTURE_2D, textures[c]);
-        glTexImage2D(
+        gl::BindTexture(GL_TEXTURE_2D, textures[c]);
+        gl::TexImage2D(
             GL_TEXTURE_2D,
             0,
             GL_ALPHA,
@@ -128,10 +128,10 @@ bool Font::loadFromFile(std::string font_filename)
             GL_UNSIGNED_BYTE,
             face->glyph->bitmap.buffer);
         // set texture options
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        gl::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        gl::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        gl::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        gl::TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
         Character character =
             {
@@ -162,10 +162,10 @@ bool Font::loadFromFile(std::string font_filename)
     m_canvas->drawAll();
 
     //! delete helper texture
-    glDeleteTextures(128, textures);
+    gl::DeleteTextures(128, textures);
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 4); //! set back to deafult value
+    gl::PixelStorei(GL_UNPACK_ALIGNMENT, 4); //! set back to deafult value
 
     return true;
 }

@@ -4,6 +4,7 @@
 #include "Texture.h"
 #include "View.h"
 
+
 DrawRectangle::DrawRectangle(Shader &shader) : m_shader(&shader)
 {
     initialize();
@@ -11,7 +12,7 @@ DrawRectangle::DrawRectangle(Shader &shader) : m_shader(&shader)
 
 DrawRectangle::~DrawRectangle()
 {
-    glDeleteBuffers(1, &m_vbo);
+    gl::DeleteBuffers(1, &m_vbo);
     glCheckError();
 }
 
@@ -24,9 +25,9 @@ void DrawRectangle::initialize()
     m_verts[2] = {{1.f, 1.f}, {1.f, 1.f, 1.f, 1.f}, {1.f, 0.f}};
     m_verts[3] = {{-1.f, 1.f}, {1.f, 1.f, 1.f, 1.f}, {0.f, 0.f}};
 
-    glGenBuffers(1, &m_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * m_verts.size(), m_verts.data(), GL_STATIC_DRAW);
+    gl::GenBuffers(1, &m_vbo);
+    gl::BindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    gl::BufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * m_verts.size(), m_verts.data(), GL_STATIC_DRAW);
     glCheckError();
 }
 
@@ -37,7 +38,7 @@ void DrawRectangle::initialize()
 void DrawRectangle::draw(GLuint target, View &view)
 {
 
-    glBindFramebuffer(GL_FRAMEBUFFER, target);
+    gl::BindFramebuffer(GL_FRAMEBUFFER, target);
 
     m_shader->use();
     m_shader->setMat4("u_view_projection", view.getMatrix());
@@ -49,19 +50,19 @@ void DrawRectangle::draw(GLuint target, View &view)
         m_texture->bind();
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    gl::BindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glCheckError();
     bindVertexAttributes(m_vbo, {2, 4, 2});
     // glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * m_verts.size(), m_verts.data());
     glCheckError();
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, m_indices);
+    gl::BindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+    gl::DrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, m_indices);
     glCheckError();
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    gl::BindBuffer(GL_ARRAY_BUFFER, 0);
+    gl::BindTexture(GL_TEXTURE_2D, 0);
+    gl::BindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 
@@ -107,21 +108,3 @@ std::vector<Vertex> DrawRectangle::getVerts()
 
     return new_verts;
 }
-
-// Sprite::Sprite(Texture &texture, Shader &shader)
-//     : Rectangle(shader)
-// {
-//     setTexture(texture);
-// }
-
-// void Sprite::setTextureRect(Rect<int> tex_rect)
-// {
-//     auto tex_size = m_texture->getSize();
-//     m_tex_rect = {tex_rect.pos_x / tex_size.x, tex_rect.pos_y / tex_size.y,
-//                   tex_rect.width / tex_size.x, tex_rect.height / tex_size.y};
-
-//     m_verts[0].tex_coord = {m_tex_rect.pos_x, m_tex_rect.pos_y};
-//     m_verts[1].tex_coord = {m_tex_rect.pos_x + m_tex_rect.width, m_tex_rect.pos_y};
-//     m_verts[2].tex_coord = {m_tex_rect.pos_x + m_tex_rect.width, m_tex_rect.pos_y + m_tex_rect.height};
-//     m_verts[3].tex_coord = {m_tex_rect.pos_x, m_tex_rect.pos_y + m_tex_rect.height};
-// }
