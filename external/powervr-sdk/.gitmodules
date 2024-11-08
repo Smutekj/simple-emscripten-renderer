@@ -10,6 +10,4 @@
 [submodule "external/pugixml/source"]
 	path = external/pugixml/source
 	url = https://github.com/zeux/pugixml.git
-[submodule "external/VulkanMemoryAllocator/source"]
-	path = external/VulkanMemoryAllocator/source
-	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+
