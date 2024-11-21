@@ -31,7 +31,7 @@ struct Sprite : public RectangleSimple
     void setColor(ColorByte &color);
 
     Texture *m_texture = nullptr;
-    std::array<TextureHandle, N_MAX_TEXTURES> m_texture_handles = {0, 0}; //!< GL handles of the bound textures
+    TextureArray m_texture_handles = {}; //!< GL handles of the bound textures
     utils::Vector2i m_tex_size = {0, 0};                                  //!< ???
     Rect<int> m_tex_rect;                                                 //!< defines part of the texture that will be drawn
     ColorByte m_color = {255, 255, 255, 255};                             //!< can be used in shaders

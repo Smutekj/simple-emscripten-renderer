@@ -19,12 +19,12 @@ struct BatchConfig
 {
     BatchConfig() = default;
 
-    BatchConfig(std::array<GLuint, N_MAX_TEXTURES> tex_ids, const GLuint &shader_id, DrawType draw_type);
+    BatchConfig(TextureArray tex_ids, const GLuint &shader_id, DrawType draw_type);
     BatchConfig(const GLuint &tex_id, const GLuint &shader_id, DrawType draw_type);
 
     bool operator==(const BatchConfig &other) const;
 
-    std::array<GLuint, N_MAX_TEXTURES> texture_ids = {0, 0};
+    TextureArray texture_ids = {};
     GLuint shader_id = 0;
     DrawType draw_type = DrawType::Dynamic;
 };

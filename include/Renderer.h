@@ -87,12 +87,12 @@ private:
     void drawSpriteStatic(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
                           Texture &texture, Shader &shader);
     void drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect, Vec2 texture_size,
-                    std::array<GLuint, N_MAX_TEXTURES> &textures, const std::string& shader_id, DrawType draw_type);
+                    TextureArray &textures, const std::string& shader_id, DrawType draw_type);
     
     Batch &findBatch(GLuint texture_id, Shader &shader, DrawType draw_type, int num_vertices_inserted);
-    Batch &findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type, int num_vertices_inserted);
+    Batch &findBatch(TextureArray texture_ids, Shader &shader, DrawType draw_type, int num_vertices_inserted);
     SpriteBatch &findSpriteBatch(GLuint texture_id, Shader &shader, DrawType draw_type);
-    SpriteBatch &findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type);
+    SpriteBatch &findSpriteBatch(TextureArray texture_ids, Shader &shader, DrawType draw_type);
 
     Batch &findFreeBatch(BatchConfig config, Shader &shader, DrawType draw_type, int num_vertices_inserted);
     SpriteBatch &findFreeSpriteBatch(BatchConfig config, Shader &shader, DrawType draw_type);

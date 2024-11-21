@@ -265,7 +265,7 @@ void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_
 //! \param shader_id
 //! \param draw_type
 void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
-                                  Vec2 texture_size, std::array<GLuint, N_MAX_TEXTURES> &texture_handles,
+                                  Vec2 texture_size, TextureArray &texture_handles,
                                   const std::string &shader_id, DrawType draw_type)
 {
     auto &shader = m_shaders.get(shader_id);
@@ -523,7 +523,7 @@ void Renderer::drawAll()
 //! \param draw_type
 //! \returns an existing batch with corresponding configuration
 //! \returns a new batch in case no batch with the configuration exists
-Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type, int num_vertices_inserted)
+Batch &Renderer::findBatch(TextureArray texture_ids, Shader &shader, DrawType draw_type, int num_vertices_inserted)
 {
     BatchConfig config = {texture_ids, shader.getId(), draw_type};
     if (m_config2batches.count(config) != 0) //! batch with config exists
@@ -542,7 +542,7 @@ Batch &Renderer::findBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shade
 //! \param draw_type
 //! \returns an existing batch with corresponding configuration
 //! \returns a new batch in case no batch with the configuration exists
-SpriteBatch &Renderer::findSpriteBatch(std::array<GLuint, N_MAX_TEXTURES> texture_ids, Shader &shader, DrawType draw_type)
+SpriteBatch &Renderer::findSpriteBatch(TextureArray texture_ids, Shader &shader, DrawType draw_type)
 {
     BatchConfig config = {texture_ids, shader.getId(), draw_type};
     if (m_config2sprite_batches.count(config) != 0) //! batch with config exists

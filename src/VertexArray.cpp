@@ -96,7 +96,7 @@ void VertexArray::draw(View &view, const std::vector<IndexType> &indices)
         m_shader->setUniforms();
     }
 
-    for (int slot = 0; slot < N_MAX_TEXTURES; ++slot)
+    for (int slot = 0; slot < N_MAX_TEXTURES_IN_SHADER; ++slot)
     {
         auto texture_id = m_textures.at(slot);
         if (texture_id != 0)
@@ -144,7 +144,7 @@ void VertexArray::draw(View &view)
         i++;
     }
 
-    for (int slot = 0; slot < N_MAX_TEXTURES; ++slot)
+    for (int slot = 0; slot < N_MAX_TEXTURES_IN_SHADER; ++slot)
     {
         auto texture = m_textures.at(slot);
         if (texture != 0)
@@ -181,3 +181,13 @@ GLuint VertexArray::getShaderId() const
     return m_shader->getId();
 }
 
+
+    std::size_t VertexArray::size() const
+    {
+        return m_vertices.size();
+    };
+
+    Vertex* VertexArray::data()
+    {
+        return m_vertices.data();
+    }

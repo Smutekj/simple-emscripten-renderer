@@ -9,8 +9,6 @@
 
 using TextureHandle = GLuint;
 
-constexpr int N_MAX_TEXTURES = 2; //! maximum number of texture slots
-
 //! \enum TexMappingParam
 //! \brief options for texture mapping procedure
 //! translates into corresponding OpenGL integers explanations are here:

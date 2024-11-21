@@ -113,12 +113,12 @@ Application::Application(int width, int height) : m_window(width, height),
 
     m_particles = std::make_unique<Particles>(2000);
     m_particles->setLifetime(2.f);
-    m_particles->setUpdater([this](Particle &p)
+    m_particles->setUpdater([this](Particle &p, float dt = 0.016f)
                             {
                                 auto t_left = p.life_time - p.time;
                                 p.acc = {0, 0};
                                 p.vel += p.time *p.acc;
-                                p.pos += p.vel * 0.016f;
+                                p.pos += p.vel * dt;
                                 p.scale += utils::Vector2f{0.5f};
                                 p.angle += randf(0, 3.); });
     m_particles->setEmitter([](utils::Vector2f spawn_pos)

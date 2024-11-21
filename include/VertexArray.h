@@ -42,21 +42,16 @@ public:
     void draw(View& view, const std::vector<IndexType>& indices);
 
     void setTexture(Texture &texture);
+    
     void setTexture(int slot, GLuint);
 
     void setShader(Shader &Shader);
 
-    std::size_t size() const
-    {
-        return m_vertices.size();
-    };
+    std::size_t size() const;
 
     Vertex &operator[](int i);
 
-    Vertex* data()
-    {
-        return m_vertices.data();
-    }
+    Vertex* data();
 
     GLuint getShaderId()const;
 
@@ -71,7 +66,7 @@ private:
 
     bool m_is_initialized = false;
 
-    std::array<GLuint, N_MAX_TEXTURES> m_textures = {0,0};
+    TextureArray m_textures = {};
 
     std::vector<Vertex> m_vertices;
 

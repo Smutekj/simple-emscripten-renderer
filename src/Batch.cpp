@@ -85,10 +85,10 @@ BatchConfig Batch::getConfig() const
 //! \param tex_ids      an array of  GL texture ids
 //! \param shader_id    GL shader id
 //! \param draw_type    Dynamic or Static draws
-BatchConfig::BatchConfig(std::array<GLuint, N_MAX_TEXTURES> tex_ids, const GLuint &shader_id, DrawType draw_type)
+BatchConfig::BatchConfig(TextureArray tex_ids, const GLuint &shader_id, DrawType draw_type)
     : shader_id(shader_id), draw_type(draw_type)
 {
-    assert(tex_ids.size() <= N_MAX_TEXTURES);
+    assert(tex_ids.size() <= N_MAX_TEXTURES_IN_SHADER);
     std::copy(tex_ids.begin(), tex_ids.end(), texture_ids.begin());
 }
 

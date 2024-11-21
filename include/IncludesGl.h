@@ -14,7 +14,13 @@
 #include <GLES3/gl3ext.h>
 #endif
 
+#include <vector>
+#include <array>
+#include <numeric>
 #include <iostream>
+
+constexpr int N_MAX_TEXTURES_IN_SHADER = 2; //! maximum number of texture slots
+using TextureArray = std::array<GLuint, N_MAX_TEXTURES_IN_SHADER>;
 
 using IndexType = unsigned short;
 
@@ -49,6 +55,7 @@ GLenum inline glCheckError_(const char *file, int line, const char *message = ""
     return errorCode;
 }
 
+
 //!  WebGL is super slow  with glCheckErrors
 //! https://emscripten.org/docs/optimizing/Optimizing-WebGL.html
 
@@ -61,9 +68,6 @@ GLenum inline glCheckError_(const char *file, int line, const char *message = ""
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
 #endif
 
-
-#include <vector>
-#include <numeric>
 
 void inline bindVertexAttributes(GLuint buffer, std::vector<int> sizes)
 {
