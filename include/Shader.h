@@ -19,8 +19,6 @@
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-
-
 class ShaderHolder;
 
 //! \struct TextureGlData
@@ -87,12 +85,15 @@ public:
 
     const std::string &getName() const;
 
-    void activateTexture(std::array<GLuint, 2> handles);
+    void activateTexture(TextureArray handles);
 
-public:
     void setUniform2(const std::string &uniform_name, UniformType uniform_value);
 
     void saveUniformValue(const std::string &uniform_name, UniformType uniform_value);
+
+    void setReloadOnChange(bool new_flag_value);
+
+    bool getReloadOnChange()const;
 
     friend ShaderHolder;
 
@@ -104,6 +105,8 @@ private:
     std::string m_fragment_path;
     std::string m_shader_name = "default_name";       //!< shader_id
     std::filesystem::file_time_type m_last_writetime; //!< last time of change of the fragment shader file.
+
+    bool m_reload_on_file_change = false; //!< reloads the shader when it is changed in filesystem (this is useful for playing with shaders, but slow because of filesystem calls)
 
     VariablesData m_variables; //!< contains data about uniforms and textures in the fragment shader.
 
@@ -121,8 +124,6 @@ struct ShaderUIData
     VariablesData &variables;
     std::filesystem::file_time_type last_write_time;
 };
-
-
 
 //! \class ShaderHolder
 //! \brief holds shaders themselves and also data about uniforms and textures in them
@@ -156,8 +157,6 @@ private:
     ShaderMap m_shaders;
     ShaderUIDataMap m_shader_data;
 };
-
-
 
 std::vector<std::string> inline separateLine(std::string line, char delimiter = ' ');
 
