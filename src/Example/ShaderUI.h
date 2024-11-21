@@ -23,19 +23,6 @@ enum class UIWindowType
     COUNT
 };
 
-//! \struct ShaderUIData
-//! \brief ???
-struct ShaderUIData
-{
-
-    ShaderUIData(Shader &program);
-
-    Shader *p_program = nullptr;
-    std::string filename = "";
-    VariablesData &variables;
-    std::filesystem::file_time_type last_write_time;
-};
-
 struct ShaderSlot
 {
 
