@@ -43,14 +43,7 @@ VertexArray::VertexArray(Shader &shader, GLenum draw_type, int n_verts)
 void VertexArray::resize(int n_verts)
 {
     m_vertices.resize(n_verts);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glCheckError();
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * n_verts, m_vertices.data(), static_cast<GLuint>(m_draw_type));
-    glCheckError();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
-    glCheckError();
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(IndexType) * n_verts, NULL, static_cast<GLuint>(m_draw_type));
-    glCheckError();
+    m_needs_gl_buffer_update = true;
 }
 
 //! \brief does gl calls which initialize the array
@@ -107,7 +100,22 @@ void VertexArray::draw(View &view, const std::vector<IndexType> &indices)
         }
     }
 
-    init();
+    if (m_needs_gl_buffer_update)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+        glCheckError();
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * m_vertices.size(), m_vertices.data(), static_cast<GLuint>(m_draw_type));
+        glCheckError();
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+        glCheckError();
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(IndexType) * m_vertices.size(), NULL, static_cast<GLuint>(m_draw_type));
+        glCheckError();
+        m_needs_gl_buffer_update = false;
+    }
+    else
+    {
+        init();
+    }
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(IndexType) * indices.size(), indices.data());
     glCheckError();
@@ -154,8 +162,22 @@ void VertexArray::draw(View &view)
             glCheckError();
         }
     }
-
-    init();
+    if (m_needs_gl_buffer_update)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+        glCheckError();
+        glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * m_vertices.size(), m_vertices.data(), static_cast<GLuint>(m_draw_type));
+        glCheckError();
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
+        glCheckError();
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(IndexType) * m_vertices.size(), NULL, static_cast<GLuint>(m_draw_type));
+        glCheckError();
+        m_needs_gl_buffer_update = false;
+    }
+    else
+    {
+        init();
+    }
 
     glDrawArrays(m_primitives, 0, m_vertices.size());
     glCheckError();
@@ -163,7 +185,6 @@ void VertexArray::draw(View &view)
     glBindTexture(GL_TEXTURE_2D, 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
-
 
 void VertexArray::setTexture(Texture &texture)
 {
@@ -181,13 +202,12 @@ GLuint VertexArray::getShaderId() const
     return m_shader->getId();
 }
 
+std::size_t VertexArray::size() const
+{
+    return m_vertices.size();
+};
 
-    std::size_t VertexArray::size() const
-    {
-        return m_vertices.size();
-    };
-
-    Vertex* VertexArray::data()
-    {
-        return m_vertices.data();
-    }
+Vertex *VertexArray::data()
+{
+    return m_vertices.data();
+}

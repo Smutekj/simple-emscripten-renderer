@@ -72,6 +72,7 @@ private:
 
     DrawType m_draw_type = DrawType::Dynamic;
 
+    bool m_needs_gl_buffer_update = false;
 };
 
 
