@@ -2,7 +2,7 @@
 
 #include "Transform.h"
 #include "Font.h"
-
+#include "Rect.h"
 
 //! \class Text
 //! \brief contains necessary data to draw texts
@@ -24,20 +24,16 @@ public:
     const ColorByte &getColor() const;
 
 
+    Rect<float> getBoundingBox();
+
     float getTextWidth()const;
     void centerAround(const utils::Vector2f& center);
 
 public:
-    bool m_draw_bounding_box = false; 
+    bool m_draw_bounding_box = false;
 
 private:
     Font* m_font = nullptr;
     std::string m_text = "";
     ColorByte m_color = {255, 255, 255, 255};
 };
-
-
-// struct TextLineData
-// {
-
-// };

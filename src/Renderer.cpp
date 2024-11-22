@@ -129,45 +129,6 @@ void Renderer::drawSpriteDynamic(Sprite &sprite, const std::string &shader_id)
     drawSprite(sprite, shader_id, DrawType::Dynamic);
 }
 
-void compute_string_bbox(FT_BBox *abbox, Text &text)
-{
-    //   FT_BBox  bbox;
-
-    //     auto font = text.getFont();
-
-    //   bbox.xMin = bbox.yMin =  32000;
-    //   bbox.xMax = bbox.yMax = -32000;
-
-    //   for ( auto c  : text.getText())
-    //   {
-    //     FT_BBox  glyph_bbox;
-    //     FT_Glyph_Get_CBox( font->m_characters.at(c) ft_glyph_bbox_pixels,
-    //                        &glyph_bbox );
-
-    //     if (glyph_bbox.xMin < bbox.xMin)
-    //       bbox.xMin = glyph_bbox.xMin;
-
-    //     if (glyph_bbox.yMin < bbox.yMin)
-    //       bbox.yMin = glyph_bbox.yMin;
-
-    //     if (glyph_bbox.xMax > bbox.xMax)
-    //       bbox.xMax = glyph_bbox.xMax;
-
-    //     if (glyph_bbox.yMax > bbox.yMax)
-    //       bbox.yMax = glyph_bbox.yMax;
-    //   }
-
-    //   if ( bbox.xMin > bbox.xMax )
-    //   {
-    //     bbox.xMin = 0;
-    //     bbox.yMin = 0;
-    //     bbox.xMax = 0;
-    //     bbox.yMax = 0;
-    //   }
-
-    //   *abbox = bbox;
-}
-
 //! \brief draws text using a font in the \p text
 //! \param text constains Font info
 //! \param shader_id
@@ -186,31 +147,6 @@ void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_
     }
     Sprite glyph_sprite(font->getTexture());
 
-    // ! find dimensions of the text
-    auto text_size_x =
-        std::accumulate(string.begin(), string.end(), 0, [font](int x, auto character)
-                        { return font->m_characters.at(character).size.x + x; });
-    auto largest_char =
-        *std::max_element(string.begin(), string.end(), [font](auto c1, auto c2)
-                          {
-        auto car1 = font->m_characters.at(c1);
-        auto car2 = font->m_characters.at(c2);
-        return car1.size.y < car2.bearing.y; });
-    auto lowest_char =
-        *std::max_element(string.begin(), string.end(), [font](auto c1, auto c2)
-                          {
-        auto car1 = font->m_characters.at(c1);
-        auto car2 = font->m_characters.at(c2);
-        return car1.size.y - -car1.bearing.y < car2.size.y - car2.bearing.y; });
-
-    auto largest_c = font->m_characters.at(largest_char);
-    auto lowest_c = font->m_characters.at(lowest_char);
-    utils::Vector2f text_size = {text_size_x, largest_c.bearing.y + lowest_c.size.y - lowest_c.bearing.y};
-
-    FT_BBox bbox;
-    for (auto c : text.getText())
-    {
-    }
 
     auto text_scale = text.getScale();
     auto center_pos = text.getPosition();
@@ -238,23 +174,19 @@ void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_
         drawSprite(glyph_sprite, shader_id, draw_type);
     }
 
-    text_size.x = line_pos.x - center_pos.x;
-    text_size.y *= text.getScale().y;
-    line_pos = center_pos;
-    line_pos.y -= (lowest_c.size.y - lowest_c.bearing.y) * text.getScale().y;
-
-    if (text.m_draw_bounding_box)
+    auto bounding_box = text.getBoundingBox();
+    line_pos = {bounding_box.pos_x, bounding_box.pos_y};
+    utils::Vector2f text_size = {bounding_box.width, bounding_box.height};
+    if(text.m_draw_bounding_box)
     {
         drawLineBatched(line_pos, {line_pos.x + text_size.x, line_pos.y}, 1, {0, 1, 0, 1});
         drawLineBatched({line_pos.x + text_size.x, line_pos.y}, {line_pos.x + text_size.x, line_pos.y + text_size.y}, 1, {0, 1, 0, 1});
         drawLineBatched({line_pos.x + text_size.x, line_pos.y + text_size.y}, {line_pos.x, line_pos.y + text_size.y}, 1, {0, 1, 0, 1});
-        drawLineBatched({
-                            line_pos.x,
-                            line_pos.y + text_size.y,
-                        },
-                        line_pos, 1, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x, line_pos.y + text_size.y}, line_pos, 1, {0, 1, 0, 1});
     }
+
 }
+
 
 //! \brief draws Sprite defined by:
 //! \param center coordinate of the center

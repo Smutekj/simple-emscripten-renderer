@@ -75,3 +75,50 @@ float Text::getTextWidth() const
     }
     return width;
 }
+
+//! \todo I should probably cache these results since they are unlikely to change
+Rect<float> Text::getBoundingBox()
+{
+
+
+    //     // ! find dimensions of the text
+    auto text_size_x =
+        std::accumulate(m_text.begin(), m_text.end(), 0, [this](int x, auto character)
+                        { return m_font->m_characters.at(character).size.x + x; });
+    auto largest_char =
+        *std::max_element(m_text.begin(), m_text.end(), [this](auto c1, auto c2)
+                          {
+        auto car1 = m_font->m_characters.at(c1);
+        auto car2 = m_font->m_characters.at(c2);
+        return car1.size.y < car2.bearing.y; });
+    auto lowest_char =
+        *std::max_element(m_text.begin(), m_text.end(), [this](auto c1, auto c2)
+                          {
+        auto car1 = m_font->m_characters.at(c1);
+        auto car2 = m_font->m_characters.at(c2);
+        return car1.size.y - car1.bearing.y < car2.size.y - car2.bearing.y; });
+
+    auto largest_c = m_font->m_characters.at(largest_char);
+    auto lowest_c = m_font->m_characters.at(lowest_char);
+    utils::Vector2f text_size = {text_size_x, largest_c.bearing.y + lowest_c.size.y - lowest_c.bearing.y};
+
+    
+    Rect<float> bounding_box;
+    text_size.x *= getScale().x;
+    text_size.y *= getScale().y;
+    bounding_box.width = 0;
+    bounding_box.pos_y = getPosition().y - text_size.y/2.f;
+    bounding_box.height =  text_size.y;
+    
+    bounding_box.pos_y += 2.*(lowest_c.size.y - lowest_c.bearing.y) * getScale().y;
+
+    for (auto c : m_text)
+    {
+        auto character = m_font->m_characters.at(c);
+        bounding_box.width += (character.advance >> 6) * getScale().x;
+    }
+    bounding_box.pos_x = getPosition().x ;
+
+    return bounding_box;
+}
+
