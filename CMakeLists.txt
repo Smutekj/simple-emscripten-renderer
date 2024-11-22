@@ -31,17 +31,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSDL_TEST_LIBRARY=OFF -DSDL2_DISABLE_IN
 FetchContent_MakeAvailable(SDL2)
 
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-set(USE_FLAGS "-s USE_SDL=2 -s FULL_ES3=1 -s OFFSCREEN_FRAMEBUFFER=1")
-set(USE_FLAGS "${USE_FLAGS} -s MIN_WEBGL_VERSION=1 -s MAX_WEBGL_VERSION=2")
-set(USE_FLAGS "${USE_FLAGS} -s -sASSERTIONS -sALLOW_MEMORY_GROWTH")
+set(LINKER_FLAGS "-s USE_SDL=2 -s FULL_ES3=1 -s OFFSCREEN_FRAMEBUFFER=1")
+set(LINKER_FLAGS "${LINKER_FLAGS} -s MIN_WEBGL_VERSION=1 -s MAX_WEBGL_VERSION=2")
+set(LINKER_FLAGS "${LINKER_FLAGS} -s ASSERTIONS=0 -s ALLOW_MEMORY_GROWTH=1")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS}  --embed-file ../Resources --embed-file ../external/lygia")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${USE_FLAGS} --embed-file ../Resources --embed-file ../external/lygia")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
+set(LINKER_FLAGS "${LINKER_FLAGS} --profiling --embed-file ../Resources --embed-file ../external/lygia")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${LINKER_FLAGS}")
 set(CMAKE_EXECUTABLE_SUFFIX .html)
 else()
 endif()
-
 include_directories(SYSTEM external/stbimage)
 
 
