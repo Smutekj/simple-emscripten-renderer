@@ -17,13 +17,7 @@ utils::Vector2i RenderTarget::getSize() const
 void RenderTarget::bind()
 {
     glBindFramebuffer(GL_FRAMEBUFFER, m_target_handle);
-    glCheckErrorMsg("hi");
-    
-    auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE)
-    {
-        std::cout << "FRAMEBUFFER NOT COMPLETE!\n";
-    }
+    glCheckError();   
 }
 
 //! \brief clears the target Color and Depth buffers 
