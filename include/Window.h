@@ -19,6 +19,7 @@ public:
     void close();
 
     void setSize(int width, int height);
+    void onResize();
 
 private:
     bool m_should_close = false;

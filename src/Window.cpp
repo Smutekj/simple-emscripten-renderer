@@ -67,6 +67,11 @@ SDL_GLContext *Window::getContext()
 
 void Window::setSize(int width, int height)
 {
+    SDL_SetWindowSize(m_handle, width, height);
+    onResize();
+}
+void Window::onResize()
+{
     SDL_GetWindowSize(m_handle, &m_target_size.x, &m_target_size.y);
     glViewport(0,0,m_target_size.x, m_target_size.y);
 }
