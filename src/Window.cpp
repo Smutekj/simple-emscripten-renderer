@@ -68,8 +68,7 @@ SDL_GLContext *Window::getContext()
 void Window::setSize(int width, int height)
 {
     SDL_GetWindowSize(m_handle, &m_target_size.x, &m_target_size.y);
-    auto surface = SDL_GetWindowSurface(m_handle);
-    SDL_UpdateWindowSurface(m_handle);
+    glViewport(0,0,m_target_size.x, m_target_size.y);
 }
 
 //! \brief closes the window
