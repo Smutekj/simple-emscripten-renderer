@@ -25,6 +25,7 @@ UI::UI(Window &window,TextureHolder &textures,
     // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    glCheckErrorMsg("Error in Imgui context creation");
     ImGuiIO &io = ImGui::GetIO();
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
@@ -33,6 +34,7 @@ UI::UI(Window &window,TextureHolder &textures,
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(window.getHandle(), window.getContext());
     ImGui_ImplOpenGL3_Init();
+    glCheckErrorMsg("Error In ImGUI SDL2-Opengl context intiialization");
 
     auto shaders_window = std::make_unique<ShadersWindow>(textures, slots);
 
