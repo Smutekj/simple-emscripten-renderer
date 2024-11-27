@@ -34,26 +34,26 @@ public:
     ~VertexArray();
 
     void resize(int n_verts);
-
-    void init();
+    std::size_t size() const;
 
     void draw(View &view);
-
     void draw(View& view, const std::vector<IndexType>& indices);
 
     void setTexture(Texture &texture);
-    
     void setTexture(int slot, GLuint);
 
     void setShader(Shader &Shader);
-
-    std::size_t size() const;
+    GLuint getShaderId()const;
 
     Vertex &operator[](int i);
 
     Vertex* data();
 
-    GLuint getShaderId()const;
+
+    private:
+    void createBuffers();
+    void updateBufferData();
+    void initialize();
 
 public:     
     GLenum m_primitives = GL_TRIANGLES; //! 
@@ -72,7 +72,7 @@ private:
 
     DrawType m_draw_type = DrawType::Dynamic;
 
-    bool m_needs_gl_buffer_update = false;
+    bool m_needs_new_gl_buffer = false;
 };
 
 
