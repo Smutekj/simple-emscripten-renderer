@@ -94,6 +94,7 @@ bool Font::loadFromFile(std::string font_filename)
 
     unsigned int textures[128];
     glGenTextures(128, textures);
+    glCheckError();
 
     int safety_pixels_x = 3;
     int safety_pixels_y = 10;
@@ -117,21 +118,27 @@ bool Font::loadFromFile(std::string font_filename)
         FT_Render_Glyph(slot, FT_RENDER_MODE_SDF); 
 
         glBindTexture(GL_TEXTURE_2D, textures[c]);
+        glCheckError();
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
-            GL_ALPHA,
+            GL_R8,
             face->glyph->bitmap.width,
             face->glyph->bitmap.rows,
             0,
-            GL_ALPHA,
+            GL_RED,
             GL_UNSIGNED_BYTE,
             face->glyph->bitmap.buffer);
         // set texture options
+        glCheckError();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glCheckError();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glCheckError();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glCheckError();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glCheckError();
 
         Character character =
             {
