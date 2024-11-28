@@ -140,8 +140,9 @@ bool TextureHolder::add(std::string texture_name, std::string texture_filename)
                   << texture_name << "\n";
         return false;
     }
+
     auto tex = std::make_shared<Texture>();
-    tex->loadFromFile(texture_filename);
+    tex->loadFromFile(m_resources_path.string() + texture_filename);
     m_textures[texture_name] = std::move(tex);
     return true;
 }
@@ -157,4 +158,19 @@ std::shared_ptr<Texture> TextureHolder::get(std::string name)
 std::map<std::string, std::shared_ptr<Texture>> &TextureHolder::getTextures()
 {
     return m_textures;
+}
+
+
+//! \brief sets base path for searching shaders when loading
+//! \param directory    path to a directory
+//! \returns true if the \p directory is actually an existing directory, otherwise returns false
+bool TextureHolder::setBaseDirectory(std::filesystem::path directory)
+{
+    if (!std::filesystem::exists(directory) || !std::filesystem::is_directory(directory))
+    {
+        return false;
+    }
+
+    m_resources_path = directory;
+    return true;
 }

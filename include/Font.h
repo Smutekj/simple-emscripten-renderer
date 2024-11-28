@@ -32,8 +32,8 @@ class Renderer;
 class Font
 {
 public:
-    Font(std::string font_filename);
-    bool loadFromFile(std::string font_filename);
+    Font(std::filesystem::path font_filename);
+    bool loadFromFile(std::filesystem::path font_filename);
     Texture& getTexture();
 
 private:

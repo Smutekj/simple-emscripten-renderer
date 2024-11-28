@@ -3,6 +3,7 @@
 #include "IncludesGl.h"
 #include "Vertex.h"
 
+#include <filesystem>
 #include <string>
 #include <memory>
 #include <map>
@@ -113,6 +114,9 @@ public:
     std::shared_ptr<Texture> get(std::string name);
     std::map<std::string, std::shared_ptr<Texture>>& getTextures();
 
+    bool setBaseDirectory(std::filesystem::path directory);
+
 private:
     std::map<std::string, std::shared_ptr<Texture>> m_textures;
+    std::filesystem::path m_resources_path;
 };

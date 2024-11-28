@@ -124,8 +124,11 @@ int Batch::getFreeVerts() const
 //! \brief since all sprites are assumed to be rectangles,
 void SpriteBatch::createBuffers()
 {
+    glCheckError();
     glGenBuffers(1, &m_indices_buffer);
+    glCheckError();
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indices_buffer);
+    glCheckError();
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * 6, m_indices, GL_STATIC_DRAW);
     glCheckError();
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -191,8 +194,11 @@ void SpriteBatch::bindAttributes()
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
     glEnableVertexAttribArray(0);
+    glCheckErrorMsg("Error in bind attributes!");
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec2), (void *)(0 * sizeof(float)));
+    glCheckErrorMsg("YOU PROBABLY MADE CORE INSTEAD OF COMPATIBLITY CONTEXT!"); 
     glVertexAttribDivisor(0, 0);
+    glCheckErrorMsg("Error in bind attributes!");
 
     glBindBuffer(GL_ARRAY_BUFFER, m_transform_buffer);
     glEnableVertexAttribArray(1);
@@ -207,6 +213,7 @@ void SpriteBatch::bindAttributes()
     glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(7 * sizeof(float)));
     glEnableVertexAttribArray(6);
     glVertexAttribPointer(6, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(Trans), (void *)(9 * sizeof(float)));
+    glCheckErrorMsg("Error in bind attributes!");
 
     glVertexAttribDivisor(1, 1);
     glVertexAttribDivisor(2, 1);
@@ -214,7 +221,7 @@ void SpriteBatch::bindAttributes()
     glVertexAttribDivisor(4, 1);
     glVertexAttribDivisor(5, 1);
     glVertexAttribDivisor(6, 1);
-    glCheckError();
+    glCheckErrorMsg("Error in bind attributes!");
 }
 
 //! \brief sends data to transform buffer and binds attributes
@@ -262,6 +269,7 @@ void SpriteBatch::flush(View &view)
 
     //! THE ACTUAL DRAW CALL (YAY!)
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indices_buffer);
+    glCheckError();
     glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, m_end);
     glCheckError();
 

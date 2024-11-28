@@ -8,7 +8,7 @@ void Font::initialize()
 
 //! \brief creates a font from a path to a file
 //! \param font_filename path to a font file
-Font::Font(std::string font_filename)
+Font::Font(std::filesystem::path font_filename)
 {
     TextureOptions options;
     options.data_type = TextureDataTypes::UByte;
@@ -22,13 +22,15 @@ Font::Font(std::string font_filename)
     using Path = std::filesystem::path;
     Path shaders_path(__FILE__);
     shaders_path.remove_filename();
+    shaders_path = shaders_path.append("../Resources/Shaders/");
+    m_canvas->setShadersPath(shaders_path);
     m_canvas->addShader("Text",
                         "basicinstanced.vert",
                         "text.frag");
 
     if (!loadFromFile(font_filename))
     {
-        throw std::runtime_error("FONT FILE " + font_filename + " NOT FOUND!");
+        throw std::runtime_error("FONT FILE " + font_filename.string() + " NOT FOUND!");
     }
 }
 
@@ -53,10 +55,8 @@ void static printBuffer(const FT_Face &face)
 
 //! \brief loads font from the specified file  
 //! \return true if font was succesfully loaded
-bool Font::loadFromFile(std::string font_filename)
+bool Font::loadFromFile(std::filesystem::path font_file)
 {
-    std::string font_fullpath = "../Resources/Fonts/" + font_filename;
-
     FT_Library ft;
     if (FT_Init_FreeType(&ft))
     {
@@ -65,7 +65,7 @@ bool Font::loadFromFile(std::string font_filename)
     }
 
     FT_Face face;
-    if (FT_New_Face(ft, font_fullpath.c_str(), 0, &face))
+    if (FT_New_Face(ft, font_file.c_str(), 0, &face))
     {
         // spdlog::error("FREETYPE: Failed to load font");
         return false;
