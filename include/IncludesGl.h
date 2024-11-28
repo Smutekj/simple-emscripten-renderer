@@ -7,11 +7,9 @@
 #include <GLES3/gl3platform.h>
 #include <GLES3/gl3.h>
 #else
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengles2.h>
-#include <GLES3/gl3platform.h>
-#include <GLES3/gl3.h>
-#include <GLES3/gl3ext.h>
+#include <glad/gl.h>
+#include <SDL.h>
+#include <SDL_opengl.h>
 #endif
 
 #include <vector>
