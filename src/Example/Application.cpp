@@ -18,28 +18,6 @@ struct ShaderUniform
     UniformType value;
 };
 
-// void Application::initializeSimulation()
-// {
-//     m_swirl_renderer1.addShader("swirl", "basicinstanced.vert", "swirl.frag");
-//     m_vel_initializer.addShader("SwirlInit", "basicinstanced.vert", "velFieldInit.frag");
-
-//     auto &simulation_canvas = m_slots.at(0).m_canvas;
-//     auto &simulation_pixels = m_slots.at(0).m_pixels;
-//     //! draw initial condition to buffer 2
-//     Sprite buffer_Sprite(b1.getTexture());
-//     utils::Vector2f slot_size = {simulation_pixels.getSize().x, simulation_pixels.getSize().y};
-//     buffer_Sprite.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
-//     buffer_Sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
-//     simulation_canvas.m_view.setCenter(buffer_Sprite.getPosition().x, buffer_Sprite.getPosition().y);
-//     simulation_canvas.m_view.setSize(slot_size.x, slot_size.y);
-//     simulation_canvas.drawSprite(buffer_Sprite, "rhoFieldInit", GL_DYNAMIC_DRAW);
-//     simulation_canvas.drawAll();
-
-//     m_vel_initializer.m_view.setCenter(buffer_Sprite.getPosition().x, buffer_Sprite.getPosition().y);
-//     m_vel_initializer.m_view.setSize(slot_size.x, slot_size.y);
-//     m_vel_initializer.drawSprite(buffer_Sprite, "SwirlInit", GL_DYNAMIC_DRAW);
-//     m_vel_initializer.drawAll();
-// }
 
 template <class... UniformType>
 void setUniforms(Shader &program, ShaderUniform<UniformType> &...values)
@@ -59,6 +37,7 @@ Application::Application(int width, int height) : m_window(width, height),
 {
 
     m_test_font = std::make_shared<Font>("arial.ttf");
+    glCheckErrorMsg("ERROR IN FONT CREATION!");
 
     int n_slots_x = 2;
     int n_slots_y = 2;
@@ -88,7 +67,7 @@ Application::Application(int width, int height) : m_window(width, height),
     m_window_renderer.addShader("Instanced", "basicinstanced.vert", "texture.frag");
     m_window_renderer.addShader("Text", "basicinstanced.vert", "textBorder.frag");
     m_window_renderer.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
-
+    glCheckErrorMsg("Error in Shaders creation!");
 
     auto texture_filenames = extractNamesInDirectory(path, ".png");
     for (auto &texture_filename : texture_filenames)
@@ -109,7 +88,9 @@ Application::Application(int width, int height) : m_window(width, height),
     m_view.setCenter(m_window.getSize().x / 2, m_window.getSize().y / 2);
     m_window_renderer.m_view = m_view;
 
+    glCheckErrorMsg("Error in UI Creation");
     m_ui = std::make_unique<UI>(m_window, m_textures, m_slots);
+    glCheckErrorMsg("Error in UI Creation");
 
     m_particles = std::make_unique<Particles>(2000);
     m_particles->setLifetime(2.f);
@@ -321,6 +302,7 @@ void Application::update(float dt)
     test_text.setColor({255, 0,255,255});
 
     m_window_renderer.getShaders().refresh();
+    glCheckError();
 
     auto mouse_coords = m_window_renderer.getMouseInWorld();
     Sprite test_sprite(m_test_font->getTexture());//*m_textures.get("arrow"));
@@ -366,6 +348,7 @@ void Application::update(float dt)
     // m_window_renderer.drawAll();
 
     m_ui->draw(m_window);
+    glCheckErrorMsg("Error in UI Draw!");
 }
 
 void inline gameLoop(void *mainLoopArg)
