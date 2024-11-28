@@ -34,7 +34,6 @@ using UniformType = std::variant<float, bool, int, glm::vec4, glm::vec3, glm::ve
 
 //! \struct VariablesData
 //! \brief contains mappings from uniform names of uniforms and textures in corresponding shader
-
 struct VariablesData
 {
     std::unordered_map<std::string, UniformType> uniforms;
@@ -153,9 +152,13 @@ public:
 
     void initializeUniforms();
 
+    bool setBaseDirectory(std::filesystem::path dir);
+
 private:
     ShaderMap m_shaders;
     ShaderUIDataMap m_shader_data;
+
+    std::filesystem::path m_resources_path = "../Resources/Shaders/";
 };
 
 std::vector<std::string> inline separateLine(std::string line, char delimiter = ' ');

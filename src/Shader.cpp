@@ -132,8 +132,8 @@ void ShaderHolder::load(const std::string &name,
         m_shader_data.erase(name);
     }
 
-    std::filesystem::path vertex_path = "../Resources/Shaders/" + vertex_filename; //! no idea if this works on windows?????
-    std::filesystem::path fragment_path = "../Resources/Shaders/" + fragment_filename;
+    std::filesystem::path vertex_path = m_resources_path.string() + vertex_filename; //! no idea if this works on windows?????
+    std::filesystem::path fragment_path = m_resources_path.string() + fragment_filename;
 
     m_shaders[name] = std::make_unique<Shader>(vertex_path, fragment_path);
     auto &shader = m_shaders.at(name);
@@ -439,7 +439,7 @@ void Shader::use()
     glCheckError();
 }
 
-// utility uniform functions
+//! utility uniform functions
 void Shader::setBool(const std::string &name, bool value) const
 {
     glUniform1i(glGetUniformLocation(m_id, name.c_str()), (int)value);
@@ -471,7 +471,6 @@ void Shader::setVec2(const std::string &name, float x, float y) const
 void Shader::setVec3(const std::string &name, const glm::vec3 &value) const
 {
     glUniform3fv(glGetUniformLocation(m_id, name.c_str()), 1, &value[0]);
-    glCheckError();
 }
 void Shader::setVec3(const std::string &name, float x, float y, float z) const
 {
@@ -522,51 +521,6 @@ ShaderUIData::ShaderUIData(Shader &program)
 {
     last_write_time = std::filesystem::last_write_time(filename);
 }
-
-// template <class ValueType>
-// constexpr void Shader::setUniform(const std::string &name, const ValueType &value)
-// {
-
-//     if constexpr (std::is_same_v<ValueType, float>)
-//     {
-//         setFloat(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, bool>)
-//     {
-//         setBool(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, int>)
-//     {
-//         setInt(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::vec2>)
-//     {
-//         setVec2(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::vec3>)
-//     {
-//         setVec3(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::vec4>)
-//     {
-//         setVec4(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::mat2>)
-//     {
-//         setMat2(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::mat3>)
-//     {
-//         setMat3(name, value);
-//     }
-//     else if (std::is_same_v<ValueType, glm::mat4>)
-//     {
-//         setMat4(name, value);
-//     }else
-//     {
-
-//     }
-// }
 
 void ShaderHolder::erase(const std::string &shader_id)
 {
@@ -658,7 +612,6 @@ UniformType extractValue(std::string type_string, std::string initial_value)
     }
     else
     { //! we set value to
-
         auto value_string = trim(initial_value);
         if (type_string == "float")
         {
@@ -694,4 +647,18 @@ UniformType extractValue(std::string type_string, std::string initial_value)
         }
     }
     return value;
+}
+
+//! \brief sets base path for searching shaders when loading
+//! \param directory    path to a directory
+//! \returns true if the \p directory is actually an existing directory, otherwise returns false
+bool ShaderHolder::setBaseDirectory(std::filesystem::path directory)
+{
+    if (std::filesystem::exists(directory) && std::filesystem::is_directory(directory))
+    {
+        m_resources_path = directory;
+        return true;
+    }
+
+    return false;
 }

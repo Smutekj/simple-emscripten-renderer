@@ -64,8 +64,7 @@ public:
     void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 32);
     void drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f& scale, Color color, int n_verts = 51, std::string shader_id = "VertexArrayDefault");
     void drawVertices(VertexArray &verts, DrawType draw_type = DrawType::Dynamic, std::shared_ptr<Texture> p_texture = nullptr);
-
-    //! \brief draws everything into RenderTarget and clears non-static batches. 
+ 
     void drawAll();
 
     utils::Vector2i getTargetSize() const;
@@ -83,9 +82,9 @@ public:
 
     View getDefaultView()const;
 
+    bool setShadersPath(std::filesystem::path directory);
+
 private:
-    void drawSpriteStatic(Vec2 center, Vec2 scale, float angle, Rect<int> tex_rect,
-                          Texture &texture, Shader &shader);
     void drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect, Vec2 texture_size,
                     TextureArray &textures, const std::string& shader_id, DrawType draw_type);
     

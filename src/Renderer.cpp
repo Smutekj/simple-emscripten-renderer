@@ -147,7 +147,6 @@ void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_
     }
     Sprite glyph_sprite(font->getTexture());
 
-
     auto text_scale = text.getScale();
     auto center_pos = text.getPosition();
     auto line_pos = center_pos;
@@ -177,16 +176,14 @@ void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_
     auto bounding_box = text.getBoundingBox();
     line_pos = {bounding_box.pos_x, bounding_box.pos_y};
     utils::Vector2f text_size = {bounding_box.width, bounding_box.height};
-    if(text.m_draw_bounding_box)
+    if (text.m_draw_bounding_box)
     {
         drawLineBatched(line_pos, {line_pos.x + text_size.x, line_pos.y}, 1, {0, 1, 0, 1});
         drawLineBatched({line_pos.x + text_size.x, line_pos.y}, {line_pos.x + text_size.x, line_pos.y + text_size.y}, 1, {0, 1, 0, 1});
         drawLineBatched({line_pos.x + text_size.x, line_pos.y + text_size.y}, {line_pos.x, line_pos.y + text_size.y}, 1, {0, 1, 0, 1});
         drawLineBatched({line_pos.x, line_pos.y + text_size.y}, line_pos, 1, {0, 1, 0, 1});
     }
-
 }
-
 
 //! \brief draws Sprite defined by:
 //! \param center coordinate of the center
@@ -380,6 +377,7 @@ void Renderer::drawVertices(VertexArray &verts, DrawType draw_type, std::shared_
 }
 
 //! \brief does GL calls for setting the blend function parameters
+//! \param params   OpenGL blend equation parameters
 static void setBlendFunc(BlendParams params = {})
 {
     auto df = static_cast<GLuint>(params.dst_factor);
@@ -388,6 +386,15 @@ static void setBlendFunc(BlendParams params = {})
     auto sa = static_cast<GLuint>(params.src_alpha);
 
     glBlendFuncSeparate(sf, df, sa, da);
+    glCheckErrorMsg("Error in glBlendFuncSeparate!");
+}
+
+//! \brief sets base directory used for finding shader files
+//! \param directory
+//! \returns true if directory exists, otherwise returns false
+bool Renderer::setShadersPath(std::filesystem::path directory)
+{
+    return m_shaders.setBaseDirectory(directory);
 }
 
 //! \brief draws all the batched calls into a associated RenderTarget
