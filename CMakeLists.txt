@@ -30,18 +30,35 @@ FetchContent_Declare(
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSDL_TEST_LIBRARY=OFF -DSDL2_DISABLE_INSTALL=ON")
 FetchContent_MakeAvailable(SDL2)
 
+FetchContent_Declare(
+    glad
+    GIT_REPOSITORY https://github.com/Dav1dde/glad
+    GIT_TAG        v2.0.6
+    GIT_SHALLOW    TRUE
+    GIT_PROGRESS   TRUE
+)
+FetchContent_GetProperties(glad)
+if(NOT glad_POPULATED)
+    message("Fetching glad")
+    FetchContent_MakeAvailable(glad)
+
+    add_subdirectory("${glad_SOURCE_DIR}/cmake" glad_cmake)
+    glad_add_library(glad STATIC  API gl:compatibility=4.6)
+    include_directories(SYSTEM ${GLAD_DIR}/include)
+endif()
+
+
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
 set(USE_FLAGS "-s USE_SDL=2 -s FULL_ES3=1 -s OFFSCREEN_FRAMEBUFFER=1")
 set(USE_FLAGS "${USE_FLAGS} -s MIN_WEBGL_VERSION=1 -s MAX_WEBGL_VERSION=2")
 set(USE_FLAGS "${USE_FLAGS} -s ASSERTIONS=0 -s ALLOW_MEMORY_GROWTH=1")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS} --profiling --embed-file ../Resources --embed-file ../external/lygia")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS} --profiling --embed-file ${CMAKE_SOURCE_DIR}/Resources --embed-file ${CMAKE_SOURCE_DIR}/external/lygia")
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
 set(CMAKE_EXECUTABLE_SUFFIX .html)
 else()
 endif()
 include_directories(SYSTEM external/stbimage)
-
 
 file(GLOB HDR
      "include/*.h"
@@ -62,7 +79,7 @@ include_directories(SYSTEM external/freetype)
 
 add_library(${PROJECT_NAME} STATIC)
 target_sources(${PROJECT_NAME} PRIVATE ${SRC})
-target_link_libraries(${PROJECT_NAME} glm GLESv2 SDL2 freetype)
+target_link_libraries(${PROJECT_NAME} PUBLIC SDL2 glm freetype glad)
 target_include_directories(${PROJECT_NAME}
     PUBLIC 
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -79,9 +96,9 @@ target_include_directories(${PROJECT_NAME}
 
 if(BUILD_EXAMPLE)
 
-    add_executable(Example src/Example/main.cpp src/Example/Application.h src/Example/Application.cpp 
-      src/Example/ShaderUI.h src/Example/ShaderUI.cpp )
-    target_link_libraries(Example  ${PROJECT_NAME} GLESv2 ) ## DO NOT FORGET GLESv2!!!!
+add_executable(ExampleText Examples/Text/main.cpp Examples/Text/Application.h Examples/Text/Application.cpp)
+target_link_libraries(ExampleText  ${CMAKE_PROJECT_NAME} )
+# add_subdirectory(Examples)
 endif()
 
 
