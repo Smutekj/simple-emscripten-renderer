@@ -44,11 +44,13 @@ jobs:
             c_compiler: cl
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Setup Python
-    - uses: actions/setup-python@v5
+      uses: actions/setup-python@v5
       with:
         python-version: '3.13' 
+    - name: Display Python version
+      run: pip3 install jinja 
     - name: Install Packages
       shell: bash
       run: |
