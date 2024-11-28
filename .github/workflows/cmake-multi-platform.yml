@@ -49,15 +49,8 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
-    # - name: Install Mesa
-    #   shell: cmd
-    #   run: |
-    #     curl.exe -L --output mesa.7z --url https://github.com/pal1000/mesa-dist-win/releases/download/20.3.2/mesa3d-20.3.2-release-msvc.7z
-    #     "C:\Program Files\7-Zip\7z.exe" x mesa.7z
-    #     mklink opengl32.dll "x64\opengl32.dll"
-    #     mklink libglapi.dll "x64\libglapi.dll"
-    #   working-directory: build\tests\Debug
-
+        cache: 'pip' # caching pip dependencies
+    - run: pip install jinja
     - name: Install Packages
       shell: bash
       run: |
@@ -65,13 +58,9 @@ jobs:
         if [ "$RUNNER_OS" == "Linux" ]; then                 
           sudo apt-get install --fix-missing libgl1-mesa-dev  
         elif [ "$RUNNER_OS" == "Windows" ]; then             
-          # choco install python3 winflexbison pkgconfiglite  
-          # choco install ninja mingw                         
-          # py -3 -m pip install meson packaging mako         
-          # meson setup builddir --backend=vs                   
-          # cd builddir                                       
-          # msbuild mesa.sln /m                 
-          echo "HELLO"              
+          choco install python3 winflexbison pkgconfiglite  
+          choco install ninja                         
+          py -3 -m pip install jinja          
         else                                                  
           echo "$RUNNER_OS not supported"                     
           exit 1                                              
