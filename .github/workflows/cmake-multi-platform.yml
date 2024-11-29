@@ -30,6 +30,7 @@ jobs:
             c_compiler: cl
             cpp_compiler: cl
             environment_script: "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+            build_type: Release
           - os: ubuntu-latest
             c_compiler: gcc
             cpp_compiler: g++
