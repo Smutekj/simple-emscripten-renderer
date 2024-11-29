@@ -51,8 +51,8 @@ class Shader
 
 public:
     Shader() = default;
-    Shader(const std::string &vertex_path, const std::string &fragment_path);
-    Shader(const std::string &vertex_path, const std::string &fragment_path, const std::string &shader_name);
+    Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path);
+    Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path, const std::string &shader_name);
     ~Shader();
 
     VariablesData &getVariables();
