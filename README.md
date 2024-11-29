@@ -12,22 +12,31 @@ A 2D batch renderer using OpenGL ES 2 (and some features of ES 3) in order to ma
 The whole point of this was for me to learn how OpenGL, how to do post-effects and to make some projects for my portfolio.
 
 **Build**
-
-CMake:
-
-if being used as a library add:
-```
-
-```
-into your CMakeLists.txt
-Do not forget to add the renderer into target_link_libraries(...);
-
+The build is done using CMake and should work on Linux and Windows (Possibly even on Mac, but I have no comfortable way of testing):
 
 ```
 mkdir build
 cd build
 cmake .. -B . -DBUILD_EXAMPLE=ON
-make 
+cmake --build . --config Release 
+```
+The build creates a static library in the corresponding RUNTIME_OUTPUT_DIRECTORY.
+
+**CMake**
+If you want to use it as a library in your project, the best way is to use FetchContent in CMake.
+Add this into your CMakeLists.txt
+```
+include(FetchContent)
+FetchContent_Declare(
+  Renderer
+  GIT_REPOSITORY  https://github.com/Smutekj/simple-emscripten-renderer
+  GIT_TAG  master 
+)
+FetchContent_MakeAvailable(Renderer)
 ```
 
-
+Lastly, do not forget to add:
+```
+target_link_libraries(YOUR_TARGET ...other deps... Renderer) 
+```
+into your projects CMakeLists.txt.
