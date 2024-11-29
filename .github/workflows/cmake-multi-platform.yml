@@ -57,9 +57,8 @@ jobs:
           sudo apt-get install --fix-missing libgl1-mesa-dev  
           pip3 install jinja2
         elif [ "$RUNNER_OS" == "Windows" ]; then             
-          choco install python3 winflexbison pkgconfiglite  
           choco install ninja                         
-          py -3 -m pip install jinja          
+          pip3 install jinja2          
         else                                                  
           echo "$RUNNER_OS not supported"                     
           exit 1                                              
@@ -82,7 +81,7 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration. Note that --config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
-      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }}
+      run: cmake --build ${{ steps.strings.outputs.build-output-dir }} --config ${{ matrix.build_type }} --parallel 6
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
