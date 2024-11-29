@@ -55,7 +55,7 @@ jobs:
         echo "OS IS: $RUNNER_OS"                              
         if [ "$RUNNER_OS" == "Linux" ]; then                 
           sudo apt-get install --fix-missing libgl1-mesa-dev  
-          py3 -m pip3 install jinja
+          pip3 install jinja2
         elif [ "$RUNNER_OS" == "Windows" ]; then             
           choco install python3 winflexbison pkgconfiglite  
           choco install ninja                         
