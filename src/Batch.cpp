@@ -21,7 +21,7 @@ Batch::Batch(const BatchConfig &config, Shader &shader, DrawType draw_type)
     m_indices.reserve(m_capacity * 3);
     std::for_each(config.texture_ids.begin(), config.texture_ids.end(), [&config, this](auto &id)
                   {
-        int slot = &id - config.texture_ids.begin();
+        int slot = (&id - &config.texture_ids[0]); //! very scetchy stuff :(
         m_verts.setTexture(slot, m_config.texture_ids.at(slot)); });
 }
 

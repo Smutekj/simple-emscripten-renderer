@@ -65,7 +65,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
     }
 
     FT_Face face;
-    if (FT_New_Face(ft, font_file.c_str(), 0, &face))
+    if (FT_New_Face(ft, font_file.string().c_str(), 0, &face))
     {
         // spdlog::error("FREETYPE: Failed to load font");
         return false;
