@@ -11,6 +11,7 @@
 #include <Window.h>
 #include <Renderer.h>
 #include <Font.h>
+#include <Particles.h>
 
 void gameLoop(void *mainLoopArg);
 
@@ -59,7 +60,11 @@ private:
 
     float m_time = 0.f;
 
-    Color m_rect_color = {30, 0, 20, 1};
+    std::unique_ptr<Particles> m_particles;
+    std::unique_ptr<TexturedParticles> m_tex_particles;
+
+    Color m_init_color = {30, 0, 20, 1};
+    Color m_final_color = {0, 10, 0, 1};
     Color m_background_color = {0, 0, 0, 1};
 
     // std::unique_ptr<UI> m_ui;

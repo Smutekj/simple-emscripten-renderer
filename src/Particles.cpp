@@ -172,19 +172,23 @@ utils::Vector2f Particles::getSpawnPos() const
     return m_spawn_pos;
 }
 
-    bool Particles::getRepeat() const
-    {
-        return m_repeats;
-    }
+bool Particles::getRepeat() const
+{
+    return m_repeats;
+}
 
-        void Particles::setShader(const std::string &shader_id)
-    {
-        m_shader_id = shader_id;
-    }
+void Particles::setShader(const std::string &shader_id)
+{
+    m_shader_id = shader_id;
+}
 
+TexturedParticles::TexturedParticles(int n_parts)
+    : Particles(n_parts)
+{
+}
 
-TexturedParticles::TexturedParticles(Texture &texture)
-    : m_texture(&texture), Particles(20)
+TexturedParticles::TexturedParticles(Texture &texture, int n_parts)
+    : m_texture(&texture), Particles(n_parts)
 {
 }
 

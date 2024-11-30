@@ -27,3 +27,11 @@ target_link_libraries(ExampleShaders  ${CMAKE_PROJECT_NAME} )
 add_executable(ExampleLayers DrawLayers/main.cpp DrawLayers/Application.h DrawLayers/Application.cpp
             DrawLayers/DrawLayer.h DrawLayers/DrawLayer.cpp DrawLayers/PostEffects.h DrawLayers/PostEffects.cpp )
 target_link_libraries(ExampleLayers  ${CMAKE_PROJECT_NAME} )
+
+add_executable(ExamplePostEffects PostEffects/main.cpp PostEffects/Application.h PostEffects/Application.cpp
+PostEffects/DrawLayer.h PostEffects/DrawLayer.cpp PostEffects/PostEffects.h PostEffects/PostEffects.cpp )
+target_link_libraries(ExamplePostEffects  ${CMAKE_PROJECT_NAME} )
+
+add_executable(ExampleParticles Particles/main.cpp Particles/Application.h Particles/Application.cpp
+Particles/DrawLayer.h Particles/DrawLayer.cpp Particles/PostEffects.h Particles/PostEffects.cpp )
+target_link_libraries(ExampleParticles  ${CMAKE_PROJECT_NAME} )

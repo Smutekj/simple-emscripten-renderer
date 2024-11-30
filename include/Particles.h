@@ -104,7 +104,8 @@ class TexturedParticles : public Particles
 {
 
 public:
-    explicit TexturedParticles(Texture &texture);
+    explicit TexturedParticles(int n_parts = 30);
+    TexturedParticles(Texture &texture, int n_parts = 30);
     virtual ~TexturedParticles() = default;
 
     virtual void draw(Renderer &r) override;

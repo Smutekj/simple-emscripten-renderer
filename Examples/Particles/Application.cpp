@@ -85,6 +85,28 @@ Application::Application(int width, int height) : m_window(width, height),
     initializeLayers();
     initializeUI();
 
+    m_particles = std::make_unique<Particles>(100);
+
+    m_particles->setEmitter([](const auto& spawn_pos)
+    {
+        Particle p;
+        p.pos = spawn_pos;
+        p.vel = {randf(-50, 50), randf(-50, 50)};
+        p.acc = 0.5f * p.vel / utils::norm(p.vel); 
+        p.scale = 20.;
+        p.life_time = 1.f;
+        return p;
+    });
+    m_particles->setUpdater([](Particle& particle, float dt = 0.016f)
+    {
+        particle.vel += particle.acc * dt;
+        particle.pos += particle.vel * dt;
+        particle.angle += 0.8f;
+    });
+
+    m_tex_particles = std::make_unique<TexturedParticles>(100);
+    m_tex_particles->setTexture(*m_textures.get("star"));
+
     //! set view and add it to renderers
     m_view.setSize(m_window.getSize().x, m_window.getSize().y);
     m_view.setCenter(m_window.getSize().x / 2, m_window.getSize().y / 2);
@@ -133,9 +155,10 @@ void Application::drawUI()
     ImGui::End();
 
     ImGui::SetNextWindowPos({0, 200});
-    ImGui::SetNextWindowSize({400, 350});
+    ImGui::SetNextWindowSize({400, 369});
     ImGui::Begin("Colors");
-    ImGui::InputFloat4("Sprite Color", &m_rect_color.r);
+    ImGui::InputFloat4("Init Color", &m_init_color.r);
+    ImGui::InputFloat4("End Color", &m_final_color.r);
     ImGui::ColorPicker4("Background", &m_background_color.r);
     ImGui::End();
     ImGui::Render();
@@ -251,13 +274,14 @@ void Application::update(float dt)
     m_time += 0.016f;
     Shader::m_time = m_time;
 
+    m_particles->update(dt);
     auto *canvas2 = m_layers.getCanvasP(m_selected_layer_name);
     if (canvas2)
     {
-        RectangleSimple rect;
-        rect.setPosition(m_window_renderer.getDefaultView().getCenter());
-        rect.setScale(m_window_renderer.getDefaultView().getSize() / 8.f);
-        canvas2->drawRectangle(rect, m_rect_color);
+        m_particles->setInitColor(m_init_color);
+        m_particles->setFinalColor(m_final_color);
+        m_particles->setSpawnPos(mouse_coords);
+        m_particles->draw(*canvas2);
     }
 
     m_scene_canvas.clear(m_background_color);
@@ -289,7 +313,7 @@ void inline gameLoop(void *mainLoopArg)
     // auto tic = std::chrono::high_resolution_clock::now();
     Application *p_app = (Application *)mainLoopArg;
 
-    p_app->update(0);
+    p_app->update(0.016);
     p_app->handleInput();
 
     // Swap front/back framebuffers

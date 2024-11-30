@@ -16,7 +16,6 @@ struct RectangleSimple : public Transform
                                  //!< can be used in shaders
     const ColorByte &getColor() const;
     void setColor(ColorByte &color);
-
 };
 
 //! \struct Sprite
