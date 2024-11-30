@@ -17,7 +17,7 @@ The build is done using CMake and should work on Linux and Windows (Possibly eve
 ```
 mkdir build
 cd build
-cmake .. -B . -DBUILD_EXAMPLE=ON
+cmake .. -B . -DBUILD_EXAMPLES=ON
 cmake --build . --config Release 
 ```
 The build creates a static library in the corresponding RUNTIME_OUTPUT_DIRECTORY.
