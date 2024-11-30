@@ -1,4 +1,4 @@
-A 2D batch renderer using OpenGL ES 2 (and some features of ES 3) in order to make it possible to build into WebAssembly.
+A 2D batch renderer using OpenGL compatible with GLES 3 in order to make it possible to build into WebAssembly with [emscripten](https://emscripten.org/).
 
 **Features**
 
