@@ -35,7 +35,7 @@ FrameBuffer::FrameBuffer(int width, int height, TextureOptions options)
 }
 
 //! \brief construct by specifying the buffer \p width and \p height
-//! \param width 
+//! \param width
 //! \param height
 FrameBuffer::FrameBuffer(int width, int height)
     : FrameBuffer(width, height, {})
@@ -69,16 +69,21 @@ void writeTextureToFile(std::filesystem::path path, std::string filename, FrameB
     int height = buffer.getSize().y;
     Image image(width, height);
     buffer.bind();
-    glReadPixels(0, 0, width, height, GL_RGBA, GL_HALF_FLOAT, image.data());
+    glCheckErrorMsg("Error in write texture to file");
+    glReadPixels(0, 0, width, height,
+                 static_cast<GLenum>(TextureFormat::RGBA),
+                 static_cast<GLenum>(TextureDataTypes::UByte),
+                 image.data());
 
+
+    int stride = 4 * width;
     auto full_path = (path.string() + filename);
-    int check = stbi_write_png(full_path.c_str(), width, height, 4, image.data(), 8 * width);
+    int check = stbi_write_png(full_path.c_str(), width, height, 4, image.data(), stride);
     if (check == 0)
     {
         std::cout << "ERROR WRITING FILE: " << full_path << "\n";
     }
 }
-
 
 Image::Image(int x, int y)
     : x_size(x), y_size(y), pixels(x * y)
