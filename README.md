@@ -53,5 +53,9 @@ cd build-web
 emcmake cmake .. -B . -DBUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Release
 emmake  make -j6
 ```
-If everything worked correctly there should be .html, .js, and .wasm files in the build folder. 
+If everything worked correctly there should be .html, .js, and .wasm files in the build folder.
+
+WARNING:
+If you are using resources and building with emscripten, DO NOT FORGET to add `--embed-file "path to resources"` flags to the linker and compiler. 
+See emscipten [docs](https://emscripten.org/docs/porting/files/packaging_files.html). (This warning is mostly for me :D)
 
