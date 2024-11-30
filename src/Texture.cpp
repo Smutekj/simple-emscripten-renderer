@@ -47,7 +47,7 @@ void Texture::invalidate()
     glCheckError();
 }
 
-//! \brief does the gl calls that set texture \p options 
+//! \brief does the gl calls that set texture \p options
 //! \param options  struct containing how the texture should be created
 void Texture::initialize(TextureOptions options)
 {
@@ -68,7 +68,7 @@ void Texture::initialize(TextureOptions options)
     glCheckError();
 }
 
-//! \brief creates the texture with dimensions \p width x \p height and \p options 
+//! \brief creates the texture with dimensions \p width x \p height and \p options
 //! \param width
 //! \param height
 //! \param options  struct containing how the texture should be created
@@ -160,7 +160,6 @@ std::map<std::string, std::shared_ptr<Texture>> &TextureHolder::getTextures()
     return m_textures;
 }
 
-
 //! \brief sets base path for searching shaders when loading
 //! \param directory    path to a directory
 //! \returns true if the \p directory is actually an existing directory, otherwise returns false
@@ -173,4 +172,9 @@ bool TextureHolder::setBaseDirectory(std::filesystem::path directory)
 
     m_resources_path = directory;
     return true;
+}
+
+const TextureOptions &Texture::getOptions() const
+{
+    return m_options;
 }

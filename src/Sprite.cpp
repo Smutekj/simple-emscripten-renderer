@@ -43,12 +43,12 @@ void Sprite::setTextureP(int slot, Texture *texture)
     m_tex_size = texture->getSize();
 }
 
-const ColorByte &Sprite::getColor() const
+const ColorByte &RectangleSimple::getColor() const
 {
     return m_color;
 }
 
-void Sprite::setColor(ColorByte &color)
+void RectangleSimple::setColor(ColorByte &color)
 {
     m_color = color;
 }

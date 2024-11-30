@@ -90,6 +90,8 @@ public:
     Vec2 getSize() const;
     GLuint getHandle() const;
 
+    const TextureOptions& getOptions()const;
+
 private:
     void invalidate();
     void initialize(TextureOptions options);
