@@ -13,5 +13,17 @@ else()
 endif()
 
 
+## TEXT
 add_executable(ExampleText Text/main.cpp Text/Application.h Text/Application.cpp)
 target_link_libraries(ExampleText  ${CMAKE_PROJECT_NAME} )
+
+add_executable(ExampleSprites Sprites/main.cpp Sprites/Application.h Sprites/Application.cpp)
+target_link_libraries(ExampleSprites  ${CMAKE_PROJECT_NAME} )
+
+add_executable(ExampleShaders Shaders/main.cpp Shaders/Application.h Shaders/Application.cpp
+                Shaders/ShaderUI.h Shaders/ShaderUI.cpp )
+target_link_libraries(ExampleShaders  ${CMAKE_PROJECT_NAME} )
+
+add_executable(ExampleLayers DrawLayers/main.cpp DrawLayers/Application.h DrawLayers/Application.cpp
+            DrawLayers/DrawLayer.h DrawLayers/DrawLayer.cpp DrawLayers/PostEffects.h DrawLayers/PostEffects.cpp )
+target_link_libraries(ExampleLayers  ${CMAKE_PROJECT_NAME} )

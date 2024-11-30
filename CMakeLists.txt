@@ -95,10 +95,7 @@ target_include_directories(${PROJECT_NAME}
 )
 
 if(BUILD_EXAMPLE)
-
-add_executable(ExampleText Examples/Text/main.cpp Examples/Text/Application.h Examples/Text/Application.cpp)
-target_link_libraries(ExampleText  ${CMAKE_PROJECT_NAME} )
-# add_subdirectory(Examples)
+add_subdirectory(Examples)
 endif()
 
 
