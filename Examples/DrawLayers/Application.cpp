@@ -37,7 +37,6 @@ void Application::initializeUI()
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
     // io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // IF using Docking Branch
 
-    ImGui::SetNextWindowSize({400,300}); 
 
     // Setup Platform/Renderer backends
     ImGui_ImplSDL2_InitForOpenGL(m_window.getHandle(), m_window.getContext());
@@ -108,6 +107,7 @@ void Application::drawUI()
     ImGui::NewFrame();
 
     ImGui::SetNextWindowPos({0,0});
+    ImGui::SetNextWindowSize({400,200}); 
     ImGui::Begin("Layers");
     for (auto [layer_name, depth] : m_layers.m_name2depth)
     {
@@ -127,6 +127,11 @@ void Application::drawUI()
     }
     ImGui::End();
 
+    ImGui::SetNextWindowPos({0,200});
+    ImGui::SetNextWindowSize({400,350}); 
+    ImGui::Begin("Colors");
+    ImGui::ColorPicker4("Rectangle Color", &m_rect_color.r);
+    ImGui::End();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
@@ -246,10 +251,9 @@ void Application::update(float dt)
     {
         RectangleSimple rect1;
         rect1.setPosition(mouse_coords);
-        rect1.setColor({255, });
         rect1.setScale(m_window_renderer.getDefaultView().getSize() / 8.f);
         canvas1->m_blend_factors = {BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha};
-        canvas1->drawRectangle(rect1, {m_rect_color});
+        canvas1->drawRectangle(rect1, m_rect_color);
     }
 
     auto *canvas2 = m_layers.getCanvasP("Layer2");

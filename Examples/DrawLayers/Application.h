@@ -53,7 +53,7 @@ private:
 
     float m_time = 0.f;
 
-    Color m_rect_color = {1,0,0,1};
+    Color m_rect_color = {1,0,0,0.5};
 
     // std::unique_ptr<UI> m_ui;
     std::shared_ptr<Font> m_font;

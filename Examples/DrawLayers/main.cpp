@@ -2,7 +2,7 @@
 
 int main(int argc, char** argv)
 {
-    Application app(800, 600);
+    Application app(1200, 800);
     app.run();
     return 0;
 }
