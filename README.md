@@ -1,4 +1,4 @@
-A 2D batch renderer using OpenGL ES 2 (and some features of ES 3) in order to make it possible to build into WebAssembly.
+A 2D batch renderer using OpenGL compatible with GLES 3 in order to make it possible to build into WebAssembly with [emscripten](https://emscripten.org/).
 
 **Features**
 
@@ -17,7 +17,7 @@ The build is done using CMake and should work on Linux and Windows (Possibly eve
 ```
 mkdir build
 cd build
-cmake .. -B . -DBUILD_EXAMPLE=ON
+cmake .. -B . -DBUILD_EXAMPLES=ON
 cmake --build . --config Release 
 ```
 The build creates a static library in the corresponding RUNTIME_OUTPUT_DIRECTORY.
@@ -40,3 +40,18 @@ Lastly, do not forget to add:
 target_link_libraries(YOUR_TARGET ...other deps... Renderer) 
 ```
 into your projects CMakeLists.txt.
+
+
+**Emscripten Build**
+(I have not tried this on Windows, because I don't need it. But on Linux it should work)
+To build with emscripten just activate the emscripten emsdk just as described in the emscripten [docs](https://emscripten.org/docs/getting_started/downloads.html).  
+
+If successfull, you should be able to use the `emcmake` and `emmake` commands.
+```
+mkdir build-web
+cd build-web
+emcmake cmake .. -B . -DBUILD_EXAMPLES=ON -DCMAKE_BUILD_TYPE=Release
+emmake  make -j6
+```
+If everything worked correctly there should be .html, .js, and .wasm files in the build folder. 
+
