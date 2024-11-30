@@ -93,7 +93,7 @@ target_include_directories(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/backends
 )
 
-if(BUILD_EXAMPLE)
+if(BUILD_EXAMPLES)
 add_subdirectory(Examples)
 endif()
 
