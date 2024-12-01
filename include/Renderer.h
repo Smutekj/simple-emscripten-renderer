@@ -49,8 +49,8 @@ class Font;
 //! drawAll() method should be used to do the actual GL calls and to do the actual screen drawing
 class Renderer
 {
-    using BatchPtr = std::unique_ptr<Batch>;
-    using SpriteBatchPtr = std::unique_ptr<SpriteBatch>;
+    using BatchPtr = std::shared_ptr<Batch>;
+    using SpriteBatchPtr = std::shared_ptr<SpriteBatch>;
 
 public:
     Renderer(RenderTarget &target);
