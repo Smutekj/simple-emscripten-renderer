@@ -576,16 +576,23 @@ bool ShaderHolder::setBaseDirectory(std::filesystem::path directory)
     return false;
 }
 
+
+//! \brief default constructs with resource path being __FILE__/../Resources/Shaders/
 ShaderHolder::ShaderHolder()
 {
     m_resources_path = std::filesystem::path{__FILE__};
     m_resources_path.remove_filename().append("../Resources/Shaders/");
 }
+
+//! \brief constructs with specified \p resources_path
+//! \param resources_path   path to directory where you store your shaders
 ShaderHolder::ShaderHolder(std::filesystem::path resources_path)
     : m_resources_path(resources_path)
 {
 }
 
+//! \brief removes shader with \p shader_id from the holder
+//! \param shader_id   id of the shader to be removed
 void ShaderHolder::erase(const std::string &shader_id)
 {
     m_shaders.erase(shader_id);
@@ -601,6 +608,8 @@ ShaderHolder::~ShaderHolder()
 {
 }
 
+//! \param shader_id   id of the shader to be removed
+//! \returns true if the \p shader_id is contained in the holder
 bool ShaderHolder::contains(const std::string &shader_id) const
 {
     return m_shaders.count(shader_id) > 0;
@@ -616,9 +625,14 @@ Shader &ShaderHolder::get(const std::string &id)
     return *m_shaders.at(id);
 }
 
+//! \brief calls glUseProgram() if the \p shader_id is contained
+//! \param shader_id   id of the shader to be removed
 void ShaderHolder::use(const std::string &id)
 {
-    m_shaders.at(id)->use();
+    if(contains(id))
+    {
+        m_shaders.at(id)->use();
+    }
 }
 
 //! \brief loads shader with id \p name
@@ -665,6 +679,8 @@ void ShaderHolder::initializeUniforms()
         extractUniformNames(m_shader_data.at(shader_name).variables, shader->getFragmentPath());
     }
 }
+
+//! \brief forces reload of all the shaders in the container
 void ShaderHolder::refresh()
 {
     std::vector<std::string> to_refresh;
