@@ -133,6 +133,9 @@ class ShaderHolder
     using ShaderUIDataMap = std::unordered_map<std::string, ShaderUIData>;
 
 public:
+    ShaderHolder();
+    ShaderHolder(std::filesystem::path resources_path);
+
     Shader &get(const std::string &id);
 
     void use(const std::string &id);
@@ -158,7 +161,7 @@ private:
     ShaderMap m_shaders;
     ShaderUIDataMap m_shader_data;
 
-    std::filesystem::path m_resources_path = "../Resources/Shaders/";
+    std::filesystem::path m_resources_path;
 };
 
 std::vector<std::string> inline separateLine(std::string line, char delimiter = ' ');

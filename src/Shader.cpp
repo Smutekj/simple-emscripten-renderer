@@ -522,6 +522,17 @@ ShaderUIData::ShaderUIData(Shader &program)
     last_write_time = std::filesystem::last_write_time(filename);
 }
 
+ShaderHolder::ShaderHolder()
+{
+    m_resources_path = std::filesystem::path{__FILE__};
+    m_resources_path.remove_filename().append("../Resources/Shaders/");
+}
+ShaderHolder::ShaderHolder(std::filesystem::path resources_path)
+    : m_resources_path(resources_path)
+{
+    
+}
+
 void ShaderHolder::erase(const std::string &shader_id)
 {
     m_shaders.erase(shader_id);
