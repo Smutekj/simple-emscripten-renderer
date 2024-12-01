@@ -26,38 +26,13 @@ enum class UIWindowType
 struct ShaderSlot
 {
 
-    ShaderSlot(int width, int height)
-        : m_pixels(width, height), m_canvas(m_pixels)
-    {
-    }
+    ShaderSlot(int width, int height);
 
-    utils::Vector2i getSize()
-    {
-        return m_pixels.getSize();
-    }
-
-    void draw(Sprite &test_sprite)
-    {
-
-        auto &shader = m_canvas.getShader(m_selected_shader);
-        for (auto &[texture_name, texture_data] : shader.getVariables().textures)
-        {
-            test_sprite.m_texture_handles.at(texture_data.slot) = texture_data.handle;
-        }
-
-        m_canvas.clear({1, 1, 1, 1});
-        m_canvas.drawSprite(test_sprite, m_selected_shader, DrawType::Dynamic);
-        m_canvas.drawAll();
-    }
-
-    GLuint getTextureHandle()
-    {
-        return m_pixels.getHandle();
-    }
-
-    void setTexture(int slot, GLuint handle)
-    {
-    }
+    void draw(Sprite &test_sprite);
+    
+    utils::Vector2i getSize();
+    GLuint getTextureHandle();
+    Texture& getTexture();
 
 public:
     FrameBuffer m_pixels;
@@ -140,8 +115,6 @@ private:
     std::vector<ShaderSlot> &m_slots;
 };
 
-
-
 class FrameBuffer;
 
 class UI
@@ -162,32 +135,7 @@ public:
     void showWindow();
     void draw(Window &window);
     void handleEvent(SDL_Event event);
-    bool simulationRunning() const
-    {
-        return m_simulation_on;
-    }
 
-    bool resetSimulation()
-    {
-        if (m_reset)
-        {
-            m_reset = false;
-            return true;
-        }
-        return false;
-    }
-
-    int getSimulationSlot()
-    {
-        return m_simulation_slot;
-    }
-
-    Color getParticleInitColor()const{
-        return m_particle_init_color;
-    }
-    Color getParticleEndColor()const{
-        return m_particle_end_color;
-    }
 
 private:
     int m_simulation_slot = 0;
@@ -195,7 +143,5 @@ private:
     bool m_reset = false;
     float value;
     utils::Vector2f m_mouse_coords_on_click;
-    Color m_particle_init_color = {1,0,0,1};
-    Color m_particle_end_color = {1,0,0,1};
     std::unordered_map<UIWindowType, UIWindowData> m_window_data;
 };

@@ -1,6 +1,6 @@
 #include "Application.h"
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     Application app(800, 600);
     app.run();
