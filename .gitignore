@@ -1,4 +1,5 @@
 # SDL
 /build*
-token.txt
 docs
+.vscode
+CMakePresets.json
