@@ -51,6 +51,7 @@ class Shader
 
 public:
     Shader() = default;
+    Shader(const std::string &vertex_shader_code, const std::string &frament_shader_code);
     Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path);
     Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path, const std::string &shader_name);
     ~Shader();
@@ -58,8 +59,11 @@ public:
     VariablesData &getVariables();
     GLuint getId() const;
     void recompile();
+    bool loadFromCode(const std::string &vertex_code, const std::string &fragment_code);
+
     const std::string &getFragmentPath();
     const std::string &getVertexPath();
+
     // use/activate the shader
     void use();
 
@@ -92,7 +96,7 @@ public:
 
     void setReloadOnChange(bool new_flag_value);
 
-    bool getReloadOnChange()const;
+    bool getReloadOnChange() const;
 
     friend ShaderHolder;
 

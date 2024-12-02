@@ -234,11 +234,11 @@ constexpr void Shader::setUniform(const std::string &name, const ValueType &valu
     {
         setMat2(name, value);
     }
-    else if (std::is_same_v<ValueType, glm::mat3>)
+    else if constexpr (std::is_same_v<ValueType, glm::mat3>)
     {
         setMat3(name, value);
     }
-    else if (std::is_same_v<ValueType, glm::mat4>)
+    else if constexpr (std::is_same_v<ValueType, glm::mat4>)
     {
         setMat4(name, value);
     }
@@ -324,6 +324,11 @@ void Shader::retrieveCode(const char *code_path, std::string &code)
     }
 }
 
+Shader::Shader(const std::string &vertex_shader_code, const std::string &frament_shader_code)
+{
+    loadFromCode(vertex_shader_code, frament_shader_code);
+}
+
 //! \brief construct from paths to vertex and fragment shaders
 Shader::Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path,
                const std::string &shader_name) : m_vertex_path(vertex_path.string()),
@@ -349,21 +354,10 @@ Shader::~Shader()
     }
 }
 
-//! \brief extracts uniforms and textures then
-//! \brief does all the GL calls to load the shader on the GPU
-void Shader::recompile()
+bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fragment_code)
 {
-    extractTextureNames(m_variables, m_fragment_path);
-    extractUniformNames(m_variables, m_fragment_path);
-
-    glsl_include::ShaderLoader vertex_loader = glsl_include::ShaderLoader("#include");
-    glsl_include::ShaderLoader fragment_loader = glsl_include::ShaderLoader("#include");
-    std::string vertex_code = vertex_loader.load_shader(m_vertex_path);
-    std::string fragment_code = vertex_loader.load_shader(m_fragment_path);
-
     const char *vShaderCode = vertex_code.c_str();
     const char *fShaderCode = fragment_code.c_str();
-
     // 2. compile shaders
     unsigned int vertex, fragment;
     int success;
@@ -380,6 +374,7 @@ void Shader::recompile()
         glGetShaderInfoLog(vertex, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
                   << infoLog << std::endl;
+        return false;
     };
 
     // fragment Shader
@@ -408,12 +403,30 @@ void Shader::recompile()
         glGetProgramInfoLog(m_id, 512, NULL, infoLog);
         std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n"
                   << infoLog << std::endl;
+        return false;
     }
 
     // delete the shaders as they're linked into our program now and no longer necessary
     glDeleteShader(vertex);
     glDeleteShader(fragment);
     glCheckError();
+
+    return true;
+}
+
+//! \brief extracts uniforms and textures then
+//! \brief does all the GL calls to load the shader on the GPU
+void Shader::recompile()
+{
+    extractTextureNames(m_variables, m_fragment_path);
+    extractUniformNames(m_variables, m_fragment_path);
+
+    glsl_include::ShaderLoader vertex_loader = glsl_include::ShaderLoader("#include");
+    glsl_include::ShaderLoader fragment_loader = glsl_include::ShaderLoader("#include");
+    std::string vertex_code = vertex_loader.load_shader(m_vertex_path);
+    std::string fragment_code = vertex_loader.load_shader(m_fragment_path);
+
+    loadFromCode(vertex_code, fragment_code);
 }
 
 //! \brief calls glUseProgram(id)
@@ -530,7 +543,6 @@ ShaderHolder::ShaderHolder()
 ShaderHolder::ShaderHolder(std::filesystem::path resources_path)
     : m_resources_path(resources_path)
 {
-    
 }
 
 void ShaderHolder::erase(const std::string &shader_id)
