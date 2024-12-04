@@ -12,7 +12,7 @@
 // #include FT_STROKER_H //functions to stroke outline paths
 
 #include <Utils/Vector2.h>
-#include <Texture.h>
+#include <FrameBuffer.h>
 
 //! \struct Character
 //! \brief holds Freetype character dimensions and relative position data
@@ -37,6 +37,7 @@ class Font
 {
 public:
     Font(std::filesystem::path font_filename);
+
     bool loadFromFile(std::filesystem::path font_filename);
     Texture& getTexture();
 

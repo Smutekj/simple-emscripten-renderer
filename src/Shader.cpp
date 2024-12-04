@@ -173,6 +173,24 @@ std::string VariablesData::setTexture(int slot, GLuint handle)
 }
 
 //! \brief does GL calls to set values to all uniforms in the shader
+//! \brief does GL calls to set values to all uniforms in the shader
+void Shader::setUniforms()
+{
+    for (auto &[name, value] : m_variables.uniforms)
+    {
+        setUniform2(name, value);
+    }
+    for (auto &[name, value] : m_variables.textures)
+    {
+        //! ???
+    }
+    if (m_variables.uniforms.contains("u_time"))
+    {
+        m_variables.uniforms.at("u_time") = Shader::m_time;
+    }
+    glCheckError();
+}
+
 //! \param name     name of the uniform
 //! \param value    value of the uniform (the gl call is determined by the value type)
 template <class ValueType>
@@ -641,7 +659,6 @@ bool ShaderHolder::setBaseDirectory(std::filesystem::path directory)
     return false;
 }
 
-
 //! \brief default constructs with resource path being __FILE__/../Resources/Shaders/
 ShaderHolder::ShaderHolder()
 {
@@ -694,7 +711,7 @@ Shader &ShaderHolder::get(const std::string &id)
 //! \param shader_id   id of the shader to be removed
 void ShaderHolder::use(const std::string &id)
 {
-    if(contains(id))
+    if (contains(id))
     {
         m_shaders.at(id)->use();
     }
@@ -721,6 +738,32 @@ void ShaderHolder::load(const std::string &name,
     std::filesystem::path fragment_path = m_resources_path.string() + fragment_filename;
 
     m_shaders[name] = std::make_unique<Shader>(vertex_path, fragment_path);
+    auto &shader = m_shaders.at(name);
+    shader->m_shader_name = name;
+    m_shader_data.insert({name, *shader});
+
+    shader->use();
+    extractUniformNames(m_shader_data.at(name).variables, shader->getFragmentPath());
+}
+
+//! \brief loads shader with id \p name
+//! \brief vertex shader code is directly in \p vertex_code string
+//! \brief fragment shader code is directly in \p fragment_code string
+//! \brief the uniform names-values pairs are stored in \p shader_data
+//! \param name
+//! \param vertex_code
+//! \param fragment_code
+void ShaderHolder::loadFromCode(const std::string &name,
+                                const std::string &vertex_code, const std::string &fragment_code)
+{
+    if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
+    {
+        return; //! erasing fucks somethign up :(
+        m_shaders.erase(name);
+        m_shader_data.erase(name);
+    }
+
+    m_shaders[name] = std::make_unique<Shader>(vertex_code, fragment_code);
     auto &shader = m_shaders.at(name);
     shader->m_shader_name = name;
     m_shader_data.insert({name, *shader});
