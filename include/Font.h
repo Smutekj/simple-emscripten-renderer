@@ -5,7 +5,7 @@
 #include <string>
 #include <ft2build.h>
 #include FT_FREETYPE_H
-// #include FT_GLYPH_H   //optional glyph management component
+// #include FT_GLYPH_H   //optional glyph management component (I keep these here because I'll probably need them )
 // #include FT_OUTLINE_H //scalable outline management
 // #include FT_STROKER_H //functions to stroke outline paths
 
@@ -36,13 +36,10 @@ public:
     bool loadFromFile(std::filesystem::path font_filename);
     Texture& getTexture();
 
-private:
-    void initialize();
-
 public:
     std::unique_ptr<FrameBuffer> m_pixels;
     Texture m_texture;
-    std::unordered_map<char, Character> m_characters;
+    std::unordered_map<char, Character> m_characters; 
 private:
     std::unique_ptr<Renderer> m_canvas;
 };

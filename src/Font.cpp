@@ -4,11 +4,6 @@
 #include <Renderer.h>
 #include "CommonShaders.inl"
 
-void Font::initialize()
-{
-}
-
-
 //! \brief creates a font from a path to a file
 //! \param font_filename path to a font file
 Font::Font(std::filesystem::path font_filename)
