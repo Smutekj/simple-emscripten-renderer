@@ -11,7 +11,7 @@
                 "CMAKE_C_COMPILER": "/usr/bin/gcc",
                 "CMAKE_CXX_COMPILER": "/usr/bin/g++",
                 "CMAKE_BUILD_TYPE": "Debug",
-                "BUILD_EXAMPLE":  {
+                "BUILD_EXAMPLES":  {
                     "type": "BOOL",
                     "value": "ON"
                   }
