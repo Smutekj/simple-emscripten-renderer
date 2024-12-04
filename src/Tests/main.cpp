@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "test_context.cc"
+#include "test_shader.cc"
 
 int main(int argc, char **argv) 
 {
