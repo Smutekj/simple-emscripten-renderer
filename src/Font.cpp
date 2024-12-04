@@ -2,9 +2,12 @@
 #include "IncludesGl.h"
 
 #include <Renderer.h>
+#include "CommonShaders.inl"
 
 void Font::initialize()
-{}
+{
+}
+
 
 //! \brief creates a font from a path to a file
 //! \param font_filename path to a font file
@@ -18,15 +21,9 @@ Font::Font(std::filesystem::path font_filename)
     options.wrap_y = TexWrapParam::ClampEdge;
     m_pixels = std::make_unique<FrameBuffer>(1000, 1000, options);
     m_canvas = std::make_unique<Renderer>(*m_pixels);
-
-    using Path = std::filesystem::path;
-    Path shaders_path(__FILE__);
-    shaders_path.remove_filename();
-    shaders_path = shaders_path.append("../Resources/Shaders/");
-    m_canvas->setShadersPath(shaders_path);
-    m_canvas->addShader("Text",
-                        "basicinstanced.vert",
-                        "text.frag");
+    m_canvas->getShaders().loadFromCode("Font",
+                                        vertex_font_code,
+                                        fragment_font_code);
 
     if (!loadFromFile(font_filename))
     {
@@ -53,7 +50,7 @@ void static printBuffer(const FT_Face &face)
     }
 }
 
-//! \brief loads font from the specified file  
+//! \brief loads font from the specified file
 //! \return true if font was succesfully loaded
 bool Font::loadFromFile(std::filesystem::path font_file)
 {
@@ -72,7 +69,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
     }
     FT_Set_Pixel_Sizes(face, 0, 32);
 
-    FT_GlyphSlot slot = face->glyph; 
+    FT_GlyphSlot slot = face->glyph;
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
     glCheckError();
@@ -91,7 +88,6 @@ bool Font::loadFromFile(std::filesystem::path font_file)
         max_height = std::max(face->glyph->bitmap.rows, max_height);
     }
 
-
     unsigned int textures[128];
     glGenTextures(128, textures);
     glCheckError();
@@ -103,7 +99,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
     m_canvas->m_view.setCenter(main_texture.getSize() / 2.f);
     m_canvas->m_view.setSize(main_texture.getSize());
     m_canvas->clear({1, 1, 1, 0});
-    m_canvas->m_blend_factors = {BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha}; 
+    m_canvas->m_blend_factors = {BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha};
 
     utils::Vector2i glyph_pos = {0, 0};
     for (unsigned char c = 0; c < 128; c++)
@@ -115,7 +111,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
             continue;
         }
 
-        FT_Render_Glyph(slot, FT_RENDER_MODE_SDF); 
+        FT_Render_Glyph(slot, FT_RENDER_MODE_SDF);
 
         glBindTexture(GL_TEXTURE_2D, textures[c]);
         glCheckError();
@@ -157,7 +153,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
         glyph_sprite.setPosition(glyph_pos + (character.size + 1) / 2.f);
         glyph_sprite.setScale(face->glyph->bitmap.width / 2.f,
                               -static_cast<float>(face->glyph->bitmap.rows) / 2.f); //! MINUS FOR Y COORD IS IMPORTANT!!!!!!
-        m_canvas->drawSprite(glyph_sprite, "Text", DrawType::Dynamic);
+        m_canvas->drawSprite(glyph_sprite, "Font", DrawType::Dynamic);
 
         glyph_pos.x += face->glyph->bitmap.width + safety_pixels_x;
         if (glyph_pos.x + max_width >= main_texture.getSize().x) //! if we reach right side of the main texture
