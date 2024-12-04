@@ -9,8 +9,6 @@
 // #include FT_OUTLINE_H //scalable outline management
 // #include FT_STROKER_H //functions to stroke outline paths
 
-#include <Utils/Vector2.h>
-#include <FrameBuffer.h>
 
 //! \struct Character
 //! \brief holds Freetype character dimensions and relative position data
@@ -24,6 +22,7 @@ struct Character
 };
 
 class Renderer;
+class FrameBuffer;
 
 //! \class Font
 //! \brief stores all data related to a given fotn
@@ -37,9 +36,9 @@ public:
     Texture& getTexture();
 
 public:
-    std::unique_ptr<FrameBuffer> m_pixels;
-    Texture m_texture;
-    std::unordered_map<char, Character> m_characters; 
+    std::unique_ptr<FrameBuffer> m_pixels;  //!< stores a framebuffer to draw all characters into (Do i need to store it?)
+    Texture m_texture;  //!< stores a texture with all characters that we draw from when drawing text
+    std::unordered_map<char, Character> m_characters; //!< stores all Glyph data of respective characters
 private:
-    std::unique_ptr<Renderer> m_canvas;
+    std::unique_ptr<Renderer> m_canvas;  
 };
