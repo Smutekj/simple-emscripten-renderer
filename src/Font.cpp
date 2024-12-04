@@ -2,6 +2,7 @@
 #include "IncludesGl.h"
 
 #include <Renderer.h>
+#include <FrameBuffer.h>
 #include "CommonShaders.inl"
 
 //! \brief creates a font from a path to a file
