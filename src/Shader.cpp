@@ -4,6 +4,73 @@
 //! \brief the uniform names-values pairs are stored in \p shader_data
 //! \param shader_data
 //! \param filename
+void static extractUniformNamesFromCode(VariablesData &shader_data, const std::string &code)
+{
+    auto lines = separateLine(code, '\n');
+    for (auto &line : lines)
+    {
+        std::cout << line << "\n";
+        auto split_line = separateLine(line, ' ');
+        if (split_line.size() < 3)
+        {
+            continue;
+        } //! try only lines that have some words on them
+        if (split_line[0] == "uniform")
+        {
+            if (split_line[1] == "sampler2D") //! skip textures, we do them separately
+            {
+                continue;
+            }
+            auto initial_value = separateLine(line, '=');
+            std::string initial_value_string = "";
+            initial_value_string = initial_value.size() > 1 ? initial_value[1] : "";
+
+            std::string uniform_name = split_line[2];
+            const auto &type_string = split_line[1];
+            auto value = extractValue(type_string, initial_value_string);
+            //! remove ; at the end
+            if (uniform_name.back() == ';')
+            {
+                uniform_name.pop_back();
+            }
+            shader_data.uniforms[uniform_name] = value;
+        }
+    }
+}
+//! \brief read a shader file in \p filename and extracts all uniforms (that are not textures!)
+//! \brief the uniform names-values pairs are stored in \p shader_data
+//! \param shader_data
+//! \param filename
+void static extractTextureNamesFromCode(VariablesData &shader_data, const std::string &code)
+{
+    auto lines = separateLine(code, '\n');
+    int slot = 0;
+    for (auto &line : lines)
+    {
+        std::cout << line << "\n";
+        auto split_line = separateLine(line, ' ');
+        if (split_line.size() < 3)
+        {
+            continue;
+        } //! try only lines that have some words on them
+        if (split_line[0] == "uniform" && split_line[1] == "sampler2D")
+        {
+
+            std::string texture_var_name = split_line[2];
+
+            //! remove ; at the end
+            auto colon_pos = texture_var_name.find_last_of(';');
+            texture_var_name = texture_var_name.substr(0, colon_pos);
+            // shader_data.p_program->setUniform2(texture_var_name, texture_shader_id);
+            shader_data.textures[texture_var_name] = {slot, 0};
+            slot++;
+        }
+    }
+}
+//! \brief read a shader file in \p filename and extracts all uniforms (that are not textures!)
+//! \brief the uniform names-values pairs are stored in \p shader_data
+//! \param shader_data
+//! \param filename
 void static extractUniformNames(VariablesData &shader_data, const std::string &filename)
 {
     const auto tmp_filename = filename + ".tmp";
@@ -141,7 +208,35 @@ void ShaderHolder::load(const std::string &name,
     m_shader_data.insert({name, *shader});
 
     shader->use();
-    extractUniformNames(m_shader_data.at(name).variables, shader->getFragmentPath());
+    if (!shader->getFragmentPath().empty())
+    {
+        extractUniformNames(m_shader_data.at(name).variables, shader->getFragmentPath());
+    }
+}
+
+//! \brief loads shader with id \p name
+//! \brief vertex shader is located at: \p vertex_filename
+//! \brief fragment shader is located at: \p fragment_filename
+//! \brief the uniform names-values pairs are stored in \p shader_data
+//! \param name
+//! \param vertex_filename
+//! \param fragment_filename
+void ShaderHolder::loadFromCode(const std::string &name,
+                                const std::string &vertex_code, const std::string &fragment_code)
+{
+    if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
+    {
+        return; //! erasing fucks somethign up :(
+        m_shaders.erase(name);
+        m_shader_data.erase(name);
+    }
+
+    m_shaders[name] = std::make_unique<Shader>(vertex_code, fragment_code);
+    auto &shader = m_shaders.at(name);
+    shader->m_shader_name = name;
+    m_shader_data.insert({name, *shader});
+
+    shader->use();
 }
 
 ShaderUIData &ShaderHolder::getData(const std::string &name)
@@ -327,6 +422,8 @@ void Shader::retrieveCode(const char *code_path, std::string &code)
 Shader::Shader(const std::string &vertex_shader_code, const std::string &frament_shader_code)
 {
     loadFromCode(vertex_shader_code, frament_shader_code);
+    extractUniformNamesFromCode(m_variables, frament_shader_code);
+    extractTextureNamesFromCode(m_variables, frament_shader_code);
 }
 
 //! \brief construct from paths to vertex and fragment shaders
@@ -532,7 +629,10 @@ const std::string &Shader::getVertexPath()
 ShaderUIData::ShaderUIData(Shader &program)
     : p_program(&program), filename(program.getFragmentPath()), variables(program.getVariables())
 {
-    last_write_time = std::filesystem::last_write_time(filename);
+    if (!filename.empty())
+    {
+        last_write_time = std::filesystem::last_write_time(filename);
+    }
 }
 
 ShaderHolder::ShaderHolder()
