@@ -49,11 +49,8 @@ class Shader
 {
 
 public:
-<<<<<<< HEAD
     Shader() = default;
     Shader(const std::string &vertex_shader_code, const std::string &frament_shader_code);
-=======
->>>>>>> e661dd20f8fb5c63b46bab27ca6e593e0a7d98c7
     Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path);
     Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path, const std::string &shader_name);
     ~Shader();

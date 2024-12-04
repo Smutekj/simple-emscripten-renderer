@@ -3,12 +3,16 @@
 #include <unordered_map>
 #include <memory>
 #include <string>
+#include <filesystem>
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 // #include FT_GLYPH_H   //optional glyph management component (I keep these here because I'll probably need them )
 // #include FT_OUTLINE_H //scalable outline management
 // #include FT_STROKER_H //functions to stroke outline paths
 
+#include <Utils/Vector2.h>
+#include <Texture.h>
 
 //! \struct Character
 //! \brief holds Freetype character dimensions and relative position data
@@ -23,6 +27,7 @@ struct Character
 
 class Renderer;
 class FrameBuffer;
+class Texture;
 
 //! \class Font
 //! \brief stores all data related to a given fotn
