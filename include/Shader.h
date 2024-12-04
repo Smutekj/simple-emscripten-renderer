@@ -45,13 +45,15 @@ struct VariablesData
 //! \class Shader
 //! \brief combines vertex + framgnet shader and holds uniform info of the fragment shader
 //!  the shaders are load via specified paths
-//!  TODO:  use std::filesystem::path instead of strings like a retard
 class Shader
 {
 
 public:
+<<<<<<< HEAD
     Shader() = default;
     Shader(const std::string &vertex_shader_code, const std::string &frament_shader_code);
+=======
+>>>>>>> e661dd20f8fb5c63b46bab27ca6e593e0a7d98c7
     Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path);
     Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path, const std::string &shader_name);
     ~Shader();
@@ -133,12 +135,13 @@ struct ShaderUIData
 class ShaderHolder
 {
 
-    using ShaderMap = std::unordered_map<std::string, std::unique_ptr<Shader>>;
+    using ShaderMap = std::unordered_map<std::string, std::shared_ptr<Shader>>;
     using ShaderUIDataMap = std::unordered_map<std::string, ShaderUIData>;
 
 public:
     ShaderHolder();
-    ShaderHolder(std::filesystem::path resources_path);
+    explicit ShaderHolder(std::filesystem::path resources_path);
+    ~ShaderHolder();
 
     Shader &get(const std::string &id);
 

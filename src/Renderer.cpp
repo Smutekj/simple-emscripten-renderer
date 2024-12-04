@@ -539,7 +539,7 @@ SpriteBatch &Renderer::findSpriteBatch(GLuint texture_id, Shader &shader, DrawTy
 //! \returns a pointer to a batch
 Renderer::BatchPtr Renderer::createBatch(const BatchConfig &config, Shader &shader, DrawType draw_type)
 {
-    return std::make_unique<Batch>(config, shader, draw_type);
+    return std::move(std::make_unique<Batch>(config, shader, draw_type));
 }
 
 Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, DrawType draw_type, int num_vertices_inserted)
@@ -552,8 +552,9 @@ Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, DrawType draw
             return *batch;
         }
     }
+    
     //! there is no free batch so we create a new one;
-    batches.push_back(createBatch(config, shader, draw_type));
+    batches.emplace_back(createBatch(config, shader, draw_type));
     return *batches.back();
 }
 

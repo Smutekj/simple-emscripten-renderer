@@ -18,6 +18,35 @@ UIWindow::UIWindow(std::string name) : name(name)
 {
 }
 
+ShaderSlot::ShaderSlot(int width, int height)
+    : m_pixels(width, height), m_canvas(m_pixels)
+{
+}
+
+utils::Vector2i ShaderSlot::getSize()
+{
+    return m_pixels.getSize();
+}
+
+void ShaderSlot::draw(Sprite &test_sprite)
+{
+
+    auto &shader = m_canvas.getShader(m_selected_shader);
+    for (auto &[texture_name, texture_data] : shader.getVariables().textures)
+    {
+        test_sprite.m_texture_handles.at(texture_data.slot) = texture_data.handle;
+    }
+
+    m_canvas.clear({1, 1, 1, 1});
+    m_canvas.drawSprite(test_sprite, m_selected_shader, DrawType::Dynamic);
+    m_canvas.drawAll();
+}
+
+Texture &ShaderSlot::getTexture()
+{
+    return m_pixels.getTexture();
+}
+
 UI::UI(Window &window, TextureHolder &textures,
        std::vector<ShaderSlot> &slots)
 {
@@ -196,7 +225,7 @@ void ShadersWindow::refresh()
 void ShadersWindow::draw()
 {
 
-    ImGui::SetNextWindowPos({0,0});
+    ImGui::SetNextWindowPos({0, 0});
     ImGui::Begin("Shader Slots");
     if (ImGui::Button("Refresh"))
     {
@@ -253,4 +282,9 @@ void UI::draw(Window &window)
 void UI::handleEvent(SDL_Event event)
 {
     ImGui_ImplSDL2_ProcessEvent(&event);
+}
+
+GLuint ShaderSlot::getTextureHandle()
+{
+    return m_pixels.getHandle();
 }
