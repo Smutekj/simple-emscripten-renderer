@@ -36,8 +36,16 @@ struct Image
 {
 
     Image(int x, int y);
-
+    // Image(Texture& tex_image);
+    Image(FrameBuffer &tex_buffer);
+    
     ColorByte *data();
+
+    bool operator==(const Image& other_image) const;
+    
+    private:
+        void loadFromBuffer(FrameBuffer &tex_buffer);
+    public:
 
     int x_size = 0;
     int y_size = 0;
