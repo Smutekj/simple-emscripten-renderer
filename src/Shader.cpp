@@ -768,8 +768,8 @@ void ShaderHolder::loadFromCode(const std::string &name,
     shader->m_shader_name = name;
     m_shader_data.insert({name, *shader});
 
-    shader->use();
-    extractUniformNames(m_shader_data.at(name).variables, shader->getFragmentPath());
+    extractUniformNamesFromCode(m_shader_data.at(name).variables, fragment_code);
+    extractTextureNamesFromCode(m_shader_data.at(name).variables, fragment_code);
 }
 
 ShaderUIData &ShaderHolder::getData(const std::string &name)
