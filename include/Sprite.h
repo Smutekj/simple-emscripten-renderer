@@ -33,6 +33,6 @@ struct Sprite : public RectangleSimple
 
     Texture *m_texture = nullptr;
     TextureArray m_texture_handles = {}; //!< GL handles of the bound textures
-    utils::Vector2i m_tex_size = {0, 0};                                  //!< ???
-    Rect<int> m_tex_rect;                                                 //!< defines part of the texture that will be drawn
+    utils::Vector2i m_tex_size = {1, 1};        //!< ???
+    Rect<int> m_tex_rect = {0,0,1,1};          //!< defines part of the texture that will be drawn
 };
