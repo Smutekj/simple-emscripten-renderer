@@ -1,5 +1,5 @@
 /build*
 docs
-.vscode
+/.vscode
 CMakePresets.json
 
