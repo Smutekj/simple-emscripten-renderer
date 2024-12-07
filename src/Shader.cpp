@@ -9,7 +9,6 @@ void static extractUniformNamesFromCode(VariablesData &shader_data, const std::s
     auto lines = separateLine(code, '\n');
     for (auto &line : lines)
     {
-        std::cout << line << "\n";
         auto split_line = separateLine(line, ' ');
         if (split_line.size() < 3)
         {
@@ -37,6 +36,23 @@ void static extractUniformNamesFromCode(VariablesData &shader_data, const std::s
         }
     }
 }
+
+std::string removeInitialValues(const std::string &code)
+{
+    std::string new_code;
+    auto lines = separateLine(code, '\n');
+    for (auto &line : lines)
+    {
+        //! remove intial values
+        if (line.find("uniform") != std::string::npos && line.find("=") != std::string::npos)
+        {
+            line = line.substr(0, line.find("=")) += ";";
+        }
+        new_code += line + "\n";
+    }
+    return new_code;
+}
+
 //! \brief read a shader file in \p filename and extracts all uniforms (that are not textures!)
 //! \brief the uniform names-values pairs are stored in \p shader_data
 //! \param shader_data
@@ -47,7 +63,6 @@ void static extractTextureNamesFromCode(VariablesData &shader_data, const std::s
     int slot = 0;
     for (auto &line : lines)
     {
-        std::cout << line << "\n";
         auto split_line = separateLine(line, ' ');
         if (split_line.size() < 3)
         {
@@ -316,7 +331,10 @@ void Shader::retrieveCode(const char *code_path, std::string &code)
 
 Shader::Shader(const std::string &vertex_shader_code, const std::string &frament_shader_code)
 {
-    loadFromCode(vertex_shader_code, frament_shader_code);
+    if (!loadFromCode(vertex_shader_code, frament_shader_code))
+    {
+        return; //! shouldn't I use maybe some flag to test that the shader is ok?
+    }
     extractUniformNamesFromCode(m_variables, frament_shader_code);
     extractTextureNamesFromCode(m_variables, frament_shader_code);
 }
@@ -347,8 +365,15 @@ Shader::~Shader()
 
 bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fragment_code)
 {
+    m_successfully_built = false;
+
+    extractTextureNamesFromCode(m_variables, fragment_code);
+    extractUniformNamesFromCode(m_variables, fragment_code);
+
+    auto cleaned_fragment_code = removeInitialValues(fragment_code);
+
     const char *vShaderCode = vertex_code.c_str();
-    const char *fShaderCode = fragment_code.c_str();
+    const char *fShaderCode = cleaned_fragment_code.c_str();
     // 2. compile shaders
     unsigned int vertex, fragment;
     int success;
@@ -402,6 +427,7 @@ bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fra
     glDeleteShader(fragment);
     glCheckError();
 
+    m_successfully_built = true;
     return true;
 }
 
@@ -409,8 +435,6 @@ bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fra
 //! \brief does all the GL calls to load the shader on the GPU
 void Shader::recompile()
 {
-    extractTextureNames(m_variables, m_fragment_path);
-    extractUniformNames(m_variables, m_fragment_path);
 
     glsl_include::ShaderLoader vertex_loader = glsl_include::ShaderLoader("#include");
     glsl_include::ShaderLoader fragment_loader = glsl_include::ShaderLoader("#include");
@@ -425,6 +449,7 @@ void Shader::recompile()
 //! \brief  has been changed since the last time
 void Shader::use()
 {
+
     if (m_reload_on_file_change)
     {
 
@@ -438,6 +463,12 @@ void Shader::use()
             recompile();
             m_last_writetime = last_time;
         }
+    }
+    if (!m_successfully_built)
+    {
+        std::cout << "WARNING, Trying to use unbuilt shader\n";
+        std::cout << "The shader will not be used!\n";
+        return;
     }
     glUseProgram(m_id);
     glCheckError();
@@ -558,18 +589,29 @@ std::vector<std::string> separateLine(std::string line, char delimiter)
 //! \brief removes trailing spaces before and after the \p input
 //! \param input
 //! \returns the trimmed string
-std::string trim(std::string input)
+std::string trim(const std::string &input)
 {
-    std::string result;
-    for (auto c : input)
+
+    auto last_nonspace = input.find_last_not_of(' ');
+    auto first_nonspace = input.find_first_not_of(' ');
+    if (last_nonspace == std::string::npos || first_nonspace == std::string::npos)
     {
-        if (c != ' ' && c != ';')
-        {
-            result.push_back(c);
-        }
+        return "";
     }
+    std::string result = input.substr(first_nonspace, last_nonspace);
     return result;
 }
+
+//! just in case
+// std::string oldtrim(const std::string& input)
+// {
+
+//     auto last_nonspace = input.find_last_not_of(' ');
+//     auto first_nonspace = input.find_first_not_of(' ');
+
+//     std::string result = input.substr(first_nonspace, last_nonspace);
+//     return result;
+// }
 
 bool replace(std::string &str, const std::string &from, const std::string &to)
 {
@@ -767,9 +809,6 @@ void ShaderHolder::loadFromCode(const std::string &name,
     auto &shader = m_shaders.at(name);
     shader->m_shader_name = name;
     m_shader_data.insert({name, *shader});
-
-    extractUniformNamesFromCode(m_shader_data.at(name).variables, fragment_code);
-    extractTextureNamesFromCode(m_shader_data.at(name).variables, fragment_code);
 }
 
 ShaderUIData &ShaderHolder::getData(const std::string &name)
