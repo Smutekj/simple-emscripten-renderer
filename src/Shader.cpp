@@ -367,8 +367,15 @@ bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fra
 {
     m_successfully_built = false;
 
-    extractTextureNamesFromCode(m_variables, fragment_code);
-    extractUniformNamesFromCode(m_variables, fragment_code);
+    try
+    {
+        extractTextureNamesFromCode(m_variables, fragment_code);
+        extractUniformNamesFromCode(m_variables, fragment_code);
+    }catch(std::exception& e)
+    {
+        std::cout << "failed to extract variales from code!" << std::endl;
+        return false;
+    }
 
     auto cleaned_fragment_code = removeInitialValues(fragment_code);
 
@@ -405,6 +412,7 @@ bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fra
         std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n"
                   << infoLog << "\n"
                   << "PROGRAM: " << m_fragment_path << "\n";
+        return false;
     };
 
     // shader Program

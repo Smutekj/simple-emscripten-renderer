@@ -85,11 +85,11 @@ namespace glsl_include {
                 std::string line;
                 while (getline(file, line))
                 {
-                    //! remove intial values
-                    if(line.find("uniform") != std::string::npos && line.find("=") != std::string::npos)
-                    {
-                        line = line.substr(0, line.find("=")) += ";\n";
-                    }
+                    // //! remove intial values
+                    // if(line.find("uniform") != std::string::npos && line.find("=") != std::string::npos)
+                    // {
+                    //     line = line.substr(0, line.find("=")) += ";\n";
+                    // }
 
 
                     // Custom include statement has to be at the start of the line
