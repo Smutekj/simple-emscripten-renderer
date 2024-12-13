@@ -1,18 +1,14 @@
 cmake_minimum_required(VERSION 3.15)
-
+include(GNUInstallDirs)
 
 project(renderer)
-option(BUILD_EXAMPLE OFF)
+option(BUILD_EXAMPLES ON)
+set(BUILD_TESTS ON)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 set(CMAKE_CXX_STANDARD 20)
-
-if(NOT CMAKE_BUILD_TYPE) 
-set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
-endif()
-
 add_subdirectory(external/freetype)
-
 include(cmake/External.cmake)
 include(cmake/CompilerFlags.cmake)
 
@@ -29,12 +25,16 @@ file(GLOB SRC
 "src/Gui/backends/*.cpp"
 )
 
+set(TARGET_LIBRARY_NAME ${PROJECT_NAME})
+add_library(${TARGET_LIBRARY_NAME} STATIC)
+target_sources(${TARGET_LIBRARY_NAME} PRIVATE ${SRC})
+target_link_libraries(${TARGET_LIBRARY_NAME} PUBLIC SDL2 glm freetype glad )
+set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES CXX_STANDARD 20)
+set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
-add_library(${PROJECT_NAME} STATIC)
-target_sources(${PROJECT_NAME} PRIVATE ${SRC})
-target_link_libraries(${PROJECT_NAME} PUBLIC SDL2 SDL2main glm freetype glad)
-target_include_directories(${PROJECT_NAME}
-    PUBLIC 
+target_include_directories(${TARGET_LIBRARY_NAME}
+    PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Utils>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui>
@@ -47,30 +47,32 @@ target_include_directories(${PROJECT_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/backends
 )
 
-### This should be target_include_directories
-include_directories(${CMAKE_SOURCE_DIR}/include  ${SDL2_INCLUDE_DIRS})
-include_directories(SYSTEM external/stbimage)
-include_directories(SYSTEM external/magic_enum)
-include_directories(SYSTEM external/freetype)
-
 if(BUILD_EXAMPLES)
+message("\n!ADDING EXAMPLES!")
 add_subdirectory(Examples)
 endif()
-
 
 if(BUILD_TESTS)
     enable_testing()
     include(GoogleTest)
 
-    message("\nADDING TESTS!!!\n")
+    message("\n!ADDING TESTS!\n")
+    add_executable(test_all2 src/Tests/main.cpp src/Tests/test_context.cc src/Tests/test_shader.cc)
+    target_link_libraries(test_all2 PUBLIC GTest::gtest_main ${TARGET_LIBRARY_NAME})
+    set_target_properties(test_all2 PROPERTIES CXX_STANDARD 20)
+    ### output test executable is right now in major bin directory because there is just one exe
+    # set_target_properties(test_all2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/tests) 
 
-    add_executable(test_all src/Tests/main.cpp)
-    target_link_libraries(test_all PRIVATE gtest renderer)
+    gtest_discover_tests(test_all2
+        DISCOVERY_MODE PRE_TEST
+    )
 
-    gtest_discover_tests(test_all)
+    ### this is not working :(
+    ### see: https://discourse.cmake.org/t/msvs-gtest-discover-tests-environment/9225/3
+    #if(WIN32)
+    #    set_target_properties(test_all2 PROPERTIES ENVIRONMENT
+    #    "PATH=$<SHELL_PATH:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}>$<SEMICOLON>$ENV{PATH}"
+    #    )
+    #endif()
+
 endif()
-
-
-
-
-

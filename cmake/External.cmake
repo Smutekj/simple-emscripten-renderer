@@ -33,7 +33,6 @@ if(NOT glad_POPULATED)
 
     add_subdirectory("${glad_SOURCE_DIR}/cmake" glad_cmake)
     glad_add_library(glad STATIC  API gl:compatibility=4.6)
-    include_directories(SYSTEM ${GLAD_DIR}/include)
 endif()
 
 
@@ -46,4 +45,6 @@ if(BUILD_TESTS)
     GIT_TAG        main
   )
   FetchContent_MakeAvailable(googletest)
+  # For Windows: Prevent overriding the parent project's compiler/linker settings
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 endif()
