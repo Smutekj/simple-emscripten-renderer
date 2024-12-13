@@ -96,6 +96,7 @@ public:
     void setReloadOnChange(bool new_flag_value);
 
     bool getReloadOnChange() const;
+    bool wasSuccessfullyBuilt()const;
 
     friend ShaderHolder;
 
@@ -145,8 +146,8 @@ public:
 
     void use(const std::string &id);
 
-    void load(const std::string &name, const std::string &vertex_filename, const std::string &fragment_filename);
-    void loadFromCode(const std::string &id, const std::string &vertex_code, const std::string &fragment_code);
+    bool load(const std::string &name, const std::string &vertex_filename, const std::string &fragment_filename);
+    bool loadFromCode(const std::string &id, const std::string &vertex_code, const std::string &fragment_code);
 
     void erase(const std::string &shader_id);
 

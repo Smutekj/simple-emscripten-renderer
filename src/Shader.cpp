@@ -257,6 +257,12 @@ const std::string &Shader::getName() const
     return m_shader_name;
 }
 
+
+bool Shader::wasSuccessfullyBuilt()const
+{
+    return m_successfully_built;
+}
+
 //! \brief does GL calls to activate textures at the slots
 void Shader::activateTexture(TextureArray handles)
 {
@@ -774,12 +780,12 @@ void ShaderHolder::use(const std::string &id)
 //! \param name
 //! \param vertex_filename
 //! \param fragment_filename
-void ShaderHolder::load(const std::string &name,
+bool ShaderHolder::load(const std::string &name,
                         const std::string &vertex_filename, const std::string &fragment_filename)
 {
     if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
     {
-        return; //! erasing fucks somethign up :(
+        return false; //! erasing fucks somethign up :(
         m_shaders.erase(name);
         m_shader_data.erase(name);
     }
@@ -787,13 +793,20 @@ void ShaderHolder::load(const std::string &name,
     std::filesystem::path vertex_path = m_resources_path.string() + vertex_filename; //! no idea if this works on windows?????
     std::filesystem::path fragment_path = m_resources_path.string() + fragment_filename;
 
-    m_shaders[name] = std::make_unique<Shader>(vertex_path, fragment_path);
+    auto new_shader = std::make_unique<Shader>(vertex_path, fragment_path);
+    if (!new_shader->wasSuccessfullyBuilt())
+    {
+        return false;
+    }
+    m_shaders[name] = std::move(new_shader);
     auto &shader = m_shaders.at(name);
     shader->m_shader_name = name;
     m_shader_data.insert({name, *shader});
 
     shader->use();
     extractUniformNames(m_shader_data.at(name).variables, shader->getFragmentPath());
+
+    return true;
 }
 
 //! \brief loads shader with id \p name
@@ -803,20 +816,28 @@ void ShaderHolder::load(const std::string &name,
 //! \param name
 //! \param vertex_code
 //! \param fragment_code
-void ShaderHolder::loadFromCode(const std::string &name,
+//! \returns true if succesfully added
+bool ShaderHolder::loadFromCode(const std::string &name,
                                 const std::string &vertex_code, const std::string &fragment_code)
 {
     if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
     {
-        return; //! erasing fucks somethign up :(
+        return false; //! erasing fucks somethign up :(
         m_shaders.erase(name);
         m_shader_data.erase(name);
     }
 
-    m_shaders[name] = std::make_unique<Shader>(vertex_code, fragment_code);
+    auto new_shader = std::make_unique<Shader>(vertex_code, fragment_code);
+    if (!new_shader->wasSuccessfullyBuilt())
+    {
+        return false;
+    }
+    //! if built add it to the holder
+    m_shaders[name] = std::move(new_shader);
     auto &shader = m_shaders.at(name);
     shader->m_shader_name = name;
-    m_shader_data.insert({name, *shader});
+    m_shader_data.insert({ name, *shader });
+    return true;
 }
 
 ShaderUIData &ShaderHolder::getData(const std::string &name)
