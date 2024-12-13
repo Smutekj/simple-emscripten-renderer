@@ -3,7 +3,8 @@ include(GNUInstallDirs)
 
 project(renderer)
 option(BUILD_EXAMPLES ON)
-set(BUILD_TESTS ON)
+option(BUILD_TESTS ON)
+
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
