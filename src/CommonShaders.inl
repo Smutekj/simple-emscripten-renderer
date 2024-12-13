@@ -1,4 +1,4 @@
-
+#pragma once
 
 constexpr const char *vertex_font_code = "#version 300 es\n"
                                          "precision mediump float;\n"
