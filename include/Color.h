@@ -63,4 +63,10 @@ struct ColorByte
           a(static_cast<unsigned char>(col.a * 255))
     {
     }
+
+    bool operator==(const ColorByte& other) const
+    {
+        return r == other.r && b == other.b && g == other.g && a == other.a;
+    }
+
 };

@@ -96,6 +96,7 @@ public:
     void setReloadOnChange(bool new_flag_value);
 
     bool getReloadOnChange() const;
+    bool wasSuccessfullyBuilt()const;
 
     friend ShaderHolder;
 
@@ -109,6 +110,7 @@ private:
     std::filesystem::file_time_type m_last_writetime; //!< last time of change of the fragment shader file.
 
     bool m_reload_on_file_change = false; //!< reloads the shader when it is changed in filesystem (this is useful for playing with shaders, but slow because of filesystem calls)
+    bool m_successfully_built = false; //!< is set to true if built process runs successfully, when false the shader is not used 
 
     VariablesData m_variables; //!< contains data about uniforms and textures in the fragment shader.
 
@@ -144,8 +146,8 @@ public:
 
     void use(const std::string &id);
 
-    void load(const std::string &name, const std::string &vertex_filename, const std::string &fragment_filename);
-    void loadFromCode(const std::string &id, const std::string &vertex_code, const std::string &fragment_code);
+    bool load(const std::string &name, const std::string &vertex_filename, const std::string &fragment_filename);
+    bool loadFromCode(const std::string &id, const std::string &vertex_code, const std::string &fragment_code);
 
     void erase(const std::string &shader_id);
 
@@ -171,7 +173,7 @@ private:
 
 std::vector<std::string> inline separateLine(std::string line, char delimiter = ' ');
 
-inline std::string trim(std::string input);
+inline std::string trim(const std::string &input);
 
 inline bool replace(std::string &str, const std::string &from, const std::string &to);
 

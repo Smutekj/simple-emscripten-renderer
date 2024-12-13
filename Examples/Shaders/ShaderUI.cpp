@@ -5,14 +5,11 @@
 
 #include "Window.h"
 #include "FrameBuffer.h"
-#include "Utils/IO.h"
+#include "Utils/IOUtils.h"
 
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
-
-#include <magic_enum.hpp>
-#include <magic_enum_utility.hpp>
 
 UIWindow::UIWindow(std::string name) : name(name)
 {

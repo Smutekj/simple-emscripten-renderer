@@ -62,19 +62,49 @@ GLuint FrameBuffer::getHandle() const
     return m_texture->getHandle();
 }
 
+// #ifndef __EMSCRIPTEN__
+// Image::Image(Texture &tex_image)
+//     : Image(tex_image.getSize().x, tex_image.getSize().y)
+// {
+//     loadFromTexture(tex_image);
+// }
+// #endif
+
+Image::Image(FrameBuffer &tex_buffer)
+    : Image(tex_buffer.getSize().x, tex_buffer.getSize().y)
+{
+    loadFromBuffer(tex_buffer);
+}
+
+bool Image::operator==(const Image &other_image) const
+{
+
+    for (int i = 0; i < other_image.pixels.size(); ++i)
+    {
+        if (pixels.at(i) != other_image.pixels.at(i))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+void Image::loadFromBuffer(FrameBuffer &tex_buffer)
+{
+    tex_buffer.bind();
+    glReadPixels(0, 0, x_size, y_size,
+                 static_cast<GLenum>(TextureFormat::RGBA),
+                 static_cast<GLenum>(TextureDataTypes::UByte),
+                 data());
+    glCheckErrorMsg("Error in loading image from buffer");
+}
+
 //! \brief for debugging
 void writeTextureToFile(std::filesystem::path path, std::string filename, FrameBuffer &buffer)
 {
     int width = buffer.getSize().x;
     int height = buffer.getSize().y;
-    Image image(width, height);
-    buffer.bind();
-    glCheckErrorMsg("Error in write texture to file");
-    glReadPixels(0, 0, width, height,
-                 static_cast<GLenum>(TextureFormat::RGBA),
-                 static_cast<GLenum>(TextureDataTypes::UByte),
-                 image.data());
-
+    Image image(buffer);
 
     int stride = 4 * width;
     auto full_path = (path.string() + filename);

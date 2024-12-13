@@ -1,86 +1,40 @@
 cmake_minimum_required(VERSION 3.15)
-
+include(GNUInstallDirs)
 
 project(renderer)
-option(BUILD_EXAMPLE OFF)
+option(BUILD_EXAMPLES ON)
+set(BUILD_TESTS ON)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 set(CMAKE_CXX_STANDARD 20)
-
-if(NOT CMAKE_BUILD_TYPE) 
-set(CMAKE_BUILD_TYPE "Release")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2")
-endif()
-
 add_subdirectory(external/freetype)
-
-include(FetchContent)
-FetchContent_Declare(
-  glm
-  GIT_REPOSITORY https://github.com/g-truc/glm.git
-  GIT_TAG master
-)
-FetchContent_MakeAvailable(glm)
-
-FetchContent_Declare(
-  SDL2
-  GIT_REPOSITORY https://github.com/libsdl-org/SDL
-  GIT_TAG SDL2
-)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSDL_TEST_LIBRARY=OFF -DSDL2_DISABLE_INSTALL=ON")
-FetchContent_MakeAvailable(SDL2)
-
-FetchContent_Declare(
-    glad
-    GIT_REPOSITORY https://github.com/Dav1dde/glad
-    GIT_TAG        v2.0.6
-    GIT_SHALLOW    TRUE
-    GIT_PROGRESS   TRUE
-)
-FetchContent_GetProperties(glad)
-if(NOT glad_POPULATED)
-    message("Fetching glad")
-    FetchContent_MakeAvailable(glad)
-
-    add_subdirectory("${glad_SOURCE_DIR}/cmake" glad_cmake)
-    glad_add_library(glad STATIC  API gl:compatibility=4.6)
-    include_directories(SYSTEM ${GLAD_DIR}/include)
-endif()
-
-
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-set(USE_FLAGS "-s USE_SDL=2 -s FULL_ES3=1 -s OFFSCREEN_FRAMEBUFFER=1")
-set(USE_FLAGS "${USE_FLAGS} -s MIN_WEBGL_VERSION=1 -s MAX_WEBGL_VERSION=2")
-set(USE_FLAGS "${USE_FLAGS} -s ASSERTIONS=0 -s ALLOW_MEMORY_GROWTH=1")
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${USE_FLAGS} --profiling --embed-file ${CMAKE_SOURCE_DIR}/Resources --embed-file ${CMAKE_SOURCE_DIR}/external/lygia")
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${USE_FLAGS}")
-set(CMAKE_EXECUTABLE_SUFFIX .html)
-else()
-endif()
-include_directories(SYSTEM external/stbimage)
+include(cmake/External.cmake)
+include(cmake/CompilerFlags.cmake)
 
 file(GLOB HDR
-     "include/*.h"
-     "include/Utils/*.h"
-     "include/Gui/*.h"
-     "include/Gui/backends/*.h"
+"include/*.h"
+"include/Utils/*.h"
+"include/Gui/*.h"
+"include/Gui/backends/*.h"
 )
 file(GLOB SRC
-     "src/*.cpp"
-     "src/Utils/*.cpp"
-     "src/Gui/*.cpp"
-     "src/Gui/backends/*.cpp"
+"src/*.cpp"
+"src/Utils/*.cpp"
+"src/Gui/*.cpp"
+"src/Gui/backends/*.cpp"
 )
 
-include_directories(${CMAKE_SOURCE_DIR}/include  ${SDL2_INCLUDE_DIRS})
-include_directories(SYSTEM external/magic_enum)
-include_directories(SYSTEM external/freetype)
+set(TARGET_LIBRARY_NAME ${PROJECT_NAME})
+add_library(${TARGET_LIBRARY_NAME} STATIC)
+target_sources(${TARGET_LIBRARY_NAME} PRIVATE ${SRC})
+target_link_libraries(${TARGET_LIBRARY_NAME} PUBLIC SDL2 glm freetype glad )
+set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES CXX_STANDARD 20)
+set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
-add_library(${PROJECT_NAME} STATIC)
-target_sources(${PROJECT_NAME} PRIVATE ${SRC})
-target_link_libraries(${PROJECT_NAME} PUBLIC SDL2 SDL2main glm freetype glad)
-target_include_directories(${PROJECT_NAME}
-    PUBLIC 
+target_include_directories(${TARGET_LIBRARY_NAME}
+    PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Utils>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui>
@@ -94,10 +48,31 @@ target_include_directories(${PROJECT_NAME}
 )
 
 if(BUILD_EXAMPLES)
+message("\n!ADDING EXAMPLES!")
 add_subdirectory(Examples)
 endif()
 
+if(BUILD_TESTS)
+    enable_testing()
+    include(GoogleTest)
 
+    message("\n!ADDING TESTS!\n")
+    add_executable(test_all2 src/Tests/main.cpp src/Tests/test_context.cc src/Tests/test_shader.cc)
+    target_link_libraries(test_all2 PUBLIC GTest::gtest_main ${TARGET_LIBRARY_NAME})
+    set_target_properties(test_all2 PROPERTIES CXX_STANDARD 20)
+    ### output test executable is right now in major bin directory because there is just one exe
+    # set_target_properties(test_all2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/tests) 
 
+    gtest_discover_tests(test_all2
+        DISCOVERY_MODE PRE_TEST
+    )
 
+    ### this is not working :(
+    ### see: https://discourse.cmake.org/t/msvs-gtest-discover-tests-environment/9225/3
+    #if(WIN32)
+    #    set_target_properties(test_all2 PROPERTIES ENVIRONMENT
+    #    "PATH=$<SHELL_PATH:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}>$<SEMICOLON>$ENV{PATH}"
+    #    )
+    #endif()
 
+endif()

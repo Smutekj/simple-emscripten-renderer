@@ -2,7 +2,6 @@
 
 #include <IncludesGl.h>
 #include <Utils/RandomTools.h>
-#include <Utils/IO.h>
 
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
@@ -62,17 +61,6 @@ void Application::initializeResources()
     m_window_renderer.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
     m_window_renderer.addShader("LastPass", "basicinstanced.vert", "lastPass.frag");
     glCheckErrorMsg("Error in Shaders creation!");
-
-    std::filesystem::path textures_path = {__FILE__};
-    textures_path.remove_filename().append("../Resources/Textures/");
-    auto texture_filenames = extractNamesInDirectory(textures_path, ".png");
-    m_textures.setBaseDirectory(textures_path);
-    for (auto &texture_filename : texture_filenames)
-    {
-        auto pos_right = texture_filename.find_last_of('.');
-        std::string texture_name = texture_filename.substr(0, pos_right);
-        auto status = m_textures.add(texture_name, texture_filename);
-    }
 }
 
 Application::Application(int width, int height) : m_window(width, height),

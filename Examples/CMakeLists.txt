@@ -15,23 +15,23 @@ endif()
 
 ## TEXT
 add_executable(ExampleText Text/main.cpp Text/Application.h Text/Application.cpp)
-target_link_libraries(ExampleText  ${CMAKE_PROJECT_NAME} )
+target_link_libraries(ExampleText SDL2::SDL2main ${CMAKE_PROJECT_NAME} )
 
 add_executable(ExampleSprites Sprites/main.cpp Sprites/Application.h Sprites/Application.cpp)
-target_link_libraries(ExampleSprites  ${CMAKE_PROJECT_NAME} )
+target_link_libraries(ExampleSprites  SDL2::SDL2main ${CMAKE_PROJECT_NAME} )
 
 add_executable(ExampleShaders Shaders/main.cpp Shaders/Application.h Shaders/Application.cpp
                 Shaders/ShaderUI.h Shaders/ShaderUI.cpp )
-target_link_libraries(ExampleShaders  ${CMAKE_PROJECT_NAME} )
+target_link_libraries(ExampleShaders SDL2::SDL2main ${CMAKE_PROJECT_NAME} )
 
 add_executable(ExampleLayers DrawLayers/main.cpp DrawLayers/Application.h DrawLayers/Application.cpp
             DrawLayers/DrawLayer.h DrawLayers/DrawLayer.cpp DrawLayers/PostEffects.h DrawLayers/PostEffects.cpp )
-target_link_libraries(ExampleLayers  ${CMAKE_PROJECT_NAME} )
+target_link_libraries(ExampleLayers SDL2::SDL2main ${CMAKE_PROJECT_NAME} )
 
 add_executable(ExamplePostEffects PostEffects/main.cpp PostEffects/Application.h PostEffects/Application.cpp
 PostEffects/DrawLayer.h PostEffects/DrawLayer.cpp PostEffects/PostEffects.h PostEffects/PostEffects.cpp )
-target_link_libraries(ExamplePostEffects  ${CMAKE_PROJECT_NAME} )
+target_link_libraries(ExamplePostEffects SDL2::SDL2main ${CMAKE_PROJECT_NAME} )
 
 add_executable(ExampleParticles Particles/main.cpp Particles/Application.h Particles/Application.cpp
 Particles/DrawLayer.h Particles/DrawLayer.cpp Particles/PostEffects.h Particles/PostEffects.cpp )
-target_link_libraries(ExampleParticles  ${CMAKE_PROJECT_NAME} )
+target_link_libraries(ExampleParticles SDL2::SDL2main ${CMAKE_PROJECT_NAME} )
