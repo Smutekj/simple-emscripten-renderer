@@ -94,7 +94,12 @@ jobs:
 
     - name: Test
       working-directory: ${{ steps.strings.outputs.build-output-dir }}
+      
       # Execute tests defined by the CMake configuration. Note that --build-config is needed because the default Windows generator is a multi-config generator (Visual Studio generator).
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
-      run: ctest --build-config ${{ matrix.build_type }}
-  
+      shell: bash
+      # tests are run right now only on Linux because neither Mac nor Windows allow me to run GL functions in workflows
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then 
+          ctest --build-config ${{ matrix.build_type }}
+        fi
