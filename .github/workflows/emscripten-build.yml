@@ -28,4 +28,4 @@ jobs:
         run: |
           cd ${{ github.workspace }}/build-ems
           emcc --clear-ports
-          emmake make -j 6
+          emmake make VERBOSE=1 -j 6
