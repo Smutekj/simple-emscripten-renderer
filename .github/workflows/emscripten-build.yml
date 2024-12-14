@@ -5,7 +5,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v2 ## DO NOT FORGET THE CHECKOUT ACTION!!!! :D
       - name: Setup emsdk
         uses: mymindstorm/setup-emsdk@v14
         with:
