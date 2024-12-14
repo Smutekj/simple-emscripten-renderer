@@ -6,6 +6,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: mymindstorm/setup-emsdk@v14
-
-      - name: Verify
-        run: emcc -v
+      - name: Setup Python
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13' 
+      - name: Install Packages
+        shell: bash
+        run: |
+          sudo apt-get install --fix-missing libgl1-mesa-dev  
+          pip3 install jinja2
+      - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+        run: >
+          emcmake cmake -B ${{ steps.strings.outputs.build-output-dir }} -DBUILD_EXAMPLES=ON \
+          -DCMAKE_BUILD_TYPE=Release \
+          -S ${{ github.workspace }} \
+      - name: Build
+        run: emmake make -j 6
