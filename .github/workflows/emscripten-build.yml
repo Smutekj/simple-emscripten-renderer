@@ -9,7 +9,7 @@ jobs:
       - name: Setup emsdk
         uses: mymindstorm/setup-emsdk@v14
         with:
-          version: 1.38.40
+          version: 'latest'
           actions-cache-folder: 'emsdk-cache'
       - name: Setup Python
         uses: actions/setup-python@v5
