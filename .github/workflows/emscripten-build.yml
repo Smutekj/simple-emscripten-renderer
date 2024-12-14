@@ -27,4 +27,5 @@ jobs:
       - name: Build
         run: |
           cd ${{ github.workspace }}/build-ems
+          emcc --clear-ports
           emmake make -j 6
