@@ -21,7 +21,7 @@ jobs:
           pip3 install jinja2 setuptools
       - name: Configure CMake
         run: >
-          emcmake cmake -B ${{ github.workspace }}/build -DBUILD_EXAMPLES=ON \
+          emcmake cmake -B ${{ github.workspace }}/build-ems -DBUILD_EXAMPLES=ON \
           -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: |
