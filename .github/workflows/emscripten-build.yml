@@ -5,7 +5,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: mymindstorm/setup-emsdk@v14
+      - name: Setup emsdk
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 1.38.40
+          actions-cache-folder: 'emsdk-cache'
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -17,8 +21,9 @@ jobs:
           pip3 install jinja2
       - name: Configure CMake
         run: >
-          emcmake cmake -B . -DBUILD_EXAMPLES=ON \
-          -DCMAKE_BUILD_TYPE=Release \
-          -S ${{ github.workspace }} \
+          emcmake cmake -B ${{ github.workspace }}/build -S ${{ github.workspace }} -DBUILD_EXAMPLES=ON \
+          -DCMAKE_BUILD_TYPE=Release
       - name: Build
-        run: emmake make -j 6
+        run: |
+          cd ${{ github.workspace }}/build
+          emmake make -j 6
