@@ -26,5 +26,5 @@ jobs:
           -DCMAKE_BUILD_TYPE=Release
       - name: Build
         run: |
-          cd ${{ github.workspace }}/build
+          cd ${{ github.workspace }}/build-ems
           emmake make -j 6
