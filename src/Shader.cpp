@@ -37,6 +37,10 @@ void static extractUniformNamesFromCode(VariablesData &shader_data, const std::s
     }
 }
 
+//! \brief removes initial values of uniforms from shader code
+//!         This is necessary because    
+//! \param code       string containing old shader code
+//! \returns new string with reduced code
 std::string removeInitialValues(const std::string &code)
 {
     std::string new_code;
