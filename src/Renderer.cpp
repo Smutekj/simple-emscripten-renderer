@@ -365,7 +365,7 @@ void Renderer::drawEllipseBatched(Vec2 center, float angle, const utils::Vector2
 void Renderer::drawVertices(VertexArray &verts, DrawType draw_type, std::shared_ptr<Texture> p_texture)
 {
     GLuint texture_id = p_texture ? p_texture->getHandle() : 0;
-    auto &batch = findBatch(texture_id, *verts.m_shader, draw_type, static_cast<int>(verts.size()));
+    auto &batch = findBatch(texture_id, verts.m_shader, draw_type, static_cast<int>(verts.size()));
 
     auto pi = std::numbers::pi_v<float>;
     auto n_verts = verts.size();
