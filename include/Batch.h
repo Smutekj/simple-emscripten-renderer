@@ -65,6 +65,9 @@ public:
     BatchConfig m_config;
     VertexArray m_verts;
     std::vector<IndexType> m_indices;
+
+private:
+    Shader& m_shader; 
 };
 
 //! \struct Trans

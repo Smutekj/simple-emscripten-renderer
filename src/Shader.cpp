@@ -139,7 +139,7 @@ void static extractUniformNames(VariablesData &shader_data, const std::string &f
 //! \brief the texture names-values pairs are stored in \p shader_data
 //! \param shader_data
 //! \param filename
-void static extractTextureNames(VariablesData &shader_data, std::string filename)
+[[maybe_unused]] void static extractTextureNames(VariablesData &shader_data, std::string filename)
 {
     const auto tmp_filename = filename + ".tmp";
     std::ifstream file(filename);
@@ -199,10 +199,7 @@ void Shader::setUniforms()
     {
         setUniform2(name, value);
     }
-    for (auto &[name, value] : m_variables.textures)
-    {
-        //! ???
-    }
+
     if (m_variables.uniforms.contains("u_time"))
     {
         m_variables.uniforms.at("u_time") = Shader::m_time;
@@ -270,7 +267,7 @@ bool Shader::wasSuccessfullyBuilt()const
 //! \brief does GL calls to activate textures at the slots
 void Shader::activateTexture(TextureArray handles)
 {
-    for (int slot = 0; slot < handles.size(); ++slot)
+    for (size_t slot = 0; slot < handles.size(); ++slot)
     {
         if (handles.at(slot) != 0)
         {
@@ -333,7 +330,7 @@ void Shader::retrieveCode(const char *code_path, std::string &code)
         code = shader_stream.str();
         std::cout << code << "\n";
     }
-    catch (std::ifstream::failure e)
+    catch (std::ifstream::failure& e)
     {
         std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
     }
@@ -367,7 +364,7 @@ Shader::Shader(const std::filesystem::path &vertex_path, const std::filesystem::
 
 Shader::~Shader()
 {
-    if (m_id != -1)
+    if (m_id != 0)
     {
         glDeleteProgram(m_id);
     }
@@ -474,7 +471,7 @@ void Shader::use()
         auto last_time = std::filesystem::last_write_time(m_fragment_path);
         if (last_time != m_last_writetime)
         {
-            if (m_id != -1)
+            if (m_id != 0) //! 0 is the default value so it makes no sense to delete?
             {
                 glDeleteProgram(m_id);
             }
@@ -593,8 +590,8 @@ ShaderUIData::ShaderUIData(Shader &program)
 std::vector<std::string> separateLine(std::string line, char delimiter)
 {
     std::vector<std::string> result;
-    int start = 0;
-    int end = 0;
+    size_t start = 0;
+    size_t end = 0;
 
     while ((start = line.find_first_not_of(delimiter, end)) != std::string::npos)
     {
@@ -619,17 +616,6 @@ std::string trim(const std::string &input)
     std::string result = input.substr(first_nonspace, last_nonspace);
     return result;
 }
-
-//! just in case
-// std::string oldtrim(const std::string& input)
-// {
-
-//     auto last_nonspace = input.find_last_not_of(' ');
-//     auto first_nonspace = input.find_first_not_of(' ');
-
-//     std::string result = input.substr(first_nonspace, last_nonspace);
-//     return result;
-// }
 
 bool replace(std::string &str, const std::string &from, const std::string &to)
 {

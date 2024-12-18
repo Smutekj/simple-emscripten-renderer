@@ -32,7 +32,7 @@ public:
     void setTexCoords(float tex_coord_x, float tex_coord_y, float width, float height);
     std::vector<Vertex> getVerts();
 private:
-    GLuint m_vbo;
+    GLuint m_vbo = 0;
 
     Shader *m_shader = nullptr;
     static constexpr int m_indices[6] = {0, 1, 2, 2, 3, 0};

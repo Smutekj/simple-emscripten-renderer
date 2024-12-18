@@ -3,8 +3,7 @@
 #include "Shader.h"
 #include "View.h"
 
-VertexArray::VertexArray(Shader &shader)
-    : m_shader(shader)
+VertexArray::VertexArray()
 {
     glGenBuffers(1, &m_vbo);
     glGenBuffers(1, &m_ebo);
@@ -26,8 +25,8 @@ void VertexArray::setTexture(int slot, GLuint texture_handle)
     m_textures.at(slot) = texture_handle;
 }
 
-VertexArray::VertexArray(Shader &shader, GLenum draw_type)
-    : m_shader(shader), m_draw_type(static_cast<DrawType>(draw_type))
+VertexArray::VertexArray(GLenum draw_type)
+    : m_draw_type(static_cast<DrawType>(draw_type))
 {
     glGenBuffers(1, &m_vbo);
     glGenBuffers(1, &m_ebo);
@@ -46,8 +45,8 @@ VertexArray::VertexArray(Shader &shader, GLenum draw_type)
 
 }
 
-VertexArray::VertexArray(Shader &shader, GLenum draw_type, int n_verts)
-    : VertexArray(shader, draw_type)
+VertexArray::VertexArray(GLenum draw_type, int n_verts)
+    : VertexArray(draw_type)
 {
     resize(n_verts);
 }
@@ -127,12 +126,12 @@ Vertex &VertexArray::operator[](int i)
 //! \brief draws directly into the associated target
 //! \param view
 //! \param indices      a vector of indices to use in the draw call
-void VertexArray::draw(View &view, const std::vector<IndexType> &indices)
+void VertexArray::draw(View &view, Shader& shader, const std::vector<IndexType> &indices)
 {
-    m_shader.use();
-    m_shader.setMat4("u_view_projection", view.getMatrix());
-    m_shader.activateTexture(m_textures);
-    m_shader.setUniforms();
+    shader.use();
+    shader.setMat4("u_view_projection", view.getMatrix());
+    shader.activateTexture(m_textures);
+    shader.setUniforms();
 
     for (int slot = 0; slot < N_MAX_TEXTURES_IN_SHADER; ++slot)
     {
@@ -162,11 +161,13 @@ void VertexArray::draw(View &view, const std::vector<IndexType> &indices)
 
 //! \brief draws directly into the associated target
 //! \param view
-void VertexArray::draw(View &view)
+void VertexArray::draw(View &view, Shader& shader)
 {
-    m_shader.use();
-    m_shader.setMat4("u_view_projection", view.getMatrix());
-    m_shader.activateTexture(m_textures);
+    shader.use();
+    shader.setMat4("u_view_projection", view.getMatrix());
+    shader.activateTexture(m_textures);
+    shader.setUniforms();
+
 
     for (int slot = 0; slot < N_MAX_TEXTURES_IN_SHADER; ++slot)
     {
@@ -192,15 +193,6 @@ void VertexArray::setTexture(Texture &texture)
     m_textures.at(0) = texture.getHandle();
 }
 
-void VertexArray::setShader(Shader &shader)
-{
-    m_shader = shader;
-}
-
-GLuint VertexArray::getShaderId() const
-{
-    return m_shader.getId();
-}
 
 std::size_t VertexArray::size() const
 {

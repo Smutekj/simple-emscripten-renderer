@@ -17,7 +17,8 @@ BlendParams::BlendParams(BlendFactor src_fact, BlendFactor dst_fact, BlendFactor
 }
 
 Renderer::Renderer(RenderTarget &target)
-    : m_target(target), m_viewport(0.f, 0.f, 1.f, 1.f)
+    : m_viewport(0.f, 0.f, 1.f, 1.f),
+      m_target(target)
 {
 }
 
@@ -64,7 +65,7 @@ utils::Vector2f Renderer::getMouseInWorld()
     int mouse_coords[2];
 
     auto m = glm::inverse(m_view.getMatrix());
-    auto button = SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
+    SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
     glm::vec4 world_coords = m * glm::vec4(
                                      2. * mouse_coords[0] / m_target.getSize().x - 1.,
                                      -2. * mouse_coords[1] / m_target.getSize().y + 1.f, 0, 1);
@@ -75,7 +76,7 @@ utils::Vector2f Renderer::getMouseInWorld()
 utils::Vector2i Renderer::getMouseInScreen()
 {
     int mouse_coords[2];
-    auto button = SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
+    SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
     return {mouse_coords[0], mouse_coords[1]};
 }
 
@@ -361,16 +362,24 @@ void Renderer::drawEllipseBatched(Vec2 center, float angle, const utils::Vector2
 //! \brief draws vertices in the \p verts VertexArray using the texture \p p_texture
 //! \param verts
 //! \param draw_type
+//! \param shader_id
 //! \param p_texture    pointer to a used texture
-void Renderer::drawVertices(VertexArray &verts, DrawType draw_type, std::shared_ptr<Texture> p_texture)
+void Renderer::drawVertices(VertexArray &verts, const std::string &shader_id,
+                            DrawType draw_type, std::shared_ptr<Texture> p_texture)
 {
-    GLuint texture_id = p_texture ? p_texture->getHandle() : 0;
-    auto &batch = findBatch(texture_id, verts.m_shader, draw_type, static_cast<int>(verts.size()));
 
-    auto pi = std::numbers::pi_v<float>;
+    if (!m_shaders.contains(shader_id))
+    {
+        return;
+    }
+    auto &shader = m_shaders.get(shader_id);
+
+    GLuint texture_id = p_texture ? p_texture->getHandle() : 0;
+    auto &batch = findBatch(texture_id, shader, draw_type, static_cast<int>(verts.size()));
+
     auto n_verts = verts.size();
 
-    for (int i = 0; i < n_verts; ++i)
+    for (size_t i = 0; i < n_verts; ++i)
     {
         batch.pushVertex(verts[i]);
     }
@@ -552,7 +561,7 @@ Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, DrawType draw
             return *batch;
         }
     }
-    
+
     //! there is no free batch so we create a new one;
     batches.emplace_back(createBatch(config, shader, draw_type));
     return *batches.back();

@@ -25,22 +25,19 @@ class VertexArray
 {
 
 public:
-    VertexArray(Shader &shader);
-    VertexArray(Shader &shader, GLenum draw_type);
-    VertexArray(Shader &shader, GLenum draw_type, int n_verts);
+    VertexArray();
+    VertexArray(GLenum draw_type);
+    VertexArray(GLenum draw_type, int n_verts);
     ~VertexArray();
 
     void resize(int n_verts);
     std::size_t size() const;
 
-    void draw(View &view);
-    void draw(View &view, const std::vector<IndexType> &indices);
+    void draw(View &view, Shader &shader);
+    void draw(View &view, Shader &shader, const std::vector<IndexType> &indices);
 
     void setTexture(Texture &texture);
     void setTexture(int slot, GLuint);
-
-    void setShader(Shader &Shader);
-    GLuint getShaderId() const;
 
     Vertex &operator[](int i);
 
@@ -53,7 +50,6 @@ private:
 
 public:
     GLenum m_primitives = GL_TRIANGLES; //!
-    Shader &m_shader;         //<! pointer to shader
 
 private:
     GLuint m_vbo = -1; //<! vertex buffer object OpenGL id

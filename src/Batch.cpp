@@ -6,7 +6,8 @@
 //! \param draw_type    Can be either Static or Dynamic
 Batch::Batch(GLuint texture_id, Shader &shader, DrawType draw_type)
     : m_config(texture_id, shader.getId(), draw_type),
-      m_verts(shader, static_cast<GLenum>(draw_type), m_capacity)
+      m_verts(static_cast<GLenum>(draw_type), m_capacity),
+      m_shader(shader)
 {
 }
 
@@ -16,7 +17,8 @@ Batch::Batch(GLuint texture_id, Shader &shader, DrawType draw_type)
 //! \param draw_type    Can be either Static or Dynamic
 Batch::Batch(const BatchConfig &config, Shader &shader, DrawType draw_type)
     : m_config(config),
-      m_verts(shader, static_cast<GLenum>(draw_type), m_capacity)
+      m_verts(static_cast<GLenum>(draw_type), m_capacity),
+      m_shader(shader)
 {
     m_indices.reserve(m_capacity * 3);
     std::for_each(config.texture_ids.begin(), config.texture_ids.end(), [&config, this](auto &id)
@@ -26,7 +28,8 @@ Batch::Batch(const BatchConfig &config, Shader &shader, DrawType draw_type)
 }
 
 Batch::~Batch()
-{}
+{
+}
 
 //! \brief sets number of used vertices to 0 and clears index buffer
 void Batch::clear()
@@ -40,7 +43,7 @@ void Batch::clear()
 void Batch::flush(View &view)
 {
 
-    m_verts.draw(view, m_indices);
+    m_verts.draw(view, m_shader, m_indices);
 
     if (m_config.draw_type != DrawType::Static) //! static draws should stay the same so no need to clear data
     {
@@ -189,7 +192,7 @@ void SpriteBatch::bindAttributes()
     glEnableVertexAttribArray(0);
     glCheckErrorMsg("Error in bind attributes!");
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec2), (void *)(0 * sizeof(float)));
-    glCheckErrorMsg("YOU PROBABLY MADE CORE INSTEAD OF COMPATIBLITY CONTEXT!"); 
+    glCheckErrorMsg("YOU PROBABLY MADE CORE INSTEAD OF COMPATIBLITY CONTEXT!");
     glVertexAttribDivisor(0, 0);
     glCheckErrorMsg("Error in bind attributes!");
 
@@ -232,7 +235,7 @@ void SpriteBatch::initialize()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glCheckError();
 
-    glBindVertexArray(m_vao); 
+    glBindVertexArray(m_vao);
     glCheckError();
 }
 
@@ -251,7 +254,7 @@ void SpriteBatch::flush(View &view)
     m_shader.setUniforms();
     m_shader.activateTexture(m_config.texture_ids);
 
-    for (int slot = 0; slot < m_config.texture_ids.size(); ++slot)
+    for (size_t slot = 0; slot < m_config.texture_ids.size(); ++slot)
     {
         auto texture_id = m_config.texture_ids.at(slot);
         if (texture_id != 0)

@@ -1,4 +1,3 @@
-#pragma once
 #include <gtest/gtest.h>
 
 #include <Shader.h>
@@ -24,9 +23,9 @@ namespace
                              width, height,
                              SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
 
-        auto m_gl_context = SDL_GL_CreateContext(m_handle);
+        SDL_GL_CreateContext(m_handle);
 
-        int version = gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
+        gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
 
         return m_handle;
     }
@@ -55,7 +54,7 @@ namespace
     {
         int width = 800;
         int height = 600;
-        auto window_handle = createHiddenWindow(width, height);
+        createHiddenWindow(width, height);
         FrameBuffer target_pixels(11, 10);
         Renderer canvas(target_pixels);
 
@@ -121,7 +120,7 @@ namespace
     {
         int width = 800;
         int height = 600;
-        auto window_handle = createHiddenWindow(width, height);
+        createHiddenWindow(width, height);
         FrameBuffer pixels(width, height);
         Renderer canvas(pixels);
 
@@ -183,7 +182,7 @@ namespace
     {
         int width = 800;
         int height = 600;
-        auto window_handle = createHiddenWindow(width, height);
+        createHiddenWindow(width, height);
 
         FrameBuffer target_pixels(11, 10);
         Renderer canvas(target_pixels);

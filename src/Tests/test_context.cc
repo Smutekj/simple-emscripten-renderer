@@ -1,12 +1,9 @@
-#pragma once
 #include <gtest/gtest.h>
 #include <Window.h>
 #include "IncludesGl.h"
 
 namespace
 {
-
-
 
      TEST(TestContext, GladFunctionLoad)
      {
@@ -53,7 +50,7 @@ namespace
 
          auto m_gl_context = SDL_GL_CreateContext(m_handle);
 
-         int version = gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
+         gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
 
          int major_version;
          int minor_version;
@@ -87,7 +84,7 @@ namespace
 
          auto m_gl_context = SDL_GL_CreateContext(m_handle);
 
-         int version = gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
+         gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
 
          EXPECT_TRUE(glGetString != nullptr) << "glGetString not available!";
          EXPECT_TRUE(glCreateBuffers != nullptr) << "glCreateBuffers not available!";
