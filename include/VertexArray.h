@@ -53,18 +53,18 @@ private:
 
 public:
     GLenum m_primitives = GL_TRIANGLES; //!
-    Shader *m_shader = nullptr;         //! pointer to shader
+    Shader &m_shader;         //<! pointer to shader
 
 private:
-    GLuint m_vbo = -1; //! vertex buffer object OpenGL id
-    GLuint m_ebo = -1; //! element buffer object OpenGL id
-    GLuint m_vao = -1; //! vertex array object OpenGL id
+    GLuint m_vbo = -1; //<! vertex buffer object OpenGL id
+    GLuint m_ebo = -1; //<! element buffer object OpenGL id
+    GLuint m_vao = -1; //<! vertex array object OpenGL id
 
     TextureArray m_textures = {};
 
     std::vector<Vertex> m_vertices;
 
-    DrawType m_draw_type = DrawType::Dynamic; 
+    DrawType m_draw_type = DrawType::Dynamic;
 
     bool m_is_initialized = false;
     bool m_needs_new_gl_buffer = false;

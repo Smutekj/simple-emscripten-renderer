@@ -4,7 +4,7 @@
 #include "View.h"
 
 VertexArray::VertexArray(Shader &shader)
-    : m_shader(&shader)
+    : m_shader(shader)
 {
     glGenBuffers(1, &m_vbo);
     glGenBuffers(1, &m_ebo);
@@ -27,7 +27,7 @@ void VertexArray::setTexture(int slot, GLuint texture_handle)
 }
 
 VertexArray::VertexArray(Shader &shader, GLenum draw_type)
-    : m_shader(&shader), m_draw_type(static_cast<DrawType>(draw_type))
+    : m_shader(shader), m_draw_type(static_cast<DrawType>(draw_type))
 {
     glGenBuffers(1, &m_vbo);
     glGenBuffers(1, &m_ebo);
@@ -129,13 +129,10 @@ Vertex &VertexArray::operator[](int i)
 //! \param indices      a vector of indices to use in the draw call
 void VertexArray::draw(View &view, const std::vector<IndexType> &indices)
 {
-    if (m_shader)
-    {
-        m_shader->use();
-        m_shader->setMat4("u_view_projection", view.getMatrix());
-        m_shader->activateTexture(m_textures);
-        m_shader->setUniforms();
-    }
+    m_shader.use();
+    m_shader.setMat4("u_view_projection", view.getMatrix());
+    m_shader.activateTexture(m_textures);
+    m_shader.setUniforms();
 
     for (int slot = 0; slot < N_MAX_TEXTURES_IN_SHADER; ++slot)
     {
@@ -167,21 +164,9 @@ void VertexArray::draw(View &view, const std::vector<IndexType> &indices)
 //! \param view
 void VertexArray::draw(View &view)
 {
-    if (m_shader)
-    {
-        m_shader->use();
-        m_shader->setMat4("u_view_projection", view.getMatrix());
-        m_shader->activateTexture(m_textures);
-    }
-
-    auto m = view.getMatrix();
-    int i = 0;
-    for (auto &v : m_vertices)
-    {
-        auto pos = m * glm::vec4(v.pos.x, v.pos.y, 0., 1.);
-        std::cout << i << " " << pos.x << " " << pos.y << "\n";
-        i++;
-    }
+    m_shader.use();
+    m_shader.setMat4("u_view_projection", view.getMatrix());
+    m_shader.activateTexture(m_textures);
 
     for (int slot = 0; slot < N_MAX_TEXTURES_IN_SHADER; ++slot)
     {
@@ -205,17 +190,16 @@ void VertexArray::draw(View &view)
 void VertexArray::setTexture(Texture &texture)
 {
     m_textures.at(0) = texture.getHandle();
-    // setTexture(0, texture);
 }
 
 void VertexArray::setShader(Shader &shader)
 {
-    m_shader = &shader;
+    m_shader = shader;
 }
 
 GLuint VertexArray::getShaderId() const
 {
-    return m_shader->getId();
+    return m_shader.getId();
 }
 
 std::size_t VertexArray::size() const

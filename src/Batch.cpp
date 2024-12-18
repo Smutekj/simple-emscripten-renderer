@@ -124,27 +124,10 @@ int Batch::getFreeVerts() const
 //! \brief since all sprites are assumed to be rectangles,
 void SpriteBatch::createBuffers()
 {
-    glCheckError();
     glGenBuffers(1, &m_indices_buffer);
-    // glCheckError();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indices_buffer);
-    // glCheckError();
-    // glCheckError();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
     glGenBuffers(1, &m_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    // // glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2) * 4, m_prototype, GL_DYNAMIC_DRAW);
-    // glCheckError();
-
     glGenBuffers(1, &m_transform_buffer);
-    // glCheckError();
-    glBindBuffer(GL_ARRAY_BUFFER, m_transform_buffer);
-    // glCheckError();
-    // // glBufferData(GL_ARRAY_BUFFER, sizeof(Trans) * BATCH_VERTEX_CAPACITY, m_transforms.data(), GL_DYNAMIC_DRAW);
-    // glCheckError();
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glCheckError();
 }
 
 //! \brief construct form batch configuration and a shader (no idea what the shader is for btw?)
@@ -209,10 +192,7 @@ void SpriteBatch::bindAttributes()
     glCheckErrorMsg("YOU PROBABLY MADE CORE INSTEAD OF COMPATIBLITY CONTEXT!"); 
     glVertexAttribDivisor(0, 0);
     glCheckErrorMsg("Error in bind attributes!");
-    // glBindVertexArray(0);
 
-    // glGenVertexArrays(1, &m_transform_vao);
-    // glBindVertexArray(m_transform_vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_transform_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(Trans) * BATCH_VERTEX_CAPACITY, m_transforms.data(), GL_DYNAMIC_DRAW);
 
@@ -292,11 +272,6 @@ void SpriteBatch::flush(View &view)
     m_end = 0;
 
     glBindVertexArray(0);
-
-    // for(int i = 0; i <= 6; ++i)
-    // {
-    //     glDisableVertexAttribArray(i);
-    // }
 }
 
 //! \returns this looks the same as countFreeSpots?
