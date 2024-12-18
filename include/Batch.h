@@ -29,7 +29,6 @@ struct BatchConfig
     DrawType draw_type = DrawType::Dynamic;
 };
 
-
 //! \class Batch
 //! \brief used for batching draw calls of vertices with indices
 //! \brief primitives are assumed to be triangles
@@ -91,7 +90,6 @@ public:
     SpriteBatch(GLuint texture_id, Shader &shader);
     ~SpriteBatch();
 
-
     bool addSprite(Trans t);
     void bindAttributes();
     void initialize();
@@ -116,15 +114,15 @@ private:
     Shader &m_shader;
 
     GLuint m_texture_id = 0;
-    GLuint m_transform_buffer = 0;
-    GLuint m_indices_buffer = 0;
-    GLuint m_vbo = 0;
+    GLuint m_transform_buffer = 0; //<! buffer object with instancing data OpenGL id
+    GLuint m_transform_vao = 0;    //<! vertex array object OpenGL id
+    GLuint m_indices_buffer = 0;   //<! buffer object with element indices OpenGL id
+    GLuint m_vbo = 0;              //<! vertex buffer object OpenGL id
+    GLuint m_vao = 0;              //<! vertex array object for vertices OpenGL id
 
     std::array<Trans, BATCH_VERTEX_CAPACITY> m_transforms; //! transform and texture data is stored here
     int m_end = 0;
 };
-
-
 
 inline void hashloop(int n, std::invocable<int> auto &&hash_combiner)
 {
