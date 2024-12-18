@@ -71,7 +71,7 @@ void Application::initializeResources()
     {
         auto pos_right = texture_filename.find_last_of('.');
         std::string texture_name = texture_filename.substr(0, pos_right);
-        auto status = m_textures.add(texture_name, texture_filename);
+        m_textures.add(texture_name, texture_filename);
     }
 }
 
@@ -285,8 +285,6 @@ void Application::update(float dt)
 
 void inline gameLoop(void *mainLoopArg)
 {
-    auto tic = clock();
-    // auto tic = std::chrono::high_resolution_clock::now();
     Application *p_app = (Application *)mainLoopArg;
 
     p_app->update(0);
@@ -294,8 +292,5 @@ void inline gameLoop(void *mainLoopArg)
 
     // Swap front/back framebuffers
     SDL_GL_SwapWindow(p_app->m_window.getHandle());
-    auto toc = clock();
-
-    double dt = (double)(toc - tic) / CLOCKS_PER_SEC * 1000.f;
     SDL_Delay(10);
 }

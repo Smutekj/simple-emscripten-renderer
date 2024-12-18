@@ -10,23 +10,40 @@
 #include <filesystem>
 
 Application::Application(int width, int height) : m_window(width, height),
-                                                  m_window_renderer(m_window)
+                                                  m_window_renderer(m_window),
+                                                  m_meteor(static_cast<GLenum>(DrawType::Dynamic), 3)
 {
 
-    std::filesystem::path font_path = {__FILE__};
-    font_path.remove_filename().append("../../Resources/Fonts/arial.ttf");
-    m_font = std::make_shared<Font>(font_path);
+    std::filesystem::path texture_directory = {__FILE__};
+    texture_directory.remove_filename().append("../Resources/Textures/");
+    m_textures.setBaseDirectory(texture_directory);
+    m_textures.add("Ship", "EnemyLaser.png");
 
     std::filesystem::path shaders_path = {__FILE__};
     shaders_path.remove_filename().append("../../Resources/Shaders/");
     m_window_renderer.setShadersPath(shaders_path);
     m_window_renderer.addShader("Instanced", "basicinstanced.vert", "texture.frag");
-    m_window_renderer.addShader("Text", "basicinstanced.vert", "textBorder.frag");
     m_window_renderer.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
-    
+
     m_window_renderer.m_view = m_window_renderer.getDefaultView();
 
     initializeUI();
+
+    Vertex v;
+    v.color = {0,1,1,1};
+    v.pos = {200, 300};
+    v.tex_coord = {0,0};
+    m_meteor[0] = v;
+
+    v.pos = {250, 300};
+    v.color = {1,0,1,1};
+    v.tex_coord = {1,0};
+    m_meteor[1] = v;
+
+    v.pos = {200, 350};
+    v.color = {1,1,0,1};
+    v.tex_coord = {0,1};
+    m_meteor[2] = v;
 }
 
 void Application::run()
@@ -48,8 +65,9 @@ void Application::drawUI()
     ImGui::NewFrame();
 
     ImGui::Begin("Text");
-    ImGui::InputText("Text", m_screen_text.data(), 100);
-
+    Color color = {m_sprite_color.r/255.f, m_sprite_color.g/255.f, m_sprite_color.b/255.f, m_sprite_color.a/255.f};
+    ImGui::ColorPicker4("Sprite Color", &color.r);
+    m_sprite_color = {color};
     ImGui::End();
 
     ImGui::Render();
@@ -116,12 +134,12 @@ void Application::onWheelMove(SDL_MouseWheelEvent event)
 
     if (event.preciseY < 0)
     {
-        m_window_renderer.m_view.zoom(0.95f);
+        m_ship_scale *= 1.05f;
+        m_ship_scale = std::max(0.f, m_ship_scale);
     }
     else if (event.preciseY > 0)
     {
-
-        m_window_renderer.m_view.zoom(1. / 0.95f);
+        m_ship_scale /= 1.05f;
     }
 }
 
@@ -153,23 +171,16 @@ void moveView(utils::Vector2f dr, Renderer &target)
 void Application::update(float dt)
 {
 
+    auto mouse_coords = m_window_renderer.getMouseInWorld();
     Shader::m_time += 0.016f;
 
-    Text test_text(m_screen_text);
-    test_text.setFont(m_font.get());
-    test_text.setPosition(400, 300);
-    test_text.setScale(1, 1);
-    test_text.setColor({255, 0, 255, 255});
+    Sprite enemy_ship(*m_textures.get("Ship"));
+    enemy_ship.setPosition(mouse_coords);
+    enemy_ship.setScale(m_ship_scale, m_ship_scale);
+    enemy_ship.setColor(m_sprite_color);
 
-    auto mouse_coords = m_window_renderer.getMouseInWorld();
-    Sprite test_sprite(m_font->getTexture()); //*m_textures.get("arrow"));
-    test_sprite.m_color = {0, 0, 0, 255};
-    test_sprite.setScale(400, 300);
-    test_sprite.setPosition(400, 300);
     m_window.clear({1, 1, 1, 1});
-    m_window_renderer.drawSprite(test_sprite, "Text", DrawType::Dynamic);
-    test_text.setPosition(mouse_coords);
-    m_window_renderer.drawText(test_text, "Text", DrawType::Dynamic);
+    m_window_renderer.drawVertices(m_meteor, "VertexArrayDefault");
     m_window_renderer.drawAll();
 
     drawUI();

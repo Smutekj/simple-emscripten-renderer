@@ -27,6 +27,7 @@ Application::Application(int width, int height) : m_window(width, height),
     m_window_renderer.m_view = m_window_renderer.getDefaultView();
 
     initializeUI();
+
 }
 
 void Application::run()
@@ -77,8 +78,6 @@ void Application::initializeUI()
 
 void Application::handleInput()
 {
-
-    auto &imgui_io = ImGui::GetIO();
 
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -174,7 +173,6 @@ void Application::update(float dt)
 void inline gameLoop(void *mainLoopArg)
 {
 
-    auto tic = clock();
     Application *p_app = (Application *)mainLoopArg;
 
     p_app->update(0);
@@ -182,8 +180,6 @@ void inline gameLoop(void *mainLoopArg)
 
     // Swap front/back framebuffers
     SDL_GL_SwapWindow(p_app->m_window.getHandle());
-    auto toc = clock();
 
-    double dt = (double)(toc - tic) / CLOCKS_PER_SEC * 1000.f;
     SDL_Delay(10);
 }

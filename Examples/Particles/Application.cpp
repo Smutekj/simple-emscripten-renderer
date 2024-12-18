@@ -297,8 +297,6 @@ void Application::update(float dt)
 
 void inline gameLoop(void *mainLoopArg)
 {
-    auto tic = clock();
-    // auto tic = std::chrono::high_resolution_clock::now();
     Application *p_app = (Application *)mainLoopArg;
 
     p_app->update(0.016);
@@ -306,8 +304,5 @@ void inline gameLoop(void *mainLoopArg)
 
     // Swap front/back framebuffers
     SDL_GL_SwapWindow(p_app->m_window.getHandle());
-    auto toc = clock();
-
-    double dt = (double)(toc - tic) / CLOCKS_PER_SEC * 1000.f;
     SDL_Delay(10);
 }
