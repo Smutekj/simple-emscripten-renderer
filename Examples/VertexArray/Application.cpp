@@ -22,7 +22,6 @@ Application::Application(int width, int height) : m_window(width, height),
     std::filesystem::path shaders_path = {__FILE__};
     shaders_path.remove_filename().append("../../Resources/Shaders/");
     m_window_renderer.setShadersPath(shaders_path);
-    m_window_renderer.addShader("Instanced", "basicinstanced.vert", "texture.frag");
     m_window_renderer.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
 
     m_window_renderer.m_view = m_window_renderer.getDefaultView();
