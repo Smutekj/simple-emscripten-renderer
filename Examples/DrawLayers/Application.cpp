@@ -254,7 +254,7 @@ void Application::update(float dt)
         Sprite ship(*m_textures.get("EnemyLaser"));
         ship.setPosition(m_window_renderer.getDefaultView().getCenter());
         ship.setScale(m_window_renderer.getDefaultView().getSize() / 8.f);
-        canvas2->drawSprite(ship, "Instanced");
+        canvas2->drawSprite(ship);
     }
 
     m_window_renderer.clear({255, 255, 255, 255});
