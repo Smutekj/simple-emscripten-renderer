@@ -9,10 +9,12 @@ option(BUILD_TESTS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 set(CMAKE_CXX_STANDARD 20)
-add_subdirectory(external/freetype)
-include(cmake/External.cmake)
+
 include(cmake/CompilerFlags.cmake)
 include(cmake/CompilerWarnings.cmake)
+
+add_subdirectory(external/freetype)
+include(cmake/External.cmake)
 
 file(GLOB HDR
 "include/*.h"

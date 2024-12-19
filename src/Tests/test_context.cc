@@ -90,6 +90,7 @@ namespace
          EXPECT_TRUE(glCreateBuffers != nullptr) << "glCreateBuffers not available!";
          EXPECT_TRUE(glCreateFramebuffers != nullptr) << "glCreateFramebuffers not available!";
          EXPECT_TRUE(glCreateVertexArrays != nullptr) << "glCreateVertexArrays not available!";
+         EXPECT_TRUE(glCreateVertexArrays != nullptr) << "glCreateVertexArrays not available!";
          EXPECT_TRUE(glBindBuffer != nullptr) << "glBindBuffer not available!";
          EXPECT_TRUE(glTexImage2D != nullptr) << "glTexImage2D not available!";
          EXPECT_TRUE(glDrawArrays != nullptr) << "glDrawArrays not available!";
