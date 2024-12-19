@@ -1,6 +1,6 @@
 #pragma once
 
-constexpr const char *vertex_font_code = "#version 300 es\n"
+constexpr const char *vertex_sprite_code = "#version 300 es\n"
                                          "precision mediump float;\n"
                                          "layout(location = 0) in vec2 a_position;\n"
                                          "layout(location = 1) in vec2 a_translation;\n"
@@ -62,6 +62,16 @@ constexpr const char *fragment_fullpass_code = "#version 300 es\n"
                                                "{\n"
                                                "    FragColor =   v_color;\n"
                                                "}";
+constexpr const char *fragment_fullpass_texture_code = "#version 300 es\n"
+                                                        "precision mediump float;\n"
+                                                        "uniform sampler2D u_texture;\n"
+                                                        "in vec2 v_tex_coord;\n"
+                                                        "in vec4 v_color;\n"
+                                                        "out vec4 FragColor;\n"
+                                                        "void main()\n"
+                                                        "{\n"
+                                                        "    FragColor =   v_color *  texture(u_texture, v_tex_coord);\n"
+                                                        "}";
 
 constexpr const char *fragment_text_code = "#version 300 es\n"
                                                "precision mediump float;\n"
