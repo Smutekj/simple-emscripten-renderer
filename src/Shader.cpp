@@ -705,11 +705,10 @@ bool ShaderHolder::setBaseDirectory(std::filesystem::path directory)
     return false;
 }
 
-//! \brief default constructs with resource path being __FILE__/../Resources/Shaders/
+//! \brief default constructs with resource path being 
 ShaderHolder::ShaderHolder()
 {
-    m_resources_path = std::filesystem::path{__FILE__};
-    m_resources_path.remove_filename().append("../Resources/Shaders/");
+    m_resources_path = std::filesystem::path{"../Resources/Shaders/"};
 }
 
 //! \brief constructs with specified \p resources_path

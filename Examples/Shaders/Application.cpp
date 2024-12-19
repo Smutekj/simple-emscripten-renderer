@@ -242,7 +242,7 @@ void Application::update(float dt)
         Sprite screen_sprite(shader_slot.m_pixels.getTexture());
         screen_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
         screen_sprite.setPosition(left_margin + slot_size.x / 2.f, top_margin + slot_size.y / 2.f);
-        m_window_renderer.drawSprite(screen_sprite, "Instanced", DrawType::Dynamic);
+        m_window_renderer.drawSprite(screen_sprite);
 
         left_margin += slot_size.x;
         row++;

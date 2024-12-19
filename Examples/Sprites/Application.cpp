@@ -157,7 +157,7 @@ void Application::update(float dt)
     enemy_ship.setColor(m_sprite_color);
 
     m_window.clear({1, 1, 1, 1});
-    m_window_renderer.drawSprite(enemy_ship, "Instanced", DrawType::Dynamic);
+    m_window_renderer.drawSprite(enemy_ship);
     m_window_renderer.drawAll();
 
     drawUI();

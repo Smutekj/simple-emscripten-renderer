@@ -70,7 +70,7 @@ void DrawLayer::drawDirectly(Renderer &canvas)
     canvas.m_view.setCenter(screen_sprite.getPosition());
     canvas.m_view.setSize(target_size);
 
-    canvas.drawSprite(screen_sprite, "Instanced", DrawType::Dynamic);
+    canvas.drawSprite(screen_sprite, "SpriteDefault", DrawType::Dynamic);
     canvas.drawAll();
     canvas.m_view = old_view;
 }
