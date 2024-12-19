@@ -775,7 +775,6 @@ bool ShaderHolder::load(const std::string &name,
 {
     if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
     {
-        return false; //! erasing fucks somethign up :(
         m_shaders.erase(name);
         m_shader_data.erase(name);
     }

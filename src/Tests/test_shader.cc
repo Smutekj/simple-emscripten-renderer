@@ -36,7 +36,7 @@ namespace
         int height = 600;
         createHiddenWindow(width, height);
 
-        Shader basic_instanced_shader((std::string)vertex_font_code, (std::string)fragment_fullpass_code);
+        Shader basic_instanced_shader((std::string)vertex_sprite_code, (std::string)fragment_fullpass_code);
         EXPECT_TRUE(basic_instanced_shader.wasSuccessfullyBuilt());
     }
 
@@ -58,7 +58,9 @@ namespace
         FrameBuffer target_pixels(11, 10);
         Renderer canvas(target_pixels);
 
-        canvas.getShaders().loadFromCode("TestShader", (std::string)vertex_font_code, (std::string)fragment_fullpass_codetest);
+        canvas.getShaders().loadFromCode("TestShader",
+         (std::string)vertex_sprite_code,
+          (std::string)fragment_fullpass_codetest);
         canvas.clear({0, 0, 0, 0});
 
         View view;
@@ -124,7 +126,9 @@ namespace
         FrameBuffer pixels(width, height);
         Renderer canvas(pixels);
 
-        canvas.getShaders().loadFromCode("TestShader", (std::string)vertex_font_code, (std::string)fragment_with_uniforms);
+        canvas.getShaders().loadFromCode("TestShader",
+         (std::string)vertex_sprite_code,
+        (std::string)fragment_with_uniforms);
         canvas.clear({0, 0, 0, 0});
 
         auto &shader = canvas.getShaders().get("TestShader");
@@ -188,7 +192,9 @@ namespace
         Renderer canvas(target_pixels);
 
         //! test load from code
-        bool success = canvas.getShaders().loadFromCode("TestShaderFromCode", (std::string)vertex_font_code, (std::string)fragment_font_code);
+        bool success = canvas.getShaders().loadFromCode("TestShaderFromCode",
+                                                        (std::string)vertex_sprite_code,
+                                                        (std::string)fragment_font_code);
         EXPECT_TRUE(success);
 
         //! test load from file
