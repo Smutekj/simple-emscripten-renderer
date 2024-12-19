@@ -344,6 +344,7 @@ Shader::Shader(const std::string &vertex_shader_code, const std::string &frament
     }
     extractUniformNamesFromCode(m_variables, frament_shader_code);
     extractTextureNamesFromCode(m_variables, frament_shader_code);
+    m_shader_name = frament_shader_code; 
 }
 
 //! \brief construct from paths to vertex and fragment shaders
@@ -357,7 +358,8 @@ Shader::Shader(const std::filesystem::path &vertex_path, const std::filesystem::
 
 Shader::Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path)
     : m_vertex_path(vertex_path.string()),
-      m_fragment_path(fragment_path.string())
+      m_fragment_path(fragment_path.string()),
+      m_shader_name(fragment_path.string())
 {
     recompile();
 }
@@ -481,7 +483,7 @@ void Shader::use()
     }
     if (!m_successfully_built)
     {
-        std::cout << "WARNING, Trying to use unbuilt shader\n";
+        std::cout << "WARNING, Trying to use unbuilt shader named: " << m_shader_name << "\n";
         std::cout << "The shader will not be used!\n";
         return;
     }
@@ -705,7 +707,7 @@ bool ShaderHolder::setBaseDirectory(std::filesystem::path directory)
     return false;
 }
 
-//! \brief default constructs with resource path being 
+//! \brief default constructs with resource path being "../Resources/Shaders/"
 ShaderHolder::ShaderHolder()
 {
     m_resources_path = std::filesystem::path{"../Resources/Shaders/"};
