@@ -3,6 +3,7 @@
 #include "Rectangle.h"
 #include "Texture.h"
 #include "Font.h"
+#include "CommonShaders.inl"
 
 #include <chrono>
 #include <numbers>
@@ -20,6 +21,9 @@ Renderer::Renderer(RenderTarget &target)
     : m_viewport(0.f, 0.f, 1.f, 1.f),
       m_target(target)
 {
+    //! load default shaders
+    m_shaders.loadFromCode("VertexArrayDefault", vertex_vertexarray_code, fragment_fullpass_code);
+    m_shaders.loadFromCode("Instanced", vertex_sprite_code, fragment_fullpass_texture_code);
 }
 
 utils::Vector2i Renderer::getTargetSize() const
@@ -91,6 +95,8 @@ View Renderer::getDefaultView() const
     return default_view;
 }
 
+//! \brief checks if shader with \p shader_id exists
+//! \brief if not, tries loading it from shaders directory
 //! \param shader_id
 //! \returns true if the shader with \p shader_id exists
 bool Renderer::checkShader(const std::string &shader_id)

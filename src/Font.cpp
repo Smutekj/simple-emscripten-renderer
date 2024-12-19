@@ -18,7 +18,7 @@ Font::Font(std::filesystem::path font_filename)
     m_pixels = std::make_unique<FrameBuffer>(1000, 1000, options);
     m_canvas = std::make_unique<Renderer>(*m_pixels);
     m_canvas->getShaders().loadFromCode("Font",
-                                        vertex_font_code,
+                                        vertex_sprite_code,
                                         fragment_font_code);
 
     if (!loadFromFile(font_filename))

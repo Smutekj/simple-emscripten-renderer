@@ -17,12 +17,8 @@ void Application::initializeLayers()
 
     auto &base_layer = m_layers.addLayer("BaseLayer", 0);
     base_layer.m_canvas.setShadersPath(shaders_path);
-    base_layer.m_canvas.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
-    base_layer.m_canvas.addShader("Instanced", "basicinstanced.vert", "texture.frag");
     auto &upper_layer = m_layers.addLayer("BloomLayer", 5);
     upper_layer.m_canvas.setShadersPath(shaders_path);
-    upper_layer.m_canvas.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
-    upper_layer.m_canvas.addShader("Instanced", "basicinstanced.vert", "texture.frag");
     upper_layer.addEffect(std::make_unique<Bloom3>(m_window_renderer.getTargetSize().x, m_window_renderer.getTargetSize().y));
 }
 
@@ -54,11 +50,7 @@ void Application::initializeResources()
     shaders_path.remove_filename().append("../Resources/Shaders/");
 
     m_scene_canvas.setShadersPath(shaders_path);
-    m_scene_canvas.addShader("Instanced", "basicinstanced.vert", "texture.frag");
-    m_scene_canvas.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
     m_window_renderer.setShadersPath(shaders_path);
-    m_window_renderer.addShader("Instanced", "basicinstanced.vert", "texture.frag");
-    m_window_renderer.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
     m_window_renderer.addShader("LastPass", "basicinstanced.vert", "lastPass.frag");
     glCheckErrorMsg("Error in Shaders creation!");
 }
