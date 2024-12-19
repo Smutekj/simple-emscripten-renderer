@@ -18,12 +18,8 @@ void Application::initializeLayers()
 
     auto &lower_layer = m_layers.addLayer("Layer1", 5);
     lower_layer.m_canvas.setShadersPath(shaders_path);
-    lower_layer.m_canvas.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
-    lower_layer.m_canvas.addShader("Instanced", "basicinstanced.vert", "texture.frag");
     auto &upper_layer = m_layers.addLayer("Layer2", 0);
     upper_layer.m_canvas.setShadersPath(shaders_path);
-    upper_layer.m_canvas.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
-    upper_layer.m_canvas.addShader("Instanced", "basicinstanced.vert", "texture.frag");
 }
 
 void Application::initializeUI()
@@ -55,9 +51,7 @@ void Application::initializeResources()
     shaders_path.remove_filename().append("../Resources/Shaders/");
 
     m_window_renderer.setShadersPath(shaders_path);
-    m_window_renderer.addShader("Instanced", "basicinstanced.vert", "texture.frag");
     m_window_renderer.addShader("Text", "basicinstanced.vert", "textBorder.frag");
-    m_window_renderer.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
     glCheckErrorMsg("Error in Shaders creation!");
 
     std::filesystem::path textures_path = {__FILE__};
