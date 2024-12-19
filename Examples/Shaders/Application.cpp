@@ -49,13 +49,10 @@ Application::Application(int width, int height) : m_window(width, height),
             slot.m_canvas.addShader(shader_name, "basicinstanced.vert", shader_filename);
         }
 
-        slot.m_canvas.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
     }
 
     m_window_renderer.setShadersPath(shaders_path);
-    m_window_renderer.addShader("Instanced", "basicinstanced.vert", "texture.frag");
     m_window_renderer.addShader("Text", "basicinstanced.vert", "textBorder.frag");
-    m_window_renderer.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
     glCheckErrorMsg("Error in Shaders creation!");
 
     std::filesystem::path textures_path = {__FILE__};
