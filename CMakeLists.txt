@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.15)
 include(GNUInstallDirs)
 
 project(renderer)
-option(BUILD_EXAMPLES ON)
-option(BUILD_TESTS ON)
+option(BUILD_EXAMPLES OFF)
+option(BUILD_TESTS OFF)
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
