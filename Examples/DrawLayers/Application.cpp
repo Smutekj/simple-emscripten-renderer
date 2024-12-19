@@ -133,8 +133,6 @@ void Application::drawUI()
 void Application::handleInput()
 {
 
-    // auto &imgui_io = ImGui::GetIO();
-
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {

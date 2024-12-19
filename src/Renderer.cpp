@@ -23,7 +23,8 @@ Renderer::Renderer(RenderTarget &target)
 {
     //! load default shaders
     m_shaders.loadFromCode("VertexArrayDefault", vertex_vertexarray_code, fragment_fullpass_code);
-    m_shaders.loadFromCode("Instanced", vertex_sprite_code, fragment_fullpass_texture_code);
+    m_shaders.loadFromCode("SpriteDefault", vertex_sprite_code, fragment_fullpass_texture_code);
+    m_shaders.loadFromCode("TextDefault", vertex_sprite_code, fragment_text_code);
 }
 
 utils::Vector2i Renderer::getTargetSize() const

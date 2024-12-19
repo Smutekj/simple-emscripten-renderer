@@ -17,13 +17,6 @@ Application::Application(int width, int height) : m_window(width, height),
     font_path.remove_filename().append("../../Resources/Fonts/arial.ttf");
     m_font = std::make_shared<Font>(font_path);
 
-    std::filesystem::path shaders_path = {__FILE__};
-    shaders_path.remove_filename().append("../../Resources/Shaders/");
-    m_window_renderer.setShadersPath(shaders_path);
-    m_window_renderer.addShader("Instanced", "basicinstanced.vert", "texture.frag");
-    m_window_renderer.addShader("Text", "basicinstanced.vert", "textBorder.frag");
-    m_window_renderer.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
-    
     m_window_renderer.m_view = m_window_renderer.getDefaultView();
 
     initializeUI();
@@ -155,21 +148,22 @@ void Application::update(float dt)
 
     Shader::m_time += 0.016f;
 
+    auto mouse_coords = m_window_renderer.getMouseInWorld();
+    
     Text test_text(m_screen_text);
     test_text.setFont(m_font.get());
-    test_text.setPosition(400, 300);
     test_text.setScale(1, 1);
     test_text.setColor({255, 0, 255, 255});
+    test_text.setPosition(mouse_coords);
+    m_window_renderer.drawText(test_text);
 
-    auto mouse_coords = m_window_renderer.getMouseInWorld();
-    Sprite test_sprite(m_font->getTexture()); //*m_textures.get("arrow"));
+    Sprite test_sprite(m_font->getTexture());
     test_sprite.m_color = {0, 0, 0, 255};
     test_sprite.setScale(400, 300);
     test_sprite.setPosition(400, 300);
+    m_window_renderer.drawSprite(test_sprite, "TextDefault");
+
     m_window.clear({1, 1, 1, 1});
-    m_window_renderer.drawSprite(test_sprite, "Text", DrawType::Dynamic);
-    test_text.setPosition(mouse_coords);
-    m_window_renderer.drawText(test_text, "Text", DrawType::Dynamic);
     m_window_renderer.drawAll();
 
     drawUI();
