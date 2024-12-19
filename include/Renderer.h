@@ -54,15 +54,15 @@ class Renderer
 public:
     Renderer(RenderTarget &target);
 
-    void drawSprite(Sprite &sprite, const std::string &shader_id, DrawType draw_type = DrawType::Dynamic);
+    void drawSprite(Sprite &sprite, const std::string &shader_id = "SpriteDefault", DrawType draw_type = DrawType::Dynamic);
     void drawSpriteDynamic(Sprite &sprite, const std::string &shader_id);
-    void drawText(Text &text, const std::string &shader_id, DrawType draw_type = DrawType::Dynamic);
+    void drawText(Text &text, const std::string &shader_id = "TextDefault", DrawType draw_type = DrawType::Dynamic);
     void drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color);
     void drawRectangle(RectangleSimple &r, Color color, const std::string &shader_id = "VertexArrayDefault", DrawType draw_type = DrawType::Dynamic);
     void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color, DrawType draw_type = DrawType::Dynamic);
     void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 32);
     void drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f &scale, Color color, int n_verts = 51, std::string shader_id = "VertexArrayDefault");
-    void drawVertices(VertexArray &verts, const std::string &shader_id,
+    void drawVertices(VertexArray &verts, const std::string &shader_id = "VertexArrayDefault",
                       DrawType draw_type = DrawType::Dynamic, std::shared_ptr<Texture> p_texture = nullptr);
 
     void drawAll();
