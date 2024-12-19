@@ -56,7 +56,7 @@ target_include_directories(${TARGET_LIBRARY_NAME}
 if(BUILD_EXAMPLES)
 message("\n!ADDING EXAMPLES!")
 add_subdirectory(Examples)
-endif()
+endif(BUILD_EXAMPLES)
 
 if(BUILD_TESTS)
     enable_testing()
@@ -81,4 +81,4 @@ if(BUILD_TESTS)
     #    )
     #endif()
 
-endif()
+endif(BUILD_TESTS)
