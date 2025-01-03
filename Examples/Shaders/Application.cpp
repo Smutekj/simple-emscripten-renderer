@@ -49,13 +49,10 @@ Application::Application(int width, int height) : m_window(width, height),
             slot.m_canvas.addShader(shader_name, "basicinstanced.vert", shader_filename);
         }
 
-        slot.m_canvas.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
     }
 
     m_window_renderer.setShadersPath(shaders_path);
-    m_window_renderer.addShader("Instanced", "basicinstanced.vert", "texture.frag");
     m_window_renderer.addShader("Text", "basicinstanced.vert", "textBorder.frag");
-    m_window_renderer.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
     glCheckErrorMsg("Error in Shaders creation!");
 
     std::filesystem::path textures_path = {__FILE__};
@@ -66,10 +63,10 @@ Application::Application(int width, int height) : m_window(width, height),
     {
         auto pos_right = texture_filename.find_last_of('.');
         std::string texture_name = texture_filename.substr(0, pos_right);
-        auto status = m_textures.add(texture_name, texture_filename);
+        m_textures.add(texture_name, texture_filename);
     }
 
-    for (int slot_id = 0; slot_id < m_slots.size(); ++slot_id)
+    for (size_t slot_id = 0; slot_id < m_slots.size(); ++slot_id)
     {
         m_textures.add("Slot: " + std::to_string(slot_id), m_slots.at(slot_id).m_pixels.getTexture());
     }
@@ -208,9 +205,7 @@ void Application::update(float dt)
     m_time += 0.016f;
     Shader::m_time = m_time;
 
-    auto &shader_slot = m_slots.at(0);
-    auto slot_size = shader_slot.getSize();
-    int slot_ind = 0;
+    size_t slot_ind = 0;
     for (auto &shader_slot : m_slots)
     {
         auto slot_size = shader_slot.getSize();
@@ -247,7 +242,7 @@ void Application::update(float dt)
         Sprite screen_sprite(shader_slot.m_pixels.getTexture());
         screen_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
         screen_sprite.setPosition(left_margin + slot_size.x / 2.f, top_margin + slot_size.y / 2.f);
-        m_window_renderer.drawSprite(screen_sprite, "Instanced", DrawType::Dynamic);
+        m_window_renderer.drawSprite(screen_sprite);
 
         left_margin += slot_size.x;
         row++;
@@ -268,11 +263,6 @@ void Application::update(float dt)
 
 void inline gameLoop(void *mainLoopArg)
 {
-#ifdef __EMSCRIPTEN__
-    // emscripten_trace_record_frame_start();
-#endif
-    auto tic = clock();
-    // auto tic = std::chrono::high_resolution_clock::now();
     Application *p_app = (Application *)mainLoopArg;
 
     p_app->update(0);
@@ -280,14 +270,6 @@ void inline gameLoop(void *mainLoopArg)
 
     // Swap front/back framebuffers
     SDL_GL_SwapWindow(p_app->m_window.getHandle());
-    auto toc = clock();
-    // auto toc =  std::chrono::high_resolution_clock::now();
 
-    // std::cout << "frame took: " << std::chrono::duration_cast<std::chrono::microseconds>(toc - tic) << "\n";
-    double dt = (double)(toc - tic) / CLOCKS_PER_SEC * 1000.f;
-    // std::cout << "frame took: " << (dt) << "\n";
     SDL_Delay(10);
-#ifdef __EMSCRIPTEN__
-    // emscripten_trace_record_frame_end();
-#endif
 }

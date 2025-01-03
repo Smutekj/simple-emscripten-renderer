@@ -6,7 +6,8 @@
 //! \param draw_type    Can be either Static or Dynamic
 Batch::Batch(GLuint texture_id, Shader &shader, DrawType draw_type)
     : m_config(texture_id, shader.getId(), draw_type),
-      m_verts(shader, static_cast<GLenum>(draw_type), m_capacity)
+      m_verts(static_cast<GLenum>(draw_type), m_capacity),
+      m_shader(shader)
 {
 }
 
@@ -16,7 +17,8 @@ Batch::Batch(GLuint texture_id, Shader &shader, DrawType draw_type)
 //! \param draw_type    Can be either Static or Dynamic
 Batch::Batch(const BatchConfig &config, Shader &shader, DrawType draw_type)
     : m_config(config),
-      m_verts(shader, static_cast<GLenum>(draw_type), m_capacity)
+      m_verts(static_cast<GLenum>(draw_type), m_capacity),
+      m_shader(shader)
 {
     m_indices.reserve(m_capacity * 3);
     std::for_each(config.texture_ids.begin(), config.texture_ids.end(), [&config, this](auto &id)
@@ -26,7 +28,8 @@ Batch::Batch(const BatchConfig &config, Shader &shader, DrawType draw_type)
 }
 
 Batch::~Batch()
-{}
+{
+}
 
 //! \brief sets number of used vertices to 0 and clears index buffer
 void Batch::clear()
@@ -40,7 +43,7 @@ void Batch::clear()
 void Batch::flush(View &view)
 {
 
-    m_verts.draw(view, m_indices);
+    m_verts.draw(view, m_shader, m_indices);
 
     if (m_config.draw_type != DrawType::Static) //! static draws should stay the same so no need to clear data
     {
@@ -124,28 +127,10 @@ int Batch::getFreeVerts() const
 //! \brief since all sprites are assumed to be rectangles,
 void SpriteBatch::createBuffers()
 {
-    glCheckError();
     glGenBuffers(1, &m_indices_buffer);
-    glCheckError();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indices_buffer);
-    glCheckError();
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * 6, m_indices, GL_STATIC_DRAW);
-    glCheckError();
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
     glGenBuffers(1, &m_vbo);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2) * 4, m_prototype, GL_STATIC_DRAW);
-    glCheckError();
-
     glGenBuffers(1, &m_transform_buffer);
     glCheckError();
-    glBindBuffer(GL_ARRAY_BUFFER, m_transform_buffer);
-    glCheckError();
-    glBufferData(GL_ARRAY_BUFFER, sizeof(Trans) * BATCH_VERTEX_CAPACITY, m_transforms.data(), GL_DYNAMIC_DRAW);
-    glCheckError();
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 //! \brief construct form batch configuration and a shader (no idea what the shader is for btw?)
@@ -155,6 +140,7 @@ SpriteBatch::SpriteBatch(BatchConfig config, Shader &shader)
     : m_config(config), m_shader(shader)
 {
     createBuffers();
+    bindAttributes();
 }
 
 //! \brief construct form a single texture_id and a shader
@@ -164,6 +150,7 @@ SpriteBatch::SpriteBatch(GLuint texture_id, Shader &shader)
     : m_shader(shader), m_texture_id(texture_id)
 {
     createBuffers();
+    bindAttributes();
 }
 
 SpriteBatch::~SpriteBatch()
@@ -171,6 +158,8 @@ SpriteBatch::~SpriteBatch()
     glDeleteBuffers(1, &m_vbo);
     glDeleteBuffers(1, &m_transform_buffer);
     glDeleteBuffers(1, &m_indices_buffer);
+    glDeleteVertexArrays(1, &m_vao);
+    glDeleteVertexArrays(1, &m_transform_vao);
 }
 
 //! \brief adds a sprite if there is enough space by specifying it's transform data
@@ -192,15 +181,24 @@ bool SpriteBatch::addSprite(Trans transform)
 void SpriteBatch::bindAttributes()
 {
 
+    glGenVertexArrays(1, &m_vao);
+    glBindVertexArray(m_vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Vec2) * 4, m_prototype, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indices_buffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(int) * 6, m_indices, GL_STATIC_DRAW);
+
     glEnableVertexAttribArray(0);
     glCheckErrorMsg("Error in bind attributes!");
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vec2), (void *)(0 * sizeof(float)));
-    glCheckErrorMsg("YOU PROBABLY MADE CORE INSTEAD OF COMPATIBLITY CONTEXT!"); 
+    glCheckErrorMsg("YOU PROBABLY MADE CORE INSTEAD OF COMPATIBLITY CONTEXT!");
     glVertexAttribDivisor(0, 0);
     glCheckErrorMsg("Error in bind attributes!");
 
     glBindBuffer(GL_ARRAY_BUFFER, m_transform_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(Trans) * BATCH_VERTEX_CAPACITY, m_transforms.data(), GL_DYNAMIC_DRAW);
+
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Trans), (void *)(0 * sizeof(float)));
     glEnableVertexAttribArray(2);
@@ -222,12 +220,14 @@ void SpriteBatch::bindAttributes()
     glVertexAttribDivisor(5, 1);
     glVertexAttribDivisor(6, 1);
     glCheckErrorMsg("Error in bind attributes!");
+
+    glBindVertexArray(0);
 }
 
 //! \brief sends data to transform buffer and binds attributes
 void SpriteBatch::initialize()
 {
-
+    //! send instanced data to appropriate buffer
     glBindBuffer(GL_ARRAY_BUFFER, m_transform_buffer);
     glCheckError();
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Trans) * m_end, m_transforms.data());
@@ -235,7 +235,7 @@ void SpriteBatch::initialize()
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glCheckError();
 
-    bindAttributes();
+    glBindVertexArray(m_vao);
     glCheckError();
 }
 
@@ -254,7 +254,7 @@ void SpriteBatch::flush(View &view)
     m_shader.setUniforms();
     m_shader.activateTexture(m_config.texture_ids);
 
-    for (int slot = 0; slot < m_config.texture_ids.size(); ++slot)
+    for (size_t slot = 0; slot < m_config.texture_ids.size(); ++slot)
     {
         auto texture_id = m_config.texture_ids.at(slot);
         if (texture_id != 0)
@@ -265,24 +265,16 @@ void SpriteBatch::flush(View &view)
             glCheckError();
         }
     }
-    initialize();
 
-    //! THE ACTUAL DRAW CALL (YAY!)
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indices_buffer);
-    glCheckError();
-    glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, m_end);
+    //! THE ACTUAL DRAW CALL
+    initialize();
+    glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0, m_end);
     glCheckError();
 
     //! reset instance count
     m_end = 0;
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    for(int i = 0; i <= 6; ++i)
-    {
-        glDisableVertexAttribArray(i);
-    }
+    glBindVertexArray(0);
 }
 
 //! \returns this looks the same as countFreeSpots?

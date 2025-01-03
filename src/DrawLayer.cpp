@@ -1,21 +1,21 @@
 #include "DrawLayer.h"
 
 DrawLayer::DrawLayer(int width, int height)
-    : m_tmp_pixels1(width, height),
-      m_tmp_pixels2(width, height),
-      m_pixels(width, height),
+    : m_pixels(width, height),
+      m_canvas(m_pixels),
+      m_tmp_pixels1(width, height),
       m_tmp_canvas1(m_tmp_pixels1),
-      m_tmp_canvas2(m_tmp_pixels2),
-      m_canvas(m_pixels)
+      m_tmp_pixels2(width, height),
+      m_tmp_canvas2(m_tmp_pixels2)
 {
 }
 DrawLayer::DrawLayer(int width, int height, TextureOptions options)
-    : m_tmp_pixels1(width, height, options),
-      m_tmp_pixels2(width, height, options),
-      m_pixels(width, height, options),
+    : m_pixels(width, height, options),
+      m_canvas(m_pixels),
+      m_tmp_pixels1(width, height, options),
       m_tmp_canvas1(m_tmp_pixels1),
-      m_tmp_canvas2(m_tmp_pixels2),
-      m_canvas(m_pixels)
+      m_tmp_pixels2(width, height, options),
+      m_tmp_canvas2(m_tmp_pixels2)
 {
 }
 
@@ -70,7 +70,7 @@ void DrawLayer::drawDirectly(Renderer &canvas)
     canvas.m_view.setCenter(screen_sprite.getPosition());
     canvas.m_view.setSize(target_size);
 
-    canvas.drawSprite(screen_sprite, "Instanced", DrawType::Dynamic);
+    canvas.drawSprite(screen_sprite, "SpriteDefault", DrawType::Dynamic);
     canvas.drawAll();
     canvas.m_view = old_view;
 }
@@ -113,8 +113,7 @@ std::shared_ptr<DrawLayer> LayersHolder::getLayer(const std::string &name)
     return m_layers.at(m_name2depth.at(name));
 }
 
-
-void LayersHolder::activate(const std::string& name)
+void LayersHolder::activate(const std::string &name)
 {
     auto layer = getLayer(name);
     if (layer)
@@ -123,7 +122,7 @@ void LayersHolder::activate(const std::string& name)
     }
 }
 
-bool LayersHolder::isActive(const std::string& name)
+bool LayersHolder::isActive(const std::string &name)
 {
     auto layer = getLayer(name);
     if (layer)
@@ -133,17 +132,16 @@ bool LayersHolder::isActive(const std::string& name)
     return false;
 }
 
-
-Shader* LayersHolder::getShaderP(const std::string& layer_name, const std::string& shader_id)
+Shader *LayersHolder::getShaderP(const std::string &layer_name, const std::string &shader_id)
 {
     auto layer = getLayer(layer_name);
     if (layer)
     {
-        
-        auto& canvas = layer->m_canvas;
-        if(canvas.hasShader(shader_id))
+
+        auto &canvas = layer->m_canvas;
+        if (canvas.hasShader(shader_id))
         {
-            return &canvas.getShader(shader_id); 
+            return &canvas.getShader(shader_id);
         }
     }
     return nullptr;
@@ -155,24 +153,24 @@ void LayersHolder::changeDepth(std::string name, int new_depth)
     if (layer)
     {
         auto old_depth = m_name2depth.at(name);
-        if(m_layers.count(new_depth) > 0) //! if depth already exists do nothing
+        if (m_layers.count(new_depth) > 0) //! if depth already exists do nothing
         {
             return;
         }
         //! otherwise remove old_depth and add new depth
-        m_layers.erase(old_depth); 
+        m_layers.erase(old_depth);
         m_name2depth.at(name) = new_depth;
         m_layers[new_depth] = layer;
     }
 }
 
-Renderer &LayersHolder::getCanvas(const std::string& name)
+Renderer &LayersHolder::getCanvas(const std::string &name)
 {
     return m_layers.at(m_name2depth.at(name))->m_canvas;
 }
-Renderer* LayersHolder::getCanvasP(const std::string& name)
+Renderer *LayersHolder::getCanvasP(const std::string &name)
 {
-    if(hasLayer(name))
+    if (hasLayer(name))
     {
         return &getCanvas(name);
     }
@@ -198,11 +196,11 @@ void LayersHolder::setView(View new_view)
         layer->m_canvas.m_view = new_view;
     }
 }
-void LayersHolder::setView(const std::string& layer_id, View new_view)
+void LayersHolder::setView(const std::string &layer_id, View new_view)
 {
-    if(m_name2depth.count(layer_id) == 0)
+    if (m_name2depth.count(layer_id) == 0)
     {
-        return; 
+        return;
     }
     m_layers.at(m_name2depth.at(layer_id))->m_canvas.m_view = new_view;
 }
@@ -218,30 +216,30 @@ void LayersHolder::drawInto(Renderer &target)
     }
 }
 
-    void LayersHolder::drawSprite(const std::string &layer, Sprite &sprite, const std::string &shader_id)
+void LayersHolder::drawSprite(const std::string &layer, Sprite &sprite, const std::string &shader_id)
+{
+    auto p_canvas = getCanvasP(layer);
+    if (p_canvas)
     {
-        auto p_canvas = getCanvasP(layer);
-        if (p_canvas)
-        {
-            p_canvas->drawSprite(sprite, shader_id, DrawType::Dynamic);
-        }
+        p_canvas->drawSprite(sprite, shader_id, DrawType::Dynamic);
     }
+}
 
-    void LayersHolder::drawLine(const std::string &layer,
-                  utils::Vector2f start, utils::Vector2f end, float thickness, Color color)
+void LayersHolder::drawLine(const std::string &layer,
+                            utils::Vector2f start, utils::Vector2f end, float thickness, Color color)
+{
+    auto p_canvas = getCanvasP(layer);
+    if (p_canvas)
     {
-        auto p_canvas = getCanvasP(layer);
-        if (p_canvas)
-        {
-            p_canvas->drawLineBatched(start, end, thickness, color, DrawType::Dynamic);
-        }
+        p_canvas->drawLineBatched(start, end, thickness, color, DrawType::Dynamic);
     }
+}
 
-    void LayersHolder::drawRectangle(const std::string &layer, RectangleSimple &rect, const std::string &shader_id, Color color)
+void LayersHolder::drawRectangle(const std::string &layer, RectangleSimple &rect, const std::string &shader_id, Color color)
+{
+    auto p_canvas = getCanvasP(layer);
+    if (p_canvas)
     {
-        auto p_canvas = getCanvasP(layer);
-        if (p_canvas)
-        {
-            p_canvas->drawRectangle(rect, color, shader_id, DrawType::Dynamic);
-        }
+        p_canvas->drawRectangle(rect, color, shader_id, DrawType::Dynamic);
     }
+}

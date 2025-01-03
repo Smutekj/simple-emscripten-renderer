@@ -22,6 +22,7 @@ void static extractUniformNamesFromCode(VariablesData &shader_data, const std::s
             }
             auto initial_value = separateLine(line, '=');
             std::string initial_value_string = "";
+            //! if there is no '=' then there is no initial value
             initial_value_string = initial_value.size() > 1 ? initial_value[1] : "";
 
             std::string uniform_name = split_line[2];
@@ -139,7 +140,7 @@ void static extractUniformNames(VariablesData &shader_data, const std::string &f
 //! \brief the texture names-values pairs are stored in \p shader_data
 //! \param shader_data
 //! \param filename
-void static extractTextureNames(VariablesData &shader_data, std::string filename)
+[[maybe_unused]] void static extractTextureNames(VariablesData &shader_data, std::string filename)
 {
     const auto tmp_filename = filename + ".tmp";
     std::ifstream file(filename);
@@ -199,10 +200,7 @@ void Shader::setUniforms()
     {
         setUniform2(name, value);
     }
-    for (auto &[name, value] : m_variables.textures)
-    {
-        //! ???
-    }
+
     if (m_variables.uniforms.contains("u_time"))
     {
         m_variables.uniforms.at("u_time") = Shader::m_time;
@@ -270,7 +268,7 @@ bool Shader::wasSuccessfullyBuilt()const
 //! \brief does GL calls to activate textures at the slots
 void Shader::activateTexture(TextureArray handles)
 {
-    for (int slot = 0; slot < handles.size(); ++slot)
+    for (size_t slot = 0; slot < handles.size(); ++slot)
     {
         if (handles.at(slot) != 0)
         {
@@ -333,7 +331,7 @@ void Shader::retrieveCode(const char *code_path, std::string &code)
         code = shader_stream.str();
         std::cout << code << "\n";
     }
-    catch (std::ifstream::failure e)
+    catch (std::ifstream::failure& e)
     {
         std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
     }
@@ -347,6 +345,7 @@ Shader::Shader(const std::string &vertex_shader_code, const std::string &frament
     }
     extractUniformNamesFromCode(m_variables, frament_shader_code);
     extractTextureNamesFromCode(m_variables, frament_shader_code);
+    m_shader_name = frament_shader_code; 
 }
 
 //! \brief construct from paths to vertex and fragment shaders
@@ -360,14 +359,15 @@ Shader::Shader(const std::filesystem::path &vertex_path, const std::filesystem::
 
 Shader::Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path)
     : m_vertex_path(vertex_path.string()),
-      m_fragment_path(fragment_path.string())
+      m_fragment_path(fragment_path.string()),
+      m_shader_name(fragment_path.string())
 {
     recompile();
 }
 
 Shader::~Shader()
 {
-    if (m_id != -1)
+    if (m_id != 0)
     {
         glDeleteProgram(m_id);
     }
@@ -474,7 +474,7 @@ void Shader::use()
         auto last_time = std::filesystem::last_write_time(m_fragment_path);
         if (last_time != m_last_writetime)
         {
-            if (m_id != -1)
+            if (m_id != 0) //! 0 is the default value so it makes no sense to delete?
             {
                 glDeleteProgram(m_id);
             }
@@ -484,7 +484,7 @@ void Shader::use()
     }
     if (!m_successfully_built)
     {
-        std::cout << "WARNING, Trying to use unbuilt shader\n";
+        std::cout << "WARNING, Trying to use unbuilt shader named: " << m_shader_name << "\n";
         std::cout << "The shader will not be used!\n";
         return;
     }
@@ -593,8 +593,8 @@ ShaderUIData::ShaderUIData(Shader &program)
 std::vector<std::string> separateLine(std::string line, char delimiter)
 {
     std::vector<std::string> result;
-    int start = 0;
-    int end = 0;
+    size_t start = 0;
+    size_t end = 0;
 
     while ((start = line.find_first_not_of(delimiter, end)) != std::string::npos)
     {
@@ -619,17 +619,6 @@ std::string trim(const std::string &input)
     std::string result = input.substr(first_nonspace, last_nonspace);
     return result;
 }
-
-//! just in case
-// std::string oldtrim(const std::string& input)
-// {
-
-//     auto last_nonspace = input.find_last_not_of(' ');
-//     auto first_nonspace = input.find_first_not_of(' ');
-
-//     std::string result = input.substr(first_nonspace, last_nonspace);
-//     return result;
-// }
 
 bool replace(std::string &str, const std::string &from, const std::string &to)
 {
@@ -719,11 +708,10 @@ bool ShaderHolder::setBaseDirectory(std::filesystem::path directory)
     return false;
 }
 
-//! \brief default constructs with resource path being __FILE__/../Resources/Shaders/
+//! \brief default constructs with resource path being "../Resources/Shaders/"
 ShaderHolder::ShaderHolder()
 {
-    m_resources_path = std::filesystem::path{__FILE__};
-    m_resources_path.remove_filename().append("../Resources/Shaders/");
+    m_resources_path = std::filesystem::path{"../Resources/Shaders/"};
 }
 
 //! \brief constructs with specified \p resources_path
@@ -789,7 +777,6 @@ bool ShaderHolder::load(const std::string &name,
 {
     if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
     {
-        return false; //! erasing fucks somethign up :(
         m_shaders.erase(name);
         m_shader_data.erase(name);
     }

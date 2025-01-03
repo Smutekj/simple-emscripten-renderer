@@ -1,6 +1,5 @@
 #pragma once
 
-#include "DrawLayer.h"
 
 #include <chrono>
 #include <vector>
@@ -11,6 +10,7 @@
 #include <Window.h>
 #include <Renderer.h>
 #include <Font.h>
+#include <DrawLayer.h>
 
 void gameLoop(void *mainLoopArg);
 

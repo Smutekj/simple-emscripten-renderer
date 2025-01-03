@@ -79,7 +79,7 @@ Image::Image(FrameBuffer &tex_buffer)
 bool Image::operator==(const Image &other_image) const
 {
 
-    for (int i = 0; i < other_image.pixels.size(); ++i)
+    for (size_t i = 0; i < other_image.pixels.size(); ++i)
     {
         if (pixels.at(i) != other_image.pixels.at(i))
         {

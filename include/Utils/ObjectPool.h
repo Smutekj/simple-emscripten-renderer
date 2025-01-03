@@ -167,29 +167,29 @@ public:
 
     void removeByDataInd(int data_ind);
     void removeByEntityInd(int entity_ind);
-    int insert(Type datum);
-    int size();
+    size_t insert(Type datum);
+    size_t size();
     Type &getEntity(int index);
     void clear();
     void setMaxCount(int n_max_count);
     std::vector<Type> &getData();
-    int getEntityInd(int data_ind) const
+    size_t getEntityInd(int data_ind) const
     {
         return m_data2entity_ind.at(data_ind);
     }
-    int capacity();
+    size_t capacity();
 
 private:
+    size_t n_max_entities = 0;
     std::vector<int> m_entity2data_ind;
     std::vector<int> m_data2entity_ind;
-    std::set<int> free_inds;
     std::vector<Type> m_data;
-    int n_active = 0;
-    int n_max_entities = 0;
+    std::set<int> free_inds;
+    size_t n_active = 0;
 };
 
 template <class T>
-int VectorMap<T>::capacity()
+size_t VectorMap<T>::capacity()
 {
     return n_max_entities;
 }
@@ -267,13 +267,13 @@ void VectorMap<T>::removeByEntityInd(int entity_ind)
 }
 
 template <class T>
-int VectorMap<T>::insert(T datum)
+size_t VectorMap<T>::insert(T datum)
 {
     if (free_inds.empty())
     {
         return -1;
     }
-    int new_ind = *free_inds.begin();
+    size_t new_ind = *free_inds.begin();
     free_inds.erase(free_inds.begin());
 
     m_data.at(n_active) = datum;
@@ -286,7 +286,7 @@ int VectorMap<T>::insert(T datum)
 }
 
 template <class T>
-int VectorMap<T>::size()
+size_t VectorMap<T>::size()
 {
     return n_active;
 }
@@ -300,11 +300,11 @@ T &VectorMap<T>::getEntity(int index)
 template <class T>
 void VectorMap<T>::clear()
 {
-    for (int i = 0; i < n_max_entities; ++i)
+    for (size_t i = 0; i < n_max_entities; ++i)
     {
         free_inds.insert(i);
         m_entity2data_ind[i] = -1;
         m_data2entity_ind[i] = -1;
     }
-    n_active = 0;
+    n_active = 0; 
 }

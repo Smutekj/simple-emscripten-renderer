@@ -1,7 +1,5 @@
 #pragma once
 
-
-#include <chrono>
 #include <vector>
 #include <numeric>
 #include <unordered_map>
@@ -9,8 +7,6 @@
 
 #include <Window.h>
 #include <Renderer.h>
-#include <Font.h>
-#include <DrawLayer.h>
 
 void gameLoop(void *mainLoopArg);
 
@@ -30,10 +26,7 @@ private:
     void onKeyRelease(SDL_Keycode key);
     void onWheelMove(SDL_MouseWheelEvent event);
 
-    void initializeResources();
-    void initializeLayers();
     void initializeUI();
-
     void drawUI();
 
     friend void gameLoop(void *);
@@ -42,19 +35,9 @@ private:
     Window m_window;
     Renderer m_window_renderer;
     TextureHolder m_textures;
-    View m_view;
-    
-    LayersHolder m_layers;
 
-    utils::Vector2f m_old_view_center = m_view.getCenter();
-    utils::Vector2f m_mouse_click_position = m_view.getCenter();
+    float m_ship_scale = 10.;
+    ColorByte m_sprite_color = {255, 255, 255, 255};
 
-    bool m_wheel_is_held = false;
-
-    float m_time = 0.f;
-
-    Color m_rect_color = {1,0,0,0.5};
-
-    // std::unique_ptr<UI> m_ui;
-    std::shared_ptr<Font> m_font;
+    VertexArray m_meteor;
 };

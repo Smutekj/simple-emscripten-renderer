@@ -2,16 +2,19 @@ cmake_minimum_required(VERSION 3.15)
 include(GNUInstallDirs)
 
 project(renderer)
-option(BUILD_EXAMPLES ON)
-option(BUILD_TESTS ON)
+option(BUILD_EXAMPLES OFF)
+option(BUILD_TESTS OFF)
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 set(CMAKE_CXX_STANDARD 20)
+
+include(cmake/CompilerFlags.cmake)
+include(cmake/CompilerWarnings.cmake)
+
 add_subdirectory(external/freetype)
 include(cmake/External.cmake)
-include(cmake/CompilerFlags.cmake)
 
 file(GLOB HDR
 "include/*.h"
@@ -34,6 +37,8 @@ set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES CXX_STANDARD 20)
 set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
+set_project_warnings(${TARGET_LIBRARY_NAME})
+
 target_include_directories(${TARGET_LIBRARY_NAME}
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -51,7 +56,7 @@ target_include_directories(${TARGET_LIBRARY_NAME}
 if(BUILD_EXAMPLES)
 message("\n!ADDING EXAMPLES!")
 add_subdirectory(Examples)
-endif()
+endif(BUILD_EXAMPLES)
 
 if(BUILD_TESTS)
     enable_testing()
@@ -76,4 +81,4 @@ if(BUILD_TESTS)
     #    )
     #endif()
 
-endif()
+endif(BUILD_TESTS)

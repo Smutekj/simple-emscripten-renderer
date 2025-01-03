@@ -18,7 +18,7 @@ Font::Font(std::filesystem::path font_filename)
     m_pixels = std::make_unique<FrameBuffer>(1000, 1000, options);
     m_canvas = std::make_unique<Renderer>(*m_pixels);
     m_canvas->getShaders().loadFromCode("Font",
-                                        vertex_font_code,
+                                        vertex_sprite_code,
                                         fragment_font_code);
 
     if (!loadFromFile(font_filename))
@@ -28,14 +28,14 @@ Font::Font(std::filesystem::path font_filename)
 }
 
 //! \brief just for debugging
-void static printBuffer(const FT_Face &face)
+[[maybe_unused]] void static printBuffer(const FT_Face &face)
 {
     auto w = face->glyph->bitmap.width;
     auto h = face->glyph->bitmap.rows;
-    for (auto iy = 0; iy < h; ++iy)
+    for (unsigned int iy = 0; iy < h; ++iy)
     {
         std::string text = "";
-        for (auto ix = 0; ix < w; ++ix)
+        for (unsigned int ix = 0; ix < w; ++ix)
         {
             int ind = iy * w + ix;
             bool wtf = face->glyph->bitmap.buffer[ind];

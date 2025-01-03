@@ -82,7 +82,7 @@ void Particles::destroyDeadParticles()
 {
     auto &particles = m_particle_pool.getData();
     std::vector<int> to_destroy;
-    for (int p_ind = 0; p_ind < m_particle_pool.size(); ++p_ind)
+    for (size_t p_ind = 0; p_ind < m_particle_pool.size(); ++p_ind)
     {
         auto &particle = particles[p_ind];
         if (particle.time > particle.life_time)
@@ -106,7 +106,7 @@ Color static interpolate(Color start, Color end, float lambda)
 void Particles::integrate(float dt)
 {
     auto &particles = m_particle_pool.getData();
-    for (int p_ind = 0; p_ind < m_particle_pool.size(); ++p_ind)
+    for (size_t p_ind = 0; p_ind < m_particle_pool.size(); ++p_ind)
     {
         auto &particle = particles[p_ind];
         particle.time += dt;
@@ -127,7 +127,7 @@ void Particles::draw(Renderer &canvas)
     //! we draw from the youngest to the oldest
     int youngest_particle_ind = min_it - particles.begin();
     RectangleSimple rect;
-    for (int i = 0; i < n_particles; ++i)
+    for (size_t i = 0; i < n_particles; ++i)
     {
         int p_ind = (youngest_particle_ind + i) % n_particles;
         auto &particle = particles.at(p_ind);
@@ -188,7 +188,7 @@ TexturedParticles::TexturedParticles(int n_parts)
 }
 
 TexturedParticles::TexturedParticles(Texture &texture, int n_parts)
-    : m_texture(&texture), Particles(n_parts)
+    : Particles(n_parts), m_texture(&texture) 
 {
 }
 
@@ -201,7 +201,7 @@ void TexturedParticles::draw(Renderer &renderer)
     // utils::Vector2f texture_size = asFloat(m_texture->getSize());
     Sprite sprite(*m_texture);
 
-    for (int p_ind = 0; p_ind < n_particles; ++p_ind)
+    for (size_t p_ind = 0; p_ind < n_particles; ++p_ind)
     {
         auto &particle = particles[p_ind];
 

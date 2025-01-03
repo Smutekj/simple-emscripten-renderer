@@ -35,7 +35,7 @@ Window::Window(int width, int height)
 
 //! load gl functions on desktops (emscripten does it on it's own)
 #ifndef __EMSCRIPTEN__
-    int version = gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
+    gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
 #endif
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

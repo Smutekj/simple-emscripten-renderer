@@ -91,7 +91,7 @@ protected:
     int m_spawn_timer = 0;  //!< measures frames since last spawn
 
     bool m_repeats = true; //!< true if particles should be created continuously
-    int n_spawned = 0;      //!< number of live particles
+    size_t n_spawned = 0;      //!< number of live particles
 
     float m_lifetime = 1.f; //!< maximum time of life of the particle (when particle lives this long, it gets killed)
     std::string m_shader_id = "VertexArrayDefault"; //!< shader id

@@ -77,9 +77,9 @@ void DrawRectangle::setTexture(Texture &texture)
 
 void DrawRectangle::setColor(Color color)
 {
-    for (int i = 0; i < m_verts.size(); ++i)
+    for (auto& vertex : m_verts)
     {
-        m_verts[i].color = color;
+        vertex.color = color;
     }
 }
 
