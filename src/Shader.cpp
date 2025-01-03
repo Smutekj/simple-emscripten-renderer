@@ -22,6 +22,7 @@ void static extractUniformNamesFromCode(VariablesData &shader_data, const std::s
             }
             auto initial_value = separateLine(line, '=');
             std::string initial_value_string = "";
+            //! if there is no '=' then there is no initial value
             initial_value_string = initial_value.size() > 1 ? initial_value[1] : "";
 
             std::string uniform_name = split_line[2];
