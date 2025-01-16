@@ -128,27 +128,11 @@ public:
 private:
     FrameBuffer m_bloom_pass1;
     FrameBuffer m_bloom_pass2;
-    FrameBuffer m_downsampled_pixels33;
     FrameBuffer m_downsampled_pixels3;
+    FrameBuffer m_downsampled_pixels33;
 
     std::vector<FrameBuffer> m_mips;
 
-    Renderer m_bloom_renderer1;
-    Renderer m_bloom_renderer2;
-    Renderer m_downsampler3;
-    Renderer m_downsampler33;
-};
-
-class EdgeHighLight : public PostEffect
-{
-
-public:
-    EdgeHighLight(int width, int height);
-
-    virtual void process(Texture &source, Renderer &target) override;
-    virtual ~EdgeHighLight() = default;
-
-private:
     Renderer m_bloom_renderer1;
     Renderer m_bloom_renderer2;
     Renderer m_downsampler3;
@@ -164,20 +148,18 @@ public:
     virtual void process(Texture &source, Renderer &target) override;
     virtual ~BloomSmoke() = default;
 
-
-
 private:
     FrameBuffer m_bloom_pass1;
     FrameBuffer m_bloom_pass2;
     FrameBuffer m_downsampled_pixels3;
     FrameBuffer m_downsampled_pixels33;
 
-    std::vector<FrameBuffer> m_mips;
-
     Renderer m_bloom_renderer1;
     Renderer m_bloom_renderer2;
     Renderer m_downsampler3;
     Renderer m_downsampler33;
+    
+    std::vector<FrameBuffer> m_mips;
 };
 
 class EdgeDetect : public PostEffect

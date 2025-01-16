@@ -103,7 +103,7 @@ public:
 private:
     void retrieveCode(const char *code_path, std::string &code);
 
-    unsigned int m_id = -1; //!< OpenGL id of the program
+    unsigned int m_id = 0; //!< OpenGL id of the program
     std::string m_vertex_path;
     std::string m_fragment_path;
     std::string m_shader_name = "default_name";       //!< shader_id

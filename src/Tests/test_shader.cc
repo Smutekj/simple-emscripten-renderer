@@ -1,4 +1,3 @@
-#pragma once
 #include <gtest/gtest.h>
 
 #include <Shader.h>
@@ -24,9 +23,9 @@ namespace
                              width, height,
                              SDL_WINDOW_OPENGL | SDL_WINDOW_HIDDEN);
 
-        auto m_gl_context = SDL_GL_CreateContext(m_handle);
+        SDL_GL_CreateContext(m_handle);
 
-        int version = gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
+        gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
 
         return m_handle;
     }
@@ -37,7 +36,7 @@ namespace
         int height = 600;
         createHiddenWindow(width, height);
 
-        Shader basic_instanced_shader((std::string)vertex_font_code, (std::string)fragment_fullpass_code);
+        Shader basic_instanced_shader((std::string)vertex_sprite_code, (std::string)fragment_fullpass_code);
         EXPECT_TRUE(basic_instanced_shader.wasSuccessfullyBuilt());
     }
 
@@ -55,11 +54,13 @@ namespace
     {
         int width = 800;
         int height = 600;
-        auto window_handle = createHiddenWindow(width, height);
+        createHiddenWindow(width, height);
         FrameBuffer target_pixels(11, 10);
         Renderer canvas(target_pixels);
 
-        canvas.getShaders().loadFromCode("TestShader", (std::string)vertex_font_code, (std::string)fragment_fullpass_codetest);
+        canvas.getShaders().loadFromCode("TestShader",
+         (std::string)vertex_sprite_code,
+          (std::string)fragment_fullpass_codetest);
         canvas.clear({0, 0, 0, 0});
 
         View view;
@@ -121,11 +122,13 @@ namespace
     {
         int width = 800;
         int height = 600;
-        auto window_handle = createHiddenWindow(width, height);
+        createHiddenWindow(width, height);
         FrameBuffer pixels(width, height);
         Renderer canvas(pixels);
 
-        canvas.getShaders().loadFromCode("TestShader", (std::string)vertex_font_code, (std::string)fragment_with_uniforms);
+        canvas.getShaders().loadFromCode("TestShader",
+         (std::string)vertex_sprite_code,
+        (std::string)fragment_with_uniforms);
         canvas.clear({0, 0, 0, 0});
 
         auto &shader = canvas.getShaders().get("TestShader");
@@ -183,13 +186,15 @@ namespace
     {
         int width = 800;
         int height = 600;
-        auto window_handle = createHiddenWindow(width, height);
+        createHiddenWindow(width, height);
 
         FrameBuffer target_pixels(11, 10);
         Renderer canvas(target_pixels);
 
         //! test load from code
-        bool success = canvas.getShaders().loadFromCode("TestShaderFromCode", (std::string)vertex_font_code, (std::string)fragment_font_code);
+        bool success = canvas.getShaders().loadFromCode("TestShaderFromCode",
+                                                        (std::string)vertex_sprite_code,
+                                                        (std::string)fragment_font_code);
         EXPECT_TRUE(success);
 
         //! test load from file

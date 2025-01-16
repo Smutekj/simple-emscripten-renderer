@@ -48,7 +48,6 @@ void Text::centerAround(const utils::Vector2f& center)
     new_pos.y -= max_height; 
     
     auto width = getTextWidth();
-    auto curr_pos = getPosition();
     new_pos.x -= width/2.f;
     
     setPosition(new_pos);
@@ -67,10 +66,6 @@ float Text::getTextWidth() const
     for (std::size_t glyph_ind = 0; glyph_ind < m_text.size(); ++glyph_ind)
     {
         auto character = m_font->m_characters.at(m_text.at(glyph_ind));
-
-        float dy = character.size.y - character.bearing.y;
-        float height = character.size.y * getScale().y;
-
         width += (character.advance >> 6) * getScale().x;
     }
     return width;

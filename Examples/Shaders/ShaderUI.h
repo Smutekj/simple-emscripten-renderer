@@ -107,12 +107,11 @@ private:
     void refresh();
 
 private:
+    std::vector<ShaderSlot> &m_slots;
     TextureHolder &m_textures;
 
     std::string m_selected_field = "";
     std::string m_output_image_name = "";
-
-    std::vector<ShaderSlot> &m_slots;
 };
 
 class FrameBuffer;

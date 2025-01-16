@@ -234,7 +234,7 @@ void Bloom3::process(Texture &source, Renderer &target)
     }
 
     size = target_size / 2;
-    for (int mip_id = 1; mip_id < m_mips.size(); ++mip_id)
+    for (size_t mip_id = 1; mip_id < m_mips.size(); ++mip_id)
     {
         auto &prev_mip = m_mips.at(mip_id - 1);
         auto &mip = m_mips.at(mip_id);
@@ -297,10 +297,10 @@ void Bloom3::process(Texture &source, Renderer &target)
 SmoothLight::SmoothLight(int width, int height, TextureOptions options)
     : m_bloom_pass1(width, height, options),
       m_bloom_pass2(width, height, options),
-      m_bloom_renderer1(m_bloom_pass1),
-      m_bloom_renderer2(m_bloom_pass2),
       m_downsampled_pixels3(width / 4, height / 4, options),
       m_downsampled_pixels33(width / 4, height / 4, options),
+      m_bloom_renderer1(m_bloom_pass1),
+      m_bloom_renderer2(m_bloom_pass2),
       m_downsampler3(m_downsampled_pixels3),
       m_downsampler33(m_downsampled_pixels33)
 {
@@ -412,10 +412,10 @@ void LightCombine::process(Texture &source, Renderer &target)
 BloomSmoke::BloomSmoke(int width, int height)
     : m_bloom_pass1(width, height),
       m_bloom_pass2(width, height),
-      m_bloom_renderer1(m_bloom_pass1),
-      m_bloom_renderer2(m_bloom_pass2),
       m_downsampled_pixels3(width / 8, height / 8),
       m_downsampled_pixels33(width / 8, height / 8),
+      m_bloom_renderer1(m_bloom_pass1),
+      m_bloom_renderer2(m_bloom_pass2),
       m_downsampler3(m_downsampled_pixels3),
       m_downsampler33(m_downsampled_pixels33)
 {

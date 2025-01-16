@@ -10,7 +10,8 @@
 #include <filesystem>
 
 Application::Application(int width, int height) : m_window(width, height),
-                                                  m_window_renderer(m_window)
+                                                  m_window_renderer(m_window),
+                                                  m_meteor(static_cast<GLenum>(DrawType::Dynamic), 3)
 {
 
     std::filesystem::path texture_directory = {__FILE__};
@@ -18,9 +19,30 @@ Application::Application(int width, int height) : m_window(width, height),
     m_textures.setBaseDirectory(texture_directory);
     m_textures.add("Ship", "EnemyLaser.png");
 
+    std::filesystem::path shaders_path = {__FILE__};
+    shaders_path.remove_filename().append("../../Resources/Shaders/");
+    m_window_renderer.setShadersPath(shaders_path);
+    m_window_renderer.addShader("VertexArrayDefault", "basictex.vert", "fullpass.frag");
+
     m_window_renderer.m_view = m_window_renderer.getDefaultView();
-    
+
     initializeUI();
+
+    Vertex v;
+    v.color = {0,1,1,1};
+    v.pos = {200, 300};
+    v.tex_coord = {0,0};
+    m_meteor[0] = v;
+
+    v.pos = {250, 300};
+    v.color = {1,0,1,1};
+    v.tex_coord = {1,0};
+    m_meteor[1] = v;
+
+    v.pos = {200, 350};
+    v.color = {1,1,0,1};
+    v.tex_coord = {0,1};
+    m_meteor[2] = v;
 }
 
 void Application::run()
@@ -157,7 +179,7 @@ void Application::update(float dt)
     enemy_ship.setColor(m_sprite_color);
 
     m_window.clear({1, 1, 1, 1});
-    m_window_renderer.drawSprite(enemy_ship);
+    m_window_renderer.drawVertices(m_meteor, "VertexArrayDefault");
     m_window_renderer.drawAll();
 
     drawUI();
@@ -173,6 +195,5 @@ void inline gameLoop(void *mainLoopArg)
 
     // Swap front/back framebuffers
     SDL_GL_SwapWindow(p_app->m_window.getHandle());
-
     SDL_Delay(10);
 }

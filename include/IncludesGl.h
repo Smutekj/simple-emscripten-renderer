@@ -58,9 +58,8 @@ GLenum inline glCheckError_(const char *file, int line, const char *message = ""
 //! https://emscripten.org/docs/optimizing/Optimizing-WebGL.html
 
 #ifdef __EMSCRIPTEN__
-#define glCheckError(x) []() {}
-#define glCheckError() []() {}
 #define glCheckErrorMsg(x)
+#define glCheckError() []() {}
 #else
 #define glCheckErrorMsg(x) glCheckError_(__FILE__, __LINE__, x)
 #define glCheckError() glCheckError_(__FILE__, __LINE__)
