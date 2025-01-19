@@ -3,5 +3,6 @@
 /out
 /build*
 /bin
+/Examples/bin
 docs
 CMakePresets.json

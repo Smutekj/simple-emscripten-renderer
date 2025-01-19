@@ -11,6 +11,10 @@
 #include <time.h>
 #include <filesystem>
 
+const std::filesystem::path shaders_path = {"../Resources/Shaders/"};
+const std::filesystem::path textures_path = {"../Resources/Textures/"};
+
+
 void drawProgramToTexture(Sprite &rect, Renderer &target, std::string program)
 {
     target.clear({1, 1, 1, 1});
@@ -22,10 +26,8 @@ Application::Application(int width, int height) : m_window(width, height),
                                                   m_window_renderer(m_window)
 {
 
-    std::filesystem::path resources_path = {__FILE__};
-    resources_path.remove_filename().append("../Resources/Fonts/arial.ttf");
+    std::filesystem::path resources_path = {"../Resources/Fonts/arial.ttf"};
     m_font = std::make_shared<Font>(resources_path);
-    glCheckErrorMsg("ERROR IN FONT CREATION!");
 
     int n_slots_x = 2;
     int n_slots_y = 2;
@@ -36,8 +38,6 @@ Application::Application(int width, int height) : m_window(width, height),
         m_slots.emplace_back(width / n_slots_x, height / n_slots_y);
     }
 
-    std::filesystem::path shaders_path = {__FILE__};
-    shaders_path.remove_filename().append("../Resources/Shaders/");
     auto shader_filenames = extractNamesInDirectory(shaders_path, ".frag");
     for (auto &slot : m_slots)
     {
@@ -55,8 +55,6 @@ Application::Application(int width, int height) : m_window(width, height),
     m_window_renderer.addShader("Text", "basicinstanced.vert", "textBorder.frag");
     glCheckErrorMsg("Error in Shaders creation!");
 
-    std::filesystem::path textures_path = {__FILE__};
-    textures_path.remove_filename().append("../Resources/Textures/");
     auto texture_filenames = extractNamesInDirectory(textures_path, ".png");
     m_textures.setBaseDirectory(textures_path);
     for (auto &texture_filename : texture_filenames)

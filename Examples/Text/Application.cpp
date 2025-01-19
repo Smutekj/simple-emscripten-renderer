@@ -13,8 +13,7 @@ Application::Application(int width, int height) : m_window(width, height),
                                                   m_window_renderer(m_window)
 {
 
-    std::filesystem::path font_path = {__FILE__};
-    font_path.remove_filename().append("../../Resources/Fonts/arial.ttf");
+    std::filesystem::path font_path = {"../Resources/Fonts/arial.ttf"};
     m_font = std::make_shared<Font>(font_path);
 
     m_window_renderer.m_view = m_window_renderer.getDefaultView();

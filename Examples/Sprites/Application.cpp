@@ -9,13 +9,14 @@
 #include <time.h>
 #include <filesystem>
 
+const std::filesystem::path shaders_path = {"../Resources/Shaders/"};
+const std::filesystem::path textures_path = {"../Resources/Textures/"};
+
 Application::Application(int width, int height) : m_window(width, height),
                                                   m_window_renderer(m_window)
 {
 
-    std::filesystem::path texture_directory = {__FILE__};
-    texture_directory.remove_filename().append("../Resources/Textures/");
-    m_textures.setBaseDirectory(texture_directory);
+    m_textures.setBaseDirectory(textures_path);
     m_textures.add("Ship", "EnemyLaser.png");
 
     m_window_renderer.m_view = m_window_renderer.getDefaultView();

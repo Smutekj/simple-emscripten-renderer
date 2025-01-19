@@ -10,10 +10,10 @@
 #include <time.h>
 #include <filesystem>
 
+const std::filesystem::path shaders_path = {"../Resources/Shaders/"};
+
 void Application::initializeLayers()
 {
-    std::filesystem::path shaders_path =  {__FILE__};
-    shaders_path.remove_filename().append("../Resources/Shaders/");
 
     auto &base_layer = m_layers.addLayer("BaseLayer", 0);
     base_layer.m_canvas.setShadersPath(shaders_path);
@@ -41,13 +41,8 @@ void Application::initializeUI()
 
 void Application::initializeResources()
 {
-    std::filesystem::path resources_path = {__FILE__};
-    resources_path.remove_filename().append("../Resources/Fonts/arial.ttf");
+    std::filesystem::path resources_path = {"../Resources/Fonts/arial.ttf"};
     m_font = std::make_shared<Font>(resources_path);
-    glCheckErrorMsg("ERROR IN FONT CREATION!");
-
-    std::filesystem::path shaders_path = {__FILE__};
-    shaders_path.remove_filename().append("../Resources/Shaders/");
 
     m_scene_canvas.setShadersPath(shaders_path);
     m_window_renderer.setShadersPath(shaders_path);
@@ -67,22 +62,20 @@ Application::Application(int width, int height) : m_window(width, height),
 
     m_particles = std::make_unique<Particles>(100);
 
-    m_particles->setEmitter([](const auto& spawn_pos)
-    {
+    m_particles->setEmitter([](const auto &spawn_pos)
+                            {
         Particle p;
         p.pos = spawn_pos;
         p.vel = {randf(-50, 50), randf(-50, 50)};
         p.acc = 0.5f * p.vel / utils::norm(p.vel); 
         p.scale = 20.;
         p.life_time = 1.f;
-        return p;
-    });
-    m_particles->setUpdater([](Particle& particle, float dt = 0.016f)
-    {
+        return p; });
+    m_particles->setUpdater([](Particle &particle, float dt = 0.016f)
+                            {
         particle.vel += particle.acc * dt;
         particle.pos += particle.vel * dt;
-        particle.angle += 0.8f;
-    });
+        particle.angle += 0.8f; });
 
     m_tex_particles = std::make_unique<TexturedParticles>(100);
     m_tex_particles->setTexture(*m_textures.get("star"));

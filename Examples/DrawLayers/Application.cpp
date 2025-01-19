@@ -11,11 +11,11 @@
 #include <time.h>
 #include <filesystem>
 
+const std::filesystem::path shaders_path = {"../Resources/Shaders/"};
+
+
 void Application::initializeLayers()
 {
-    std::filesystem::path shaders_path = {__FILE__};
-    shaders_path.remove_filename().append("../Resources/Shaders/");
-
     auto &lower_layer = m_layers.addLayer("Layer1", 5);
     lower_layer.m_canvas.setShadersPath(shaders_path);
     auto &upper_layer = m_layers.addLayer("Layer2", 0);
@@ -42,20 +42,16 @@ void Application::initializeUI()
 
 void Application::initializeResources()
 {
-    std::filesystem::path resources_path = {__FILE__};
-    resources_path.remove_filename().append("../Resources/Fonts/arial.ttf");
+    std::filesystem::path resources_path = {"../Resources/Fonts/arial.ttf"};
     m_font = std::make_shared<Font>(resources_path);
     glCheckErrorMsg("ERROR IN FONT CREATION!");
 
-    std::filesystem::path shaders_path = {__FILE__};
-    shaders_path.remove_filename().append("../Resources/Shaders/");
 
     m_window_renderer.setShadersPath(shaders_path);
     m_window_renderer.addShader("Text", "basicinstanced.vert", "textBorder.frag");
     glCheckErrorMsg("Error in Shaders creation!");
 
-    std::filesystem::path textures_path = {__FILE__};
-    textures_path.remove_filename().append("../Resources/Textures/");
+    std::filesystem::path textures_path = {"../Resources/Textures/"};
     auto texture_filenames = extractNamesInDirectory(textures_path, ".png");
     m_textures.setBaseDirectory(textures_path);
     for (auto &texture_filename : texture_filenames)
