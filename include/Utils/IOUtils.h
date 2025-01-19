@@ -11,7 +11,7 @@ inline bool hasFileExtension(const std::string &filename, std::string extension)
     return n_filename >= n_extension && filename.substr(n_filename - n_extension, n_filename) == extension;
 }
 
-inline std::vector<std::string> extractNamesInDirectory(std::filesystem::path &directory_path, std::string extension)
+inline std::vector<std::string> extractNamesInDirectory(const std::filesystem::path &directory_path, std::string extension)
 {
     std::vector<std::string> names;
 
