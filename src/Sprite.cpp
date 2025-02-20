@@ -48,7 +48,7 @@ const ColorByte &RectangleSimple::getColor() const
     return m_color;
 }
 
-void RectangleSimple::setColor(ColorByte &color)
+void RectangleSimple::setColor(ColorByte color)
 {
     m_color = color;
 }
