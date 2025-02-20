@@ -15,7 +15,7 @@ struct RectangleSimple : public Transform
     ColorByte m_color = {255, 255, 255, 255};
                                  //!< can be used in shaders
     const ColorByte &getColor() const;
-    void setColor(ColorByte &color);
+    void setColor(ColorByte color);
 };
 
 //! \struct Sprite
