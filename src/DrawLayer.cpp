@@ -186,7 +186,7 @@ void LayersHolder::clearAllLayers()
 {
     for (auto &[depth, layer] : m_layers)
     {
-        layer->m_pixels.clear({0, 0, 0, 0});
+        layer->m_pixels.clear(layer->getBackground());
     }
 }
 void LayersHolder::setView(View new_view)
