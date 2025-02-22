@@ -42,9 +42,29 @@ bool Renderer::hasShader(std::string id)
     return m_shaders.getShaders().count(id) > 0;
 }
 
+//! \brief clears the target and resets all batches
 void Renderer::clear(Color c)
 {
     m_target.clear(c);
+    
+    for(auto& [config, batch] : m_config2batches)
+    {
+        if(config.draw_type != DrawType::Static)
+        {
+            std::for_each(batch.begin(), batch.end(), [](auto& b){
+                b->clear();
+            });
+        }
+    }
+    for(auto& [config, batch] : m_config2sprite_batches)
+    {
+        if(config.draw_type != DrawType::Static)
+        {
+            std::for_each(batch.begin(), batch.end(), [](auto& b){
+                b->clear();
+            });
+        }
+    }
 }
 
 void Renderer::addShader(std::string id, std::string vertex_path, std::string fragment_path)
