@@ -2,7 +2,6 @@ project(ExampleText)
 
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} \
-		--embed-file ${CMAKE_SOURCE_DIR}/external/lygia \
 		--embed-file ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Fonts@/../Resources/Fonts \
 		--embed-file ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Shaders@/../Resources/Shaders \
 		--embed-file ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Textures@/../Resources/Textures \
