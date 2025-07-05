@@ -93,6 +93,11 @@ public:
     SpriteBatch(GLuint texture_id, Shader &shader);
     ~SpriteBatch();
 
+    void clear()
+    {
+        m_end = 0;
+    }
+
     bool addSprite(Trans t);
     void bindAttributes();
     void initialize();
