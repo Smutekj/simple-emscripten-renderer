@@ -9,8 +9,6 @@ function(set_target_compiler_flags target_name)
   if(CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
     target_compile_options(${target_name} PUBLIC
     "-sUSE_SDL=2"
-    "-sMIN_WEBGL_VERSION=2"
-    "-sMAX_WEBGL_VERSION=2"
     )
     
     target_link_options(${target_name} PUBLIC
