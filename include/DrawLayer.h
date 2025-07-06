@@ -41,7 +41,7 @@ private:
 
     std::vector<std::unique_ptr<PostEffect>> m_effects;
 
-    Color m_background_color = {0, 0, 0, 1};
+    Color m_background_color = {0, 0, 0, 0};
 
     bool m_is_active = true;
 };
