@@ -25,9 +25,12 @@ function(set_target_compiler_flags target_name)
     )
   endif()
 
-  if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
-  target_compile_options(${target_name} PRIVATE $<$<CONFIG:Release>:-march=native>)
-  endif()
 
+  if(NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten")
+    if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
+    target_compile_options(${target_name} PRIVATE $<$<CONFIG:Release>:-march=native>)
+    endif()
+  endif()
+  
   endfunction()
 
