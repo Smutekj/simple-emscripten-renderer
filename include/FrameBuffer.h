@@ -59,5 +59,9 @@ struct Image
     std::vector<ColorByte> pixels;
 };
 
+#ifndef __EMSCRIPTEN__
 void writeTextureToFile(std::filesystem::path path, std::string filename, Texture &buffer);
+#endif
+
+
 void writeTextureToFile(std::filesystem::path path, std::string filename, FrameBuffer &buffer);

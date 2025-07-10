@@ -108,6 +108,7 @@ void Image::loadFromBuffer(FrameBuffer &tex_buffer)
     glCheckErrorMsg("Error in loading image from buffer");
 }
 
+#ifndef __EMSCRIPTEN__
 //! \brief for debugging
 void writeTextureToFile(std::filesystem::path path, std::string filename, Texture &texture)
 {
@@ -137,6 +138,8 @@ void writeTextureToFile(std::filesystem::path path, std::string filename, Textur
         std::cout << "ERROR WRITING FILE: " << full_path << "\n";
     }
 }
+#endif
+
 void writeTextureToFile(std::filesystem::path path, std::string filename, FrameBuffer &buffer)
 {
     int width = buffer.getSize().x;
