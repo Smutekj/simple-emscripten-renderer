@@ -67,7 +67,8 @@ Image::Image(Texture &tex_image)
 {
     //! GLES3 does not have direct option of loading textures
 #ifndef __EMSCRIPTEN__
-    loadFromTexture(tex_image);
+    glGetTextureImage(tex_image.getHandle(), 0, GL_RGBA, GL_FLOAT,
+                      16 * tex_image.getSize().x * tex_image.getSize().y, data_hdr());
 #else
     FrameBuffer texture_buffer(tex_image.getSize().x,
                                tex_image.getSize().y,
@@ -75,15 +76,9 @@ Image::Image(Texture &tex_image)
     texture_buffer.setTexture(tex_image);
     loadFromBuffer(texture_buffer);
 #endif
-}
-
-void Image::loadFromTexture(Texture &tex_image)
-{
-
-    glGetTextureImage(tex_image.getHandle(), 0, GL_RGBA, GL_FLOAT,
-                      16 * tex_image.getSize().x * tex_image.getSize().y, data_hdr());
     glCheckErrorMsg("Error in loading image from texture");
 }
+
 
 Image::Image(FrameBuffer &tex_buffer)
     : Image(tex_buffer.getSize().x, tex_buffer.getSize().y)

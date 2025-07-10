@@ -50,7 +50,6 @@ struct Image
     bool operator==(const Image& other_image) const;
     
     private:
-        void loadFromTexture(Texture &tex_buffer);
         void loadFromBuffer(FrameBuffer &tex_buffer);
     public:
 
