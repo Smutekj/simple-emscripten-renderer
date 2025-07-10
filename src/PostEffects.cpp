@@ -167,7 +167,7 @@ void Bloom3::initMips(int n_levels, int width, int height, TextureOptions option
 {
     std::filesystem::path shaders_path = {__FILE__};
     shaders_path.remove_filename().append("../Resources/Shaders/");
-    
+
     m_mips.clear();
     m_mips.reserve(n_levels);
     for (int i = 0; i < n_levels; ++i)
@@ -288,6 +288,137 @@ void Bloom3::process(Texture &source, Renderer &target)
         target.drawSprite(screen_sprite, "combineLightBloom", DrawType::Dynamic);
 
         target.drawAll();
+    }
+
+    target.m_blend_factors = old_factors;
+    target.m_view = old_view;
+}
+
+BloomFinal::BloomFinal(int width, int height, int mip_count, int gauss_pass_count, TextureOptions options, std::string final_shader)
+    : m_gauss_pass_count(gauss_pass_count), m_final_shader(final_shader)
+{
+    initMips(mip_count, width, height, options);
+}
+
+void BloomFinal::initMips(int n_levels, int width, int height, TextureOptions options)
+{
+    std::filesystem::path shaders_path = {__FILE__};
+    shaders_path.remove_filename().append("../Resources/Shaders/");
+
+    m_mips.clear();
+    m_mips.reserve(n_levels);
+    for (int i = 0; i < n_levels; ++i)
+    {
+        m_mips.emplace_back(width, height, options);
+        m_mips.back().canvas.setShadersPath(shaders_path);
+        m_mips.back().canvas_tmp.setShadersPath(shaders_path);
+        m_mips.back().canvas.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
+        m_mips.back().canvas_tmp.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
+        width /= 2;
+        height /= 2;
+    }
+}
+
+void BloomFinal::process(Texture &source, Renderer &target)
+{
+    auto old_view = target.m_view;
+    auto old_factors = target.m_blend_factors;
+
+    auto target_size = target.getTargetSize();
+    Sprite screen_sprite(source);
+    screen_sprite.setPosition(target_size / 2.f);
+    screen_sprite.setScale(target_size / 2.f);
+    auto size = target_size;
+
+    //! BRIGHTNESS PASS
+    screen_sprite.setTexture(source);
+    auto &first_mip = m_mips.front();
+    first_mip.canvas.clear({0, 0, 0, 0});
+    first_mip.canvas.m_view.setCenter(screen_sprite.getPosition());
+    first_mip.canvas.m_view.setSize(screen_sprite.getScale() * 2.);
+    first_mip.canvas.drawSprite(screen_sprite, "brightness");
+    first_mip.canvas.drawAll();
+
+    for (int pass = 0; pass < m_gauss_pass_count; ++pass)
+    {
+        // Sprite ss1(first_mip.pixels.getTexture());
+        screen_sprite.setPosition(first_mip.pixels.getSize() / 2.f);
+        screen_sprite.setScale(first_mip.pixels.getSize() / 2.f);
+        first_mip.canvas_tmp.clear({0, 0, 0, 0});
+        screen_sprite.setTexture(first_mip.pixels.getTexture());
+        first_mip.canvas_tmp.m_view.setCenter(screen_sprite.getPosition());
+        first_mip.canvas_tmp.m_view.setSize(screen_sprite.getScale() * 2.);
+        first_mip.canvas_tmp.drawSprite(screen_sprite, "gaussVert");
+        first_mip.canvas_tmp.drawAll();
+
+        // Sprite ss2(first_mip.pixels_tmp.getTexture());
+        first_mip.canvas.clear({0, 0, 0, 0});
+        screen_sprite.setTexture(first_mip.pixels_tmp.getTexture());
+        first_mip.canvas.m_view.setCenter(screen_sprite.getPosition());
+        first_mip.canvas.m_view.setSize(screen_sprite.getScale() * 2.);
+        first_mip.canvas.drawSprite(screen_sprite, "gaussHoriz");
+        first_mip.canvas.drawAll();
+    }
+
+    size = target_size / 2;
+    for (size_t mip_id = 1; mip_id < m_mips.size(); ++mip_id)
+    {
+        auto &prev_mip = m_mips.at(mip_id - 1);
+        auto &mip = m_mips.at(mip_id);
+        mip.canvas.m_view.setCenter(screen_sprite.getPosition());
+        mip.canvas.m_view.setSize(target_size);
+
+        screen_sprite.setTexture(prev_mip.pixels.getTexture());
+        screen_sprite.setPosition(screen_sprite.getPosition());
+        screen_sprite.setScale(size / 2.f);
+        mip.canvas.m_view.setCenter(screen_sprite.getPosition());
+        mip.canvas.m_view.setSize(screen_sprite.getScale() * 2.);
+        mip.canvas.clear({0, 0, 0, 0});
+        mip.canvas.drawSprite(screen_sprite, "gaussHoriz");
+        mip.canvas.drawAll();
+
+        for (int pass = 0; pass < m_gauss_pass_count; ++pass)
+        {
+            mip.canvas_tmp.clear({0, 0, 0, 0});
+            screen_sprite.setTexture(mip.pixels.getTexture());
+            mip.canvas_tmp.m_view.setCenter(screen_sprite.getPosition());
+            mip.canvas_tmp.m_view.setSize(screen_sprite.getScale() * 2.);
+            mip.canvas_tmp.drawSprite(screen_sprite, "gaussVert");
+            mip.canvas_tmp.drawAll();
+
+            mip.canvas.clear({0, 0, 0, 0});
+            screen_sprite.setTexture(mip.pixels_tmp.getTexture());
+
+            mip.canvas.drawSprite(screen_sprite, "gaussHoriz");
+            mip.canvas.drawAll();
+        }
+
+        // ! accumulate results into first mip
+        first_mip.canvas.m_blend_factors = {bf::One, bf::One, bf::One, bf::One};
+        screen_sprite.setTexture(mip.pixels.getTexture());
+        auto pixels_size = target_size; // mip.pixels.getSize();
+        screen_sprite.setPosition(pixels_size / 2.f);
+        screen_sprite.setScale(pixels_size / 2.f);
+        first_mip.canvas.drawSprite(screen_sprite);
+        first_mip.canvas.drawAll();
+
+        size = size / 2;
+    }
+
+    int i = 0;
+    {
+        auto &mip = m_mips.front();
+        screen_sprite.setTexture(1, mip.pixels.getTexture());
+        screen_sprite.setTexture(0, source); //! DO NOT CHANGE ORDER OF SETTEXTURES!!
+        auto pixels_size = target_size;      // mip.pixels.getSize();
+        screen_sprite.setPosition(pixels_size / 2.f);
+        screen_sprite.setScale(pixels_size / 2.f);
+        target.m_view.setCenter(pixels_size / 2.f);
+        target.m_view.setSize(pixels_size);
+        target.drawSprite(screen_sprite, m_final_shader);
+        target.drawAll();
+
+        i++;
     }
 
     target.m_blend_factors = old_factors;

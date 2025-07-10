@@ -102,6 +102,34 @@ private:
     std::vector<TexMip> m_mips;
 };
 
+class BloomFinal : public PostEffect
+{
+
+public:
+    BloomFinal(int width, int height, int mip_count = 3, int gauss_pass_count = 3, TextureOptions options = {}, std::string final_shader = "combineLightBloom");
+
+    virtual void process(Texture &source, Renderer &target) override;
+    virtual ~BloomFinal(){};
+
+
+    void initMips(int n_levels, int width, int height, TextureOptions option);
+    struct TexMip
+    {
+        TexMip(int width, int height, TextureOptions option)
+        : pixels(width, height, option), canvas(pixels), pixels_tmp(width, height, option), canvas_tmp(pixels_tmp)
+        {}
+        FrameBuffer pixels;
+        Renderer canvas;
+        FrameBuffer pixels_tmp;
+        Renderer canvas_tmp;
+    };
+
+private:
+    std::string m_final_shader;
+    int m_gauss_pass_count;
+    std::vector<TexMip> m_mips;
+};
+
 class SmoothLight : public PostEffect
 {
 
