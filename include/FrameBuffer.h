@@ -36,21 +36,28 @@ struct Image
 {
 
     Image(int x, int y);
-    // Image(Texture& tex_image);
+    Image(Texture& tex_image);
     Image(FrameBuffer &tex_buffer);
     
     ColorByte *data();
+    Color *data_hdr()
+    {
+        return pixels_hdr.data();
+    }
 
     bool operator==(const Image& other_image) const;
     
     private:
+        void loadFromTexture(Texture &tex_buffer);
         void loadFromBuffer(FrameBuffer &tex_buffer);
     public:
 
     int x_size = 0;
     int y_size = 0;
 
+    std::vector<Color> pixels_hdr;
     std::vector<ColorByte> pixels;
 };
 
+void writeTextureToFile(std::filesystem::path path, std::string filename, Texture &buffer);
 void writeTextureToFile(std::filesystem::path path, std::string filename, FrameBuffer &buffer);
