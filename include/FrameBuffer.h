@@ -36,7 +36,9 @@ struct Image
 {
 
     Image(int x, int y);
+
     Image(Texture& tex_image);
+
     Image(FrameBuffer &tex_buffer);
     
     ColorByte *data();
@@ -59,9 +61,6 @@ struct Image
     std::vector<ColorByte> pixels;
 };
 
-#ifndef __EMSCRIPTEN__
 void writeTextureToFile(std::filesystem::path path, std::string filename, Texture &buffer);
-#endif
-
 
 void writeTextureToFile(std::filesystem::path path, std::string filename, FrameBuffer &buffer);

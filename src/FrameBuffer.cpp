@@ -62,21 +62,27 @@ GLuint FrameBuffer::getHandle() const
     return m_texture->getHandle();
 }
 
-// #ifndef __EMSCRIPTEN__
 Image::Image(Texture &tex_image)
     : Image(tex_image.getSize().x, tex_image.getSize().y)
 {
+    //! GLES3 does not have direct option of loading textures
+#ifndef __EMSCRIPTEN__
     loadFromTexture(tex_image);
+#else
+    FrameBuffer texture_buffer(tex_image.getSize().x,
+                               tex_image.getSize().y,
+                               tex_image.getOptions());
+    texture_buffer.setTexture(tex_image);
+    loadFromBuffer(texture_buffer);
+#endif
 }
-// #endif
 
 void Image::loadFromTexture(Texture &tex_image)
 {
-    // tex_image.bind(0);
+
     glGetTextureImage(tex_image.getHandle(), 0, GL_RGBA, GL_FLOAT,
-                      16*tex_image.getSize().x * tex_image.getSize().y, data_hdr());
+                      16 * tex_image.getSize().x * tex_image.getSize().y, data_hdr());
     glCheckErrorMsg("Error in loading image from texture");
-    int i = 0;
 }
 
 Image::Image(FrameBuffer &tex_buffer)
@@ -108,7 +114,6 @@ void Image::loadFromBuffer(FrameBuffer &tex_buffer)
     glCheckErrorMsg("Error in loading image from buffer");
 }
 
-#ifndef __EMSCRIPTEN__
 //! \brief for debugging
 void writeTextureToFile(std::filesystem::path path, std::string filename, Texture &texture)
 {
@@ -117,17 +122,18 @@ void writeTextureToFile(std::filesystem::path path, std::string filename, Textur
     Image image(texture);
 
     std::vector<uint8_t> byte_image(4 * width * height);
-    const Color* hdr_data = image.data_hdr();
-    
-    for (int i = 0; i < width * height ; ++i) {
+    const Color *hdr_data = image.data_hdr();
+
+    for (int i = 0; i < width * height; ++i)
+    {
         float clamped = std::max(0.0f, std::min(1.0f, hdr_data[i].r)); // clamp to [0,1]
-        byte_image[4*i + 0] = static_cast<uint8_t>(clamped * 255.0f);
+        byte_image[4 * i + 0] = static_cast<uint8_t>(clamped * 255.0f);
         clamped = std::max(0.0f, std::min(1.0f, hdr_data[i].g)); // clamp to [0,1]
-        byte_image[4*i + 1] = static_cast<uint8_t>(clamped * 255.0f);
+        byte_image[4 * i + 1] = static_cast<uint8_t>(clamped * 255.0f);
         clamped = std::max(0.0f, std::min(1.0f, hdr_data[i].b)); // clamp to [0,1]
-        byte_image[4*i + 2] = static_cast<uint8_t>(clamped * 255.0f);
+        byte_image[4 * i + 2] = static_cast<uint8_t>(clamped * 255.0f);
         clamped = std::max(0.0f, std::min(1.0f, hdr_data[i].a)); // clamp to [0,1]
-        byte_image[4*i + 3] = static_cast<uint8_t>(clamped * 255.0f);
+        byte_image[4 * i + 3] = static_cast<uint8_t>(clamped * 255.0f);
     }
 
     int stride = 4 * width;
@@ -138,7 +144,6 @@ void writeTextureToFile(std::filesystem::path path, std::string filename, Textur
         std::cout << "ERROR WRITING FILE: " << full_path << "\n";
     }
 }
-#endif
 
 void writeTextureToFile(std::filesystem::path path, std::string filename, FrameBuffer &buffer)
 {
