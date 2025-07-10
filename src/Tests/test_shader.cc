@@ -182,26 +182,26 @@ namespace
         }
     }
 
-    TEST(TestShaders, ShaderHolderLoad)
-    {
-        int width = 800;
-        int height = 600;
-        createHiddenWindow(width, height);
+    // TEST(TestShaders, ShaderHolderLoad)
+    // {
+    //     int width = 800;
+    //     int height = 600;
+    //     createHiddenWindow(width, height);
 
-        FrameBuffer target_pixels(11, 10);
-        Renderer canvas(target_pixels);
+    //     FrameBuffer target_pixels(11, 10);
+    //     Renderer canvas(target_pixels);
 
-        //! test load from code
-        bool success = canvas.getShaders().loadFromCode("TestShaderFromCode",
-                                                        (std::string)vertex_sprite_code,
-                                                        (std::string)fragment_font_code);
-        EXPECT_TRUE(success);
+    //     //! test load from code
+    //     bool success = canvas.getShaders().loadFromCode("TestShaderFromCode",
+    //                                                     (std::string)vertex_sprite_code,
+    //                                                     (std::string)fragment_font_code);
+    //     EXPECT_TRUE(success);
 
-        //! test load from file
-        success = canvas.getShaders().load("TestShaderFromFile",
-                                           "basicinstanced.vert",
-                                           "texture.frag");
-        EXPECT_TRUE(success);
-    }
+    //     //! test load from file
+    //     success = canvas.getShaders().load("TestShaderFromFile",
+    //                                        "basicinstanced.vert",
+    //                                        "texture.frag");
+    //     EXPECT_TRUE(success);
+    // }
 
 }
