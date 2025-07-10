@@ -49,7 +49,7 @@ private:
 struct LayersHolder
 {
 
-    DrawLayer &addLayer(std::string name, int depth, TextureOptions options = {});
+    DrawLayer &addLayer(std::string name, int depth, TextureOptions options = {}, int height = 800, int width = 600);
     // DrawLayer &addLayerOnTop(std::string name);
     // DrawLayer &addLayerDown(std::string name);
     bool hasLayer(const std::string &name);

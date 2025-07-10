@@ -90,9 +90,9 @@ Color DrawLayer::getBackground()
     return m_background_color;
 }
 
-DrawLayer &LayersHolder::addLayer(std::string name, int depth, TextureOptions options)
+DrawLayer &LayersHolder::addLayer(std::string name, int depth, TextureOptions options, int height, int width )
 {
-    auto new_layer = std::make_shared<DrawLayer>(800, 600, options);
+    auto new_layer = std::make_shared<DrawLayer>(height, width, options);
     m_layers[depth] = new_layer;
     m_name2depth[name] = depth;
     return *new_layer;
