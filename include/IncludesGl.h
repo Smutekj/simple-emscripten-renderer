@@ -8,8 +8,8 @@
 #include <GLES3/gl3.h>
 #else
 #include <glad/gl.h>
-#include <SDL.h>
-#include <SDL_opengl.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_opengl.h>
 #endif
 
 #include <vector>
