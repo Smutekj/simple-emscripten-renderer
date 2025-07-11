@@ -63,3 +63,13 @@ void View::recomputeMatrix()
 
     m_needs_recompute = false;
 }
+
+
+bool View::intersects(const Rectf& query) const
+{
+
+    Rectf view_rect = {m_center_x, m_center_y, m_width, m_height};
+    
+    
+    return 
+}

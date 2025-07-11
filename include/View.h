@@ -7,6 +7,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Vector2.h"
+#include "Rect.h"
 
 
 //! \class View
@@ -43,6 +44,7 @@ public:
     glm::mat4 &getMatrix();
 
     bool contains(const utils::Vector2f& query) const;
+    bool intersects(const Rectf& query) const;
 
 
 private:
