@@ -42,6 +42,9 @@ public:
 
     glm::mat4 &getMatrix();
 
+    bool contains(const utils::Vector2f& query) const;
+
+
 private:
     void recomputeMatrix();
 

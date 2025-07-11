@@ -46,6 +46,13 @@ glm::mat4 &View::getMatrix()
     return m_view_matrix;
 }
 
+bool View::contains(const utils::Vector2f& query) const
+{
+
+    return query.x >= (m_center_x - m_width/2.f) && query.x <= (m_center_x + m_width/2.f) &&
+            query.y >= (m_center_y - m_height/2.f) && query.y <= (m_center_y + m_height/2.f);
+}
+
 //! \brief called automatically whenever the actual matrix is needed 
 //! \brief and has changed since last time 
 void View::recomputeMatrix()
