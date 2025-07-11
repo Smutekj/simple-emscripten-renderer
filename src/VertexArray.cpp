@@ -62,14 +62,16 @@ void VertexArray::resize(int n_verts)
 
 
 //! \brief calls gl function to create vertex and element buffer buffers
-void VertexArray::updateBufferData()
+void VertexArray::updateBufferData(int max_vertex_ind)
 {
     
     if (!m_is_initialized) //! this way it's called just once for static draws
     {
+        int max_ind = max_vertex_ind == -1 ? m_vertices.size() : max_vertex_ind;
+        
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
         glCheckError();
-        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * m_vertices.size(), m_vertices.data());
+        glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * max_ind, m_vertices.data());
         glCheckError();
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
@@ -143,8 +145,13 @@ void VertexArray::draw(View &view, Shader& shader, const std::vector<IndexType> 
             glCheckError();
         }
     }
-
-    initialize();
+    if(m_needs_new_gl_buffer)
+    {
+        createBuffers();
+    }else{
+        int max_vertex_ind = *std::max_element(indices.begin(), indices.end());
+        updateBufferData(max_vertex_ind);
+    }
     
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(IndexType) * indices.size(), indices.data());

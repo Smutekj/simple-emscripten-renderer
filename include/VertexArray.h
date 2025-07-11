@@ -45,7 +45,7 @@ public:
 
 private:
     void createBuffers();
-    void updateBufferData();
+    void updateBufferData(int max_vertex_ind = -1);
     void initialize();
 
 public:
