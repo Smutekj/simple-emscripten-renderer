@@ -67,7 +67,7 @@ void VertexArray::updateBufferData(int max_vertex_ind)
     
     if (!m_is_initialized) //! this way it's called just once for static draws
     {
-        int max_ind = max_vertex_ind == -1 ? m_vertices.size() : max_vertex_ind;
+        int max_ind = max_vertex_ind == -1 ? m_vertices.size() : max_vertex_ind; + 1;
         
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
         glCheckError();
