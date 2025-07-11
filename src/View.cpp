@@ -67,9 +67,6 @@ void View::recomputeMatrix()
 
 bool View::intersects(const Rectf& query) const
 {
-
     Rectf view_rect = {m_center_x, m_center_y, m_width, m_height};
-    
-    
-    return 
+    return query.intersects(view_rect);
 }
