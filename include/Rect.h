@@ -34,6 +34,13 @@ struct Rect
         bool intersects_y = min_y <= max_y_other && max_y >= min_y_other;
         return intersects_x && intersects_y;
     }
+
+    template <class QueryType>
+    bool inline contains(const utils::Vector2<QueryType> &query) const
+    {
+        return query.x >= pos_x && query.x <= pos_x + width &&
+               query.y >= pos_y && query.y <= pos_y + height;
+    }
 };
 
 using Rectf = Rect<float>;
