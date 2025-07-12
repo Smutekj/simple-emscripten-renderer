@@ -37,7 +37,7 @@ void Texture::loadFromFile(std::string filename, TextureOptions options)
     }
     else
     {
-        throw std::runtime_error("Error loading texture.");
+        throw std::runtime_error("Error loading texture: " + filename);
     }
 }
 
