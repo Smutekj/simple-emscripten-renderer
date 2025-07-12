@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Utils/Vector2.h"
+
 //! \struct Rect
 //! \brief represents an axis-aligned rectangle
 //! position is defined by lower-left coordinate: pos_x, pos_y
