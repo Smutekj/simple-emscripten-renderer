@@ -63,7 +63,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
         // spdlog::error("FREETYPE: Failed to load font");
         return false;
     }
-    FT_Set_Pixel_Sizes(face, 0, 32);
+    FT_Set_Pixel_Sizes(face, 0,40);
 
     FT_GlyphSlot slot = face->glyph;
 
