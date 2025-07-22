@@ -8,6 +8,31 @@
 #include <cassert>
 #include <iostream>
 
+
+//! \brief constructs the texture from an \p image_file
+//! \param image_file
+//! \param options
+Texture::Texture(std::filesystem::path image_file, TextureOptions options)
+{
+    loadFromFile(image_file.string(), options);   
+}
+
+//! \brief constructs an empty texture of a given dimensions
+//! \param width
+//! \param height
+//! \param options
+Texture::Texture(int width, int height, TextureOptions options)
+{
+    create(width, height, options);
+}
+
+
+Texture::~Texture()
+{
+    glDeleteTextures(1, &m_texture_handle);
+    glCheckError();
+}
+
 //! \brief loads texture from file at \p filename
 //! \param filename path to file
 //! \param options  struct containing how the texture should be created
@@ -90,7 +115,7 @@ void Texture::create(int width, int height, TextureOptions options)
 //! \param slot
 void Texture::bind(int slot)
 {
-    // assert(m_texture_handle != 0); //! has to be generated first
+    assert(m_texture_handle != 0); //! has to be generated first
     glActiveTexture(GL_TEXTURE0 + slot);
     glCheckError();
     glBindTexture(GL_TEXTURE_2D, m_texture_handle);

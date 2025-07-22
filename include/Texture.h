@@ -74,15 +74,24 @@ struct TextureOptions
 //!  Textures should be created sparingly, whereas we can have as many Sprites as we want 
 class Texture
 {
-    using GLuint = unsigned int;
-
     enum class ImageFormat
     {
         Jpg,
         Png,
     };
 
-public:
+public:    
+    Texture() = default;
+    Texture(std::filesystem::path image_file, TextureOptions options = {});
+    Texture(int width, int height, TextureOptions options = {});
+
+    ~Texture();
+    Texture(const Texture& other) = default;
+    Texture(Texture&& other) = default;
+    Texture& operator=(const Texture& other) = default;
+    Texture& operator=(Texture&& other) = default;
+
+
     void loadFromFile(std::string filename, TextureOptions options = {});
     void create(int width, int height, TextureOptions options = {});
 
