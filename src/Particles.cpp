@@ -38,7 +38,7 @@ int Particles::getPeriod() const
 void Particles::update(float dt)
 {
 
-    m_spawn_timer++;
+    m_spawn_timer += dt;;
     if (m_spawn_timer >= m_spawn_period)
     {
         m_spawn_timer = 0;

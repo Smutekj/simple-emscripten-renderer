@@ -42,7 +42,7 @@ void Batch::clear()
 //! \param view    used in drawing
 void Batch::flush(View &view)
 {
-
+    
     m_verts.draw(view, m_shader, m_indices);
 
     if (m_config.draw_type != DrawType::Static) //! static draws should stay the same so no need to clear data
