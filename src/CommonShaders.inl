@@ -97,7 +97,6 @@ constexpr const char *fragment_text_code = "#version 300 es\n"
 
 constexpr const char *fragment_brightness_code = "#version 300 es\n"
                                                  "precision highp float;\n"
-
                                                  "in vec2 v_tex_coord;\n"
                                                  "in vec4 v_color;\n"
                                                  "out vec4 FragColor;\n"
