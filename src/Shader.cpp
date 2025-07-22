@@ -489,7 +489,7 @@ void Shader::use()
         return;
     }
     glUseProgram(m_id);
-    glCheckError();
+    glCheckErrorMsg("Error in Shader use");
 }
 
 //! utility uniform functions

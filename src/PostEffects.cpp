@@ -168,6 +168,7 @@ Bloom3::Bloom3(int width, int height, TextureOptions options)
 void Bloom3::initMips(int n_levels, int width, int height, TextureOptions options)
 {
     m_mips.clear();
+    m_mips.reserve(n_levels); //! THIS IS IMPORTANT, OTHERWISE YOU INVALIDATE PREVIOUS MIPS  WHEN PUSHING BACK.
     for (int i = 0; i < n_levels; ++i)
     {
         m_mips.emplace_back(width, height, options);
@@ -194,6 +195,7 @@ void Bloom3::process(Texture &source, Renderer &target)
     {
         target.getShaders().load("combineBloom", "basicinstanced.vert", "combineLightBloom.frag");
     }
+    glCheckErrorMsg("WTF?");
 
     auto old_view = target.m_view;
     auto old_factors = target.m_blend_factors;
