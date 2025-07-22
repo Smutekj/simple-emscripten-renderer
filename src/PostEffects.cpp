@@ -195,7 +195,6 @@ void Bloom3::process(Texture &source, Renderer &target)
     {
         target.getShaders().load("combineBloom", "basicinstanced.vert", "combineLightBloom.frag");
     }
-    glCheckErrorMsg("WTF?");
 
     auto old_view = target.m_view;
     auto old_factors = target.m_blend_factors;
@@ -273,7 +272,7 @@ void Bloom3::process(Texture &source, Renderer &target)
         size = size / 2;
     }
 
-    writeTextureToFile("../../", "testfile3.png", m_mips[0].pixels);
+    // writeTextureToFile("../../", "testfile3.png", m_mips[0].pixels); 
 
     Sprite ss;
     ss.m_color = {255, 255, 255, 255};
@@ -310,14 +309,23 @@ BloomFinal::BloomFinal(int width, int height, int mip_count, int gauss_pass_coun
 void BloomFinal::initMips(int n_levels, int width, int height, TextureOptions options)
 {
     m_mips.clear();
-    m_mips.reserve(n_levels);
+    m_mips.reserve(n_levels); //! THIS IS IMPORTANT, OTHERWISE YOU INVALIDATE PREVIOUS MIPS  WHEN PUSHING BACK.
     for (int i = 0; i < n_levels; ++i)
     {
         m_mips.emplace_back(width, height, options);
-        m_mips.back().canvas.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
-        m_mips.back().canvas_tmp.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
+        assert(m_mips.at(i).canvas_tmp.getShaders().loadFromCode("gaussVert", vertex_sprite_code, fragment_gauss_vert_code));
+        assert(m_mips.at(i).canvas.getShaders().loadFromCode("gaussHoriz", vertex_sprite_code, fragment_gauss_horiz_code));
+        
         width /= 2;
         height /= 2;
+    }
+    //! only the first mip does brightness pass
+    assert(m_mips.front().canvas.getShaders().loadFromCode("brightness", vertex_sprite_code, fragment_brightness_code));
+
+    for(auto& mip : m_mips)
+    {
+        mip.canvas.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
+        mip.canvas_tmp.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
     }
 }
 
