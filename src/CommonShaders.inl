@@ -1,7 +1,7 @@
 #pragma once
 
 constexpr const char *vertex_sprite_code = "#version 300 es\n"
-                                           "precision mediump float;\n"
+                                           "precision highp float;\n"
                                            "layout(location = 0) in vec2 a_position;\n"
                                            "layout(location = 1) in vec2 a_translation;\n"
                                            "layout(location = 2) in vec2 a_scale;\n"
@@ -25,7 +25,7 @@ constexpr const char *vertex_sprite_code = "#version 300 es\n"
                                            "}\n";
 
 constexpr const char *vertex_vertexarray_code = "#version 300 es\n"
-                                                "precision mediump float;\n"
+                                                "precision highp float;\n"
                                                 "in vec2 a_position;\n"
                                                 "in vec4 a_color;\n"
                                                 "in vec2 a_tex_coord;\n"
@@ -41,7 +41,7 @@ constexpr const char *vertex_vertexarray_code = "#version 300 es\n"
                                                 "}";
 
 constexpr const char *fragment_font_code = "#version 300 es\n"
-                                           "precision mediump float;\n"
+                                           "precision highp float;\n"
                                            "in vec2 v_tex_coord;\n"
                                            "in vec4 v_color; \n"
                                            "out vec4 FragColor;\n"
@@ -54,7 +54,7 @@ constexpr const char *fragment_font_code = "#version 300 es\n"
                                            "}";
 
 constexpr const char *fragment_fullpass_code = "#version 300 es\n"
-                                               "precision mediump float;\n"
+                                               "precision highp float;\n"
                                                "in vec2 v_tex_coord;\n"
                                                "in vec4 v_color;\n"
                                                "out vec4 FragColor;\n"
@@ -74,7 +74,7 @@ constexpr const char *fragment_fullpass_texture_code = "#version 300 es\n"
                                                        "}";
 
 constexpr const char *fragment_text_code = "#version 300 es\n"
-                                           "precision mediump float;\n"
+                                           "precision highp float;\n"
                                            "in vec2 v_tex_coord;\n"
                                            "in vec4 v_color;\n"
                                            "uniform vec3 u_edge_color = vec3(0., 0.,0.);\n"
