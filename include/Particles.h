@@ -87,13 +87,13 @@ protected:
 
     VectorMap<Particle> m_particle_pool;
 
-    int m_spawn_period = 1; //!< m_spawn_period frames need to pass for one particle
-    int m_spawn_timer = 0;  //!< measures frames since last spawn
+    float m_spawn_period = 0.03; //!< m_spawn_period secs need to pass for one particle
+    float m_spawn_timer = 0;  //!< measures frames since last spawn
 
     bool m_repeats = true; //!< true if particles should be created continuously
     size_t n_spawned = 0;      //!< number of live particles
 
-    float m_lifetime = 1.f; //!< maximum time of life of the particle (when particle lives this long, it gets killed)
+    float m_lifetime = 1.f; //!< maximum time of life of the particle in seconds (when particle lives this long, it gets killed)
     std::string m_shader_id = "VertexArrayDefault"; //!< shader id
 };
 
