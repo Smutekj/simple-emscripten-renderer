@@ -53,7 +53,12 @@ public:
     Shader(const std::string &vertex_shader_code, const std::string &frament_shader_code);
     Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path);
     Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path, const std::string &shader_name);
+
     ~Shader();
+    Shader(const Shader& other) = default;
+    Shader(Shader&& other) = default;
+    Shader& operator=(const Shader& other) = default;
+    Shader& operator=(Shader&& other) = default;
 
     VariablesData &getVariables();
     GLuint getId() const;
@@ -140,7 +145,12 @@ class ShaderHolder
 public:
     ShaderHolder();
     explicit ShaderHolder(std::filesystem::path resources_path);
-    ~ShaderHolder();
+
+    ~ShaderHolder() = default;
+    ShaderHolder(const ShaderHolder&) = default;
+    ShaderHolder(ShaderHolder&&) = default;
+    ShaderHolder& operator=(const ShaderHolder&) = default;
+    ShaderHolder& operator=(ShaderHolder&&) = default;
 
     Shader &get(const std::string &id);
 
@@ -179,9 +189,3 @@ inline bool replace(std::string &str, const std::string &from, const std::string
 
 inline UniformType extractValue(std::string type_string, std::string initial_value);
 
-//! helper type for the visitor (stolen from cpp_reference)
-template <class... Ts>
-struct overloads : Ts...
-{
-    using Ts::operator()...;
-};

@@ -278,6 +278,7 @@ void Shader::activateTexture(TextureArray handles)
     }
 }
 
+
 void Shader::setUniform2(const std::string &uniform_name, UniformType uniform_value)
 {
     std::visit([&uniform_name, this](auto &&t)
@@ -453,7 +454,6 @@ bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fra
 //! \brief does all the GL calls to load the shader on the GPU
 void Shader::recompile()
 {
-
     glsl_include::ShaderLoader vertex_loader = glsl_include::ShaderLoader("#include");
     glsl_include::ShaderLoader fragment_loader = glsl_include::ShaderLoader("#include");
     std::string vertex_code = vertex_loader.load_shader(m_vertex_path);
@@ -732,10 +732,6 @@ void ShaderHolder::erase(const std::string &shader_id)
 const ShaderHolder::ShaderMap &ShaderHolder::getShaders() const
 {
     return m_shaders;
-}
-
-ShaderHolder::~ShaderHolder()
-{
 }
 
 //! \param shader_id   id of the shader to be removed
