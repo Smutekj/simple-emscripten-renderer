@@ -130,6 +130,10 @@ Vertex &VertexArray::operator[](int i)
 //! \param indices      a vector of indices to use in the draw call
 void VertexArray::draw(View &view, Shader& shader, const std::vector<IndexType> &indices)
 {
+    if(indices.empty())
+    {
+        return;
+    }
     shader.use();
     shader.setMat4("u_view_projection", view.getMatrix());
     shader.activateTexture(m_textures);

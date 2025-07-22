@@ -163,22 +163,27 @@ Bloom3::Bloom3(int width, int height, TextureOptions options)
     initMips(3, width, height, options);
 }
 
+#include "CommonShaders.inl"
+
 void Bloom3::initMips(int n_levels, int width, int height, TextureOptions options)
 {
-    std::filesystem::path shaders_path = {__FILE__};
-    shaders_path.remove_filename().append("../Resources/Shaders/");
-
     m_mips.clear();
-    m_mips.reserve(n_levels);
     for (int i = 0; i < n_levels; ++i)
     {
         m_mips.emplace_back(width, height, options);
-        m_mips.back().canvas.setShadersPath(shaders_path);
-        m_mips.back().canvas_tmp.setShadersPath(shaders_path);
-        m_mips.back().canvas.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
-        m_mips.back().canvas_tmp.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
+        assert(m_mips.at(i).canvas_tmp.getShaders().loadFromCode("gaussVert", vertex_sprite_code, fragment_gauss_vert_code));
+        assert(m_mips.at(i).canvas.getShaders().loadFromCode("gaussHoriz", vertex_sprite_code, fragment_gauss_horiz_code));
+        
         width /= 2;
         height /= 2;
+    }
+    //! only the first mip does brightness pass
+    assert(m_mips.front().canvas.getShaders().loadFromCode("brightness", vertex_sprite_code, fragment_brightness_code));
+
+    for(auto& mip : m_mips)
+    {
+        mip.canvas.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
+        mip.canvas_tmp.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
     }
 }
 
@@ -187,11 +192,7 @@ void Bloom3::process(Texture &source, Renderer &target)
 
     if (!target.hasShader("combineBloom"))
     {
-        target.addShader("combineBloom", "basicinstanced.vert", "combineBloom.frag");
-    }
-    if (!target.hasShader("combineLightBloom"))
-    {
-        target.addShader("combineLightBloom", "basicinstanced.vert", "combineLightBloom.frag");
+        target.getShaders().load("combineBloom", "basicinstanced.vert", "combineLightBloom.frag");
     }
 
     auto old_view = target.m_view;
@@ -270,7 +271,7 @@ void Bloom3::process(Texture &source, Renderer &target)
         size = size / 2;
     }
 
-    // writeTextureToFile("../", "testfile3.png", m_downsampled_pixels3);
+    writeTextureToFile("../../", "testfile3.png", m_mips[0].pixels);
 
     Sprite ss;
     ss.m_color = {255, 255, 255, 255};
@@ -285,7 +286,7 @@ void Bloom3::process(Texture &source, Renderer &target)
         screen_sprite.setScale(pixels_size / 2.f);
         target.m_view.setCenter(pixels_size / 2.f);
         target.m_view.setSize(pixels_size);
-        target.drawSprite(screen_sprite, "combineLightBloom", DrawType::Dynamic);
+        target.drawSprite(screen_sprite, "combineBloom", DrawType::Dynamic);
 
         target.drawAll();
     }
@@ -297,21 +298,20 @@ void Bloom3::process(Texture &source, Renderer &target)
 BloomFinal::BloomFinal(int width, int height, int mip_count, int gauss_pass_count, TextureOptions options, std::string final_shader)
     : m_gauss_pass_count(gauss_pass_count), m_final_shader(final_shader)
 {
+    if(m_final_shader.empty())
+    {
+        m_final_shader = "combineBloom";
+    }
     initMips(mip_count, width, height, options);
 }
 
 void BloomFinal::initMips(int n_levels, int width, int height, TextureOptions options)
 {
-    std::filesystem::path shaders_path = {__FILE__};
-    shaders_path.remove_filename().append("../Resources/Shaders/");
-
     m_mips.clear();
     m_mips.reserve(n_levels);
     for (int i = 0; i < n_levels; ++i)
     {
         m_mips.emplace_back(width, height, options);
-        m_mips.back().canvas.setShadersPath(shaders_path);
-        m_mips.back().canvas_tmp.setShadersPath(shaders_path);
         m_mips.back().canvas.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
         m_mips.back().canvas_tmp.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
         width /= 2;
@@ -321,6 +321,13 @@ void BloomFinal::initMips(int n_levels, int width, int height, TextureOptions op
 
 void BloomFinal::process(Texture &source, Renderer &target)
 {
+    if (!target.hasShader(m_final_shader))
+    {
+        std::cout << "Selected final shader: " + m_final_shader + " does not exist! Will Use default CombineBloom instead" << std::endl;; 
+        target.getShaders().loadFromCode(m_final_shader, vertex_sprite_code, fragment_combine_bloom_code);
+    }
+
+
     auto old_view = target.m_view;
     auto old_factors = target.m_blend_factors;
 
