@@ -159,7 +159,8 @@ bool Font::loadFromFile(std::filesystem::path font_file)
         }
     }
     m_canvas->drawAll();
-
+    m_canvas->resetBatches();
+    
     //! delete helper texture
     glDeleteTextures(128, textures);
     FT_Done_Face(face);

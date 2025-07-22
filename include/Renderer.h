@@ -66,6 +66,7 @@ public:
                       DrawType draw_type = DrawType::Dynamic, std::shared_ptr<Texture> p_texture = nullptr);
 
     void drawAll();
+    void resetBatches();
 
     utils::Vector2i getTargetSize() const;
 

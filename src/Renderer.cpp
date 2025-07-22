@@ -433,6 +433,13 @@ bool Renderer::setShadersPath(std::filesystem::path directory)
     return m_shaders.setBaseDirectory(directory);
 }
 
+//! \brief deletes batches -- 
+void Renderer::resetBatches()
+{
+    m_config2sprite_batches.clear();
+    m_config2batches.clear();
+}
+
 //! \brief draws all the batched calls into a associated RenderTarget
 //! \brief THIS NEEDS TO BE CALLED IN ORDER TO SEE ANYTHING ON THE SCREEN
 //! \brief (the previous message is for when I forget to do that)
@@ -466,7 +473,6 @@ void Renderer::drawAll()
     while (!to_delete.empty())
     {
         // m_config2sprite_batches.at(to_delete.back()).clear();
-        // m_config2sprite_batches.erase(to_delete.back());
         to_delete.pop_back();
     }
     for (auto &[config, batches] : m_config2batches)
@@ -486,9 +492,7 @@ void Renderer::drawAll()
 
     while (!to_delete.empty())
     {
-        assert(m_config2batches.count(to_delete.back()) != 0);
         // m_config2batches.at(to_delete.back()).clear();
-        // m_config2batches.erase(to_delete.back());
         to_delete.pop_back();
     }
 }
