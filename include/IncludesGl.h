@@ -70,7 +70,7 @@ void inline bindVertexAttributes(GLuint buffer, std::vector<int> sizes)
 {
     for (std::size_t i = 0; i < sizes.size(); ++i)
     {
-        glDisableVertexAttribArray(i);
+        glDisableVertexAttribArray((GLuint)i);
     }
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glCheckError();
