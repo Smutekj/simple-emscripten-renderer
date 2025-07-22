@@ -19,6 +19,14 @@ public:
     FrameBuffer();
     FrameBuffer(int width, int height);
     FrameBuffer(int width, int height, TextureOptions options);
+
+    ~FrameBuffer();
+    FrameBuffer(const FrameBuffer& other) = default;
+    FrameBuffer(FrameBuffer&& other) = default;
+    FrameBuffer& operator=(const FrameBuffer& other) = default;
+    FrameBuffer& operator=(FrameBuffer&& other) = default;
+
+    
     Texture &getTexture();
     void setTexture(Texture& new_texture);
     GLuint getHandle() const;

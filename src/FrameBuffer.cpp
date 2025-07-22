@@ -11,6 +11,9 @@ FrameBuffer::FrameBuffer()
     glBindFramebuffer(GL_FRAMEBUFFER, m_target_handle);
     glCheckError();
 }
+FrameBuffer::~FrameBuffer(){
+    glDeleteFramebuffers(1, &m_target_handle);
+}
 
 FrameBuffer::FrameBuffer(int width, int height, TextureOptions options)
     : RenderTarget(width, height), m_options(options)
