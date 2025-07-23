@@ -249,6 +249,10 @@ int SpriteBatch::countFreeSpots() const
 //! \param view    used in drawing
 void SpriteBatch::flush(View &view)
 {
+    if(m_end == 0) //! no drawing of empty batches
+    {
+        return;
+    }
     m_shader.use();
     m_shader.setMat4("u_view_projection", view.getMatrix());
     m_shader.setUniforms();
