@@ -579,14 +579,14 @@ const std::string &Shader::getVertexPath()
     return m_vertex_path;
 }
 
-ShaderUIData::ShaderUIData(Shader &program)
-    : p_program(&program), filename(program.getFragmentPath()), variables(program.getVariables())
-{
-    if (!filename.empty())
-    {
-        last_write_time = std::filesystem::last_write_time(filename);
-    }
-}
+// ShaderUIData::ShaderUIData(Shader &program)
+//     : p_program(&program), filename(program.getFragmentPath()), variables(program.getVariables())
+// {
+//     if (!filename.empty())
+//     {
+//         last_write_time = std::filesystem::last_write_time(filename);
+//     }
+// }
 
 //! \brief some utility functions
 //! \returns a vector of strings obtained from line
@@ -726,7 +726,7 @@ ShaderHolder::ShaderHolder(std::filesystem::path resources_path)
 void ShaderHolder::erase(const std::string &shader_id)
 {
     m_shaders.erase(shader_id);
-    m_shader_data.erase(shader_id);
+    // m_shader_data.erase(shader_id);
 }
 
 const ShaderHolder::ShaderMap &ShaderHolder::getShaders() const
@@ -741,10 +741,10 @@ bool ShaderHolder::contains(const std::string &shader_id) const
     return m_shaders.count(shader_id) > 0;
 }
 
-ShaderHolder::ShaderUIDataMap &ShaderHolder::getAllData()
-{
-    return m_shader_data;
-}
+// ShaderHolder::ShaderUIDataMap &ShaderHolder::getAllData()
+// {
+//     return m_shader_data;
+// }
 
 Shader &ShaderHolder::get(const std::string &id)
 {
@@ -774,7 +774,7 @@ bool ShaderHolder::load(const std::string &name,
     if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
     {
         m_shaders.erase(name);
-        m_shader_data.erase(name);
+        // m_shader_data.erase(name);
     }
 
     std::filesystem::path vertex_path = m_resources_path.string() + vertex_filename; //! no idea if this works on windows?????
@@ -788,10 +788,10 @@ bool ShaderHolder::load(const std::string &name,
     m_shaders[name] = std::move(new_shader);
     auto &shader = m_shaders.at(name);
     shader->m_shader_name = name;
-    m_shader_data.insert({name, *shader});
+    // m_shader_data.insert({name, *shader});
 
     shader->use();
-    extractUniformNames(m_shader_data.at(name).variables, shader->getFragmentPath());
+    extractUniformNames(shader->m_variables, shader->getFragmentPath());
 
     return true;
 }
@@ -811,7 +811,7 @@ bool ShaderHolder::loadFromCode(const std::string &name,
     {
         return false; //! erasing fucks somethign up :(
         m_shaders.erase(name);
-        m_shader_data.erase(name);
+        // m_shader_data.erase(name);
     }
 
     auto new_shader = std::make_unique<Shader>(vertex_code, fragment_code);
@@ -823,23 +823,23 @@ bool ShaderHolder::loadFromCode(const std::string &name,
     m_shaders[name] = std::move(new_shader);
     auto &shader = m_shaders.at(name);
     shader->m_shader_name = name;
-    m_shader_data.insert({ name, *shader });
+    // m_shader_data.insert({ name, *shader });
     return true;
 }
 
-ShaderUIData &ShaderHolder::getData(const std::string &name)
-{
-    return m_shader_data.at(name);
-}
+// ShaderUIData &ShaderHolder::getData(const std::string &name)
+// {
+//     return m_shader_data.at(name);
+// }
 
 //! \brief updates all uniform values based on the data in fragment shader file
 void ShaderHolder::initializeUniforms()
 {
     for (auto &[shader_name, shader] : m_shaders)
     {
-        m_shader_data.insert({shader_name, *shader});
+        // m_shader_data.insert({shader_name, *shader});
 
-        extractUniformNames(m_shader_data.at(shader_name).variables, shader->getFragmentPath());
+        extractUniformNames(shader->m_variables, shader->getFragmentPath());
     }
 }
 
@@ -852,7 +852,7 @@ void ShaderHolder::refresh()
 
         std::filesystem::path f_path = shader->getFragmentPath();
         auto last_time = std::filesystem::last_write_time(f_path);
-        if (last_time != m_shader_data.at(shader_name).last_write_time)
+        if (last_time != shader->m_last_writetime)
         {
             to_refresh.push_back(shader_name);
         }

@@ -123,16 +123,16 @@ public:
     inline static float m_time;
 };
 
-struct ShaderUIData
-{
+// struct ShaderUIData
+// {
 
-    ShaderUIData(Shader &program);
+//     ShaderUIData(Shader &program);
 
-    Shader *p_program = nullptr;
-    std::string filename = "";
-    VariablesData &variables;
-    std::filesystem::file_time_type last_write_time;
-};
+//     Shader *p_program = nullptr;
+//     std::string filename = "";
+//     VariablesData &variables;
+//     std::filesystem::file_time_type last_write_time;
+// };
 
 //! \class ShaderHolder
 //! \brief holds shaders themselves and also data about uniforms and textures in them
@@ -140,7 +140,7 @@ class ShaderHolder
 {
 
     using ShaderMap = std::unordered_map<std::string, std::shared_ptr<Shader>>;
-    using ShaderUIDataMap = std::unordered_map<std::string, ShaderUIData>;
+    // using ShaderUIDataMap = std::unordered_map<std::string, ShaderUIData>;
 
 public:
     ShaderHolder();
@@ -162,11 +162,11 @@ public:
     void erase(const std::string &shader_id);
 
     const ShaderMap &getShaders() const;
-    ShaderUIData &getData(const std::string &name);
-
+    
     bool contains(const std::string &shader_id) const;
-
-    ShaderHolder::ShaderUIDataMap &getAllData();
+    
+    // ShaderUIData &getData(const std::string &name);
+    // ShaderHolder::ShaderUIDataMap &getAllData();
 
     void refresh();
 
@@ -176,7 +176,7 @@ public:
 
 private:
     ShaderMap m_shaders;
-    ShaderUIDataMap m_shader_data;
+    // ShaderUIDataMap m_shader_data;
 
     std::filesystem::path m_resources_path;
 };
