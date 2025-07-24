@@ -11,7 +11,8 @@ FrameBuffer::FrameBuffer()
     glBindFramebuffer(GL_FRAMEBUFFER, m_target_handle);
     glCheckError();
 }
-FrameBuffer::~FrameBuffer(){
+FrameBuffer::~FrameBuffer()
+{
     glDeleteFramebuffers(1, &m_target_handle);
 }
 
@@ -65,89 +66,34 @@ GLuint FrameBuffer::getHandle() const
     return m_texture->getHandle();
 }
 
-Image::Image(Texture &tex_image)
-    : Image(tex_image.getSize().x, tex_image.getSize().y)
-{
-    //! GLES3 does not have direct option of loading textures
-#ifndef __EMSCRIPTEN__
-    glGetTextureImage(tex_image.getHandle(), 0, GL_RGBA, GL_FLOAT,
-                      16 * tex_image.getSize().x * tex_image.getSize().y, data_hdr());
-#else
-    FrameBuffer texture_buffer(tex_image.getSize().x,
-                               tex_image.getSize().y,
-                               tex_image.getOptions());
-    texture_buffer.setTexture(tex_image);
-    loadFromBuffer(texture_buffer);
-#endif
-    glCheckErrorMsg("Error in loading image from texture");
-}
-
-
-Image::Image(FrameBuffer &tex_buffer)
-    : Image(tex_buffer.getSize().x, tex_buffer.getSize().y)
-{
-    loadFromBuffer(tex_buffer);
-}
-
-bool Image::operator==(const Image &other_image) const
-{
-
-    for (size_t i = 0; i < other_image.pixels.size(); ++i)
-    {
-        if (pixels.at(i) != other_image.pixels.at(i))
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-void Image::loadFromBuffer(FrameBuffer &tex_buffer)
-{
-    tex_buffer.bind();
-    glReadPixels(0, 0, x_size, y_size,
-                 static_cast<GLenum>(TextureFormat::RGBA),
-                 static_cast<GLenum>(TextureDataTypes::UByte),
-                 data());
-    glCheckErrorMsg("Error in loading image from buffer");
-}
-
-//! \brief for debugging
-void writeTextureToFile(std::filesystem::path path, std::string filename, Texture &texture)
+void writeHDRTextureToFile(std::filesystem::path path, std::string filename, Texture &texture)
 {
     int width = texture.getSize().x;
     int height = texture.getSize().y;
-    Image image(texture);
+    Image<Color> image(texture);
 
-    std::vector<uint8_t> byte_image(4 * width * height);
-    const Color *hdr_data = image.data_hdr();
+    const Color *hdr_data = image.data();
 
-    for (int i = 0; i < width * height; ++i)
-    {
-        float clamped = std::max(0.0f, std::min(1.0f, hdr_data[i].r)); // clamp to [0,1]
-        byte_image[4 * i + 0] = static_cast<uint8_t>(clamped * 255.0f);
-        clamped = std::max(0.0f, std::min(1.0f, hdr_data[i].g)); // clamp to [0,1]
-        byte_image[4 * i + 1] = static_cast<uint8_t>(clamped * 255.0f);
-        clamped = std::max(0.0f, std::min(1.0f, hdr_data[i].b)); // clamp to [0,1]
-        byte_image[4 * i + 2] = static_cast<uint8_t>(clamped * 255.0f);
-        clamped = std::max(0.0f, std::min(1.0f, hdr_data[i].a)); // clamp to [0,1]
-        byte_image[4 * i + 3] = static_cast<uint8_t>(clamped * 255.0f);
-    }
-
-    int stride = 4 * width;
     auto full_path = (path.string() + filename);
-    int check = stbi_write_png(full_path.c_str(), width, height, 4, byte_image.data(), stride);
+    int check = stbi_write_hdr(full_path.c_str(), width, height, 4, (float *)hdr_data);
     if (check == 0)
     {
         std::cout << "ERROR WRITING FILE: " << full_path << "\n";
     }
 }
 
-void writeTextureToFile(std::filesystem::path path, std::string filename, FrameBuffer &buffer)
+//! \brief for debugging
+void writeTextureToFile(std::filesystem::path path, std::string filename, Texture &texture)
 {
-    int width = buffer.getSize().x;
-    int height = buffer.getSize().y;
-    Image image(buffer);
+    if (texture.getOptions().data_type == TextureDataTypes::Float)
+    {
+        writeHDRTextureToFile(path, filename, texture);
+        return;
+    }
+
+    int width = texture.getSize().x;
+    int height = texture.getSize().y;
+    Image<ColorByte> image(texture);
 
     int stride = 4 * width;
     auto full_path = (path.string() + filename);
@@ -158,12 +104,8 @@ void writeTextureToFile(std::filesystem::path path, std::string filename, FrameB
     }
 }
 
-Image::Image(int x, int y)
-    : x_size(x), y_size(y), pixels(x * y), pixels_hdr(x * y)
+void writeTextureToFile(std::filesystem::path path, std::string filename, FrameBuffer &buffer)
 {
+    writeTextureToFile(path, filename, buffer.getTexture());
 }
 
-ColorByte *Image::data()
-{
-    return pixels.data();
-}
