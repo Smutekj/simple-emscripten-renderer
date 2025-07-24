@@ -24,14 +24,14 @@ struct Sprite : public RectangleSimple
 {
 
     Sprite(Texture *texture = nullptr);
-    Sprite(Texture &texture);
+    Sprite(const Texture &texture);
 
-    void setTexture(Texture &texture);
+    void setTexture(const Texture &texture);
 
-    void setTexture(int slot, Texture &texture);
+    void setTexture(int slot, const Texture &texture);
     void setTextureP(int slot, Texture *texture = nullptr);
 
-    Texture *m_texture = nullptr;
+    Texture const *m_texture = nullptr;
     TextureArray m_texture_handles = {}; //!< GL handles of the bound textures
     utils::Vector2i m_tex_size = {1, 1};        //!< ???
     Rect<int> m_tex_rect = {0,0,1,1};          //!< defines part of the texture that will be drawn

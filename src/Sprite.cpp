@@ -10,7 +10,7 @@ Sprite::Sprite(Texture *texture)
         m_tex_size = texture->getSize();
     }
 }
-Sprite::Sprite(Texture &texture)
+Sprite::Sprite(const Texture &texture)
     : m_texture(&texture),
       m_tex_rect(0, 0, (int)texture.getSize().x, (int)texture.getSize().y)
 {
@@ -18,12 +18,12 @@ Sprite::Sprite(Texture &texture)
     m_tex_size = texture.getSize();
 }
 
-void Sprite::setTexture(Texture &texture)
+void Sprite::setTexture(const Texture &texture)
 {
     setTexture(0, texture);
 }
 
-void Sprite::setTexture(int slot, Texture &texture)
+void Sprite::setTexture(int slot, const Texture &texture)
 {
     m_texture = &texture;
     m_texture_handles.at(slot) = texture.getHandle();
