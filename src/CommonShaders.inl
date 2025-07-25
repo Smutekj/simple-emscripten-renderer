@@ -70,7 +70,9 @@ constexpr const char *fragment_fullpass_texture_code = "#version 300 es\n"
                                                        "out vec4 FragColor;\n"
                                                        "void main()\n"
                                                        "{\n"
-                                                       "    FragColor =   v_color *  texture(u_texture, v_tex_coord);\n"
+                                                       "    vec3 tex_color = texture(u_texture, v_tex_coord).rgb;\n"
+                                                       "    float tex_alpha = texture(u_texture, v_tex_coord).a;\n"
+                                                       "    FragColor =   v_color *  vec4(vec3(tex_color * tex_alpha), tex_alpha);\n"
                                                        "}";
 
 constexpr const char *fragment_text_code = "#version 300 es\n"

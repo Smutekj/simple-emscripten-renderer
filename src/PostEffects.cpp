@@ -638,13 +638,14 @@ void BloomSmoke::process(Texture &source, Renderer &target)
 }
 
 EdgeDetect::EdgeDetect(int width, int height)
-    : m_vert_pass(width, height),
-      m_horiz_pass(width, height),
+    : m_vert_pass(width/2, height/2),
+      m_horiz_pass(width/2, height/2),
       m_vert_canvas(m_vert_pass),
       m_horiz_canvas(m_horiz_pass)
 {
-    m_vert_canvas.addShader("edgeDetectVert", "basicinstanced.vert", "edgeDetectVert.frag");
-    m_horiz_canvas.addShader("edgeDetectHoriz", "basicinstanced.vert", "edgeDetectHoriz.frag");
+    m_vert_canvas.addShader("edgeDetectVert", "basicinstanced.vert", "edgeDetect.frag");
+    m_horiz_canvas.getShaders().loadFromCode("gaussVert", vertex_sprite_code, fragment_gauss_vert_code);
+    m_horiz_canvas.getShaders().loadFromCode("gaussHoriz", vertex_sprite_code, fragment_gauss_horiz_code);
 
     m_vert_canvas.m_blend_factors = {bf::SrcAlpha, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
     m_horiz_canvas.m_blend_factors = {bf::SrcAlpha, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
@@ -669,24 +670,34 @@ void EdgeDetect::process(Texture &source, Renderer &target)
     screen_sprite.setPosition(target_size / 2.f);
     screen_sprite.setScale(target_size / 2.f);
 
-    //! BRIGHTNESS PASS
-    screen_sprite.setTexture(source);
+    for(int i = 0; i < 1; ++i)
+    {
+        screen_sprite.setTexture(source);
+        m_vert_canvas.clear({0, 0, 0, 0});
+        m_vert_canvas.drawSprite(screen_sprite, "gaussVert", DrawType::Dynamic);
+        m_vert_canvas.drawAll();
+
+        screen_sprite.setTexture(m_vert_pass.getTexture());
+        m_horiz_canvas.clear({0, 0, 0, 0});
+        m_horiz_canvas.drawSprite(screen_sprite, "gaussHoriz", DrawType::Dynamic);
+        m_horiz_canvas.drawAll();
+    }
+    // writeTextureToFile("../", "afterGauss", m_horiz_pass.getTexture());
+
+    screen_sprite.setTexture(m_horiz_pass.getTexture());
     m_vert_canvas.clear({0, 0, 0, 0});
-    m_vert_canvas.drawSprite(screen_sprite, "edgeDetectVert", DrawType::Dynamic);
+    m_vert_canvas.drawSprite(screen_sprite, "edgeDetect", DrawType::Dynamic);
     m_vert_canvas.drawAll();
 
-    m_horiz_canvas.clear({0, 0, 0, 0});
-    screen_sprite.setTexture(m_vert_pass.getTexture());
-    m_horiz_canvas.drawSprite(screen_sprite, "edgeDetectHoriz", DrawType::Dynamic);
-    m_horiz_canvas.drawAll();
+    // writeTextureToFile("../", "edges", m_vert_pass.getTexture());
 
     screen_sprite.setTexture(0, source);
-    screen_sprite.setTexture(1, m_horiz_pass.getTexture());
+    screen_sprite.setTexture(1, m_vert_pass.getTexture());
     target.m_view.setCenter(target_size / 2.f);
     target.m_view.setSize(target_size);
-    target.drawSprite(screen_sprite, "combineEdges", DrawType::Dynamic);
+    target.drawSprite(screen_sprite, "combineEdges");
 
-    target.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha};
+    target.m_blend_factors = {bf::One, bf::Zero};
     target.drawAll();
 
     target.m_view = old_view;
