@@ -85,7 +85,7 @@ Image<PixelType>::Image(Texture &tex_image)
 #ifndef __EMSCRIPTEN__
     if (tex_image.getOptions() == TextureDataTypes::UByte)
     {
-        glGetTextureImage(tex_image.getHandle(), 0, GL_RGBA, GL_UBYTE,
+        glGetTextureImage(tex_image.getHandle(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
                           4 * tex_image.getSize().x * tex_image.getSize().y, data());
     }
     else
