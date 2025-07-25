@@ -654,7 +654,7 @@ void EdgeDetect::process(Texture &source, Renderer &target)
 {
     if (!target.hasShader("combineEdges"))
     {
-        target.addShader("combineEdges", "basicinstanced.vert", "combineEdges.frag");
+        target.getShaders().loadFromCode("combineEdges", vertex_sprite_code, fragment_edge_combine_code);
     }
 
     auto old_view = target.m_view;
