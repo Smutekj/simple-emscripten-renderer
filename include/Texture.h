@@ -122,7 +122,7 @@ public:
     bool add(std::string texture_name, Texture &texture);
     bool add(std::string texture_name, std::string filename);
 
-    std::shared_ptr<Texture> get(std::string name);
+    std::shared_ptr<Texture> get(std::string name) const;
     std::map<std::string, std::shared_ptr<Texture>>& getTextures();
 
     bool setBaseDirectory(std::filesystem::path directory);

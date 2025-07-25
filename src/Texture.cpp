@@ -172,7 +172,7 @@ bool TextureHolder::add(std::string texture_name, std::string texture_filename)
     return true;
 }
 
-std::shared_ptr<Texture> TextureHolder::get(std::string name)
+std::shared_ptr<Texture> TextureHolder::get(std::string name) const
 {
     if (m_textures.count(name) > 0)
         return m_textures.at(name);
