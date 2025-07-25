@@ -83,7 +83,7 @@ Image<PixelType>::Image(Texture &tex_image)
 {
 //! GLES3 does not have direct option of loading textures
 #ifndef __EMSCRIPTEN__
-    if (tex_image.getOptions() == TextureDataTypes::UByte)
+    if (tex_image.getOptions().data_type == TextureDataTypes::UByte)
     {
         glGetTextureImage(tex_image.getHandle(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
                           4 * tex_image.getSize().x * tex_image.getSize().y, data());
