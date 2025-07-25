@@ -129,7 +129,7 @@ bool Image<PixelType>::operator==(const Image<PixelType> &other_image) const
 template <class PixelType>
 void Image<PixelType>::loadFromBuffer(FrameBuffer &tex_buffer)
 {
-    assert(data.size() >= x_size * y_size);
+    assert(pixels.size() >= x_size * y_size);
 
     tex_buffer.bind();
     glReadPixels(0, 0, x_size, y_size,
