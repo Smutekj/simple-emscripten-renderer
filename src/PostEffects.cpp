@@ -644,7 +644,7 @@ EdgeDetect::EdgeDetect(int width, int height)
       m_horiz_canvas(m_horiz_pass)
 {
     m_vert_canvas.addShader("edgeDetectVert", vertex_sprite_code, fragment_edge_detect_code);
-    m_horiz_canvas.getShaders().loadFromCode("gaussVert", vertex_sprite_code, fragment_gauss_vert_code);
+    m_vert_canvas.getShaders().loadFromCode("gaussVert", vertex_sprite_code, fragment_gauss_vert_code);
     m_horiz_canvas.getShaders().loadFromCode("gaussHoriz", vertex_sprite_code, fragment_gauss_horiz_code);
 
     m_vert_canvas.m_blend_factors = {bf::SrcAlpha, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
