@@ -18,6 +18,10 @@ Sprite::Sprite(const Texture &texture)
     m_tex_size = texture.getSize();
 }
 
+void Sprite::setTexture(GLuint tex_id, int slot)
+{
+    m_texture_handles.at(slot) = tex_id;
+}
 void Sprite::setTexture(const Texture &texture)
 {
     setTexture(0, texture);

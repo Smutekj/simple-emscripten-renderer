@@ -27,7 +27,8 @@ struct Sprite : public RectangleSimple
     Sprite(const Texture &texture);
 
     void setTexture(const Texture &texture);
-
+    
+    void setTexture(GLuint id, int slot = 0);
     void setTexture(int slot, const Texture &texture);
     void setTextureP(int slot, Texture *texture = nullptr);
 
