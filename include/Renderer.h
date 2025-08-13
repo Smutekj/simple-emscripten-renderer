@@ -62,7 +62,7 @@ public:
     void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color, DrawType draw_type = DrawType::Dynamic);
     void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 32);
     void drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f &scale, Color color, int n_verts = 51, std::string shader_id = "VertexArrayDefault");
-    void drawVertices(VertexArray &verts, const std::string &shader_id = "VertexArrayDefault",
+    void drawVertices(std::vector<Vertex> &verts, const std::string &shader_id = "VertexArrayDefault",
                       DrawType draw_type = DrawType::Dynamic, std::shared_ptr<Texture> p_texture = nullptr);
 
     void drawAll();
