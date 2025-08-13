@@ -391,7 +391,7 @@ void Renderer::drawEllipseBatched(Vec2 center, float angle, const utils::Vector2
 //! \param draw_type
 //! \param shader_id
 //! \param p_texture    pointer to a used texture
-void Renderer::drawVertices(VertexArray &verts, const std::string &shader_id,
+void Renderer::drawVertices(std::vector<Vertex> &verts, const std::string &shader_id,
                             DrawType draw_type, std::shared_ptr<Texture> p_texture)
 {
 
