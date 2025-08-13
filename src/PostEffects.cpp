@@ -172,14 +172,14 @@ void Bloom3::initMips(int n_levels, int width, int height, TextureOptions option
     for (int i = 0; i < n_levels; ++i)
     {
         m_mips.emplace_back(width, height, options);
-        assert(m_mips.at(i).canvas_tmp.getShaders().loadFromCode("gaussVert", vertex_sprite_code, fragment_gauss_vert_code));
-        assert(m_mips.at(i).canvas.getShaders().loadFromCode("gaussHoriz", vertex_sprite_code, fragment_gauss_horiz_code));
+        m_mips.at(i).canvas_tmp.getShaders().loadFromCode("gaussVert", vertex_sprite_code, fragment_gauss_vert_code);
+        m_mips.at(i).canvas.getShaders().loadFromCode("gaussHoriz", vertex_sprite_code, fragment_gauss_horiz_code);
         
         width /= 2;
         height /= 2;
     }
     //! only the first mip does brightness pass
-    assert(m_mips.front().canvas.getShaders().loadFromCode("brightness", vertex_sprite_code, fragment_brightness_code));
+    m_mips.front().canvas.getShaders().loadFromCode("brightness", vertex_sprite_code, fragment_brightness_code);
 
     for(auto& mip : m_mips)
     {
