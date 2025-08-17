@@ -9,7 +9,7 @@ void Text::setFont(Font *new_font)
 {
     m_font = new_font;
 }
-Font *Text::getFont()
+Font *Text::getFont() const
 {
     return m_font;
 }
@@ -36,20 +36,19 @@ const ColorByte &Text::getColor() const
 
 //! \brief positions the text such that it is centered around \center
 //! \param center
-void Text::centerAround(const utils::Vector2f& center)
+void Text::centerAround(const utils::Vector2f &center)
 {
     utils::Vector2f new_pos = center;
-    
+
     auto highest_char =
-    *std::max_element(m_text.begin(), m_text.end(), [this](auto c1, auto c2){
-        return m_font->m_characters.at(c1).size.y < m_font->m_characters.at(c2).size.y;
-    });
-    auto max_height = m_font->m_characters.at(highest_char).bearing.y - m_font->m_characters.at(highest_char).size.y/2.f;
-    new_pos.y -= max_height; 
-    
+        *std::max_element(m_text.begin(), m_text.end(), [this](auto c1, auto c2)
+                          { return m_font->m_characters.at(c1).size.y < m_font->m_characters.at(c2).size.y; });
+    auto max_height = m_font->m_characters.at(highest_char).bearing.y - m_font->m_characters.at(highest_char).size.y / 2.f;
+    new_pos.y -= max_height;
+
     auto width = getTextWidth();
-    new_pos.x -= width/2.f;
-    
+    new_pos.x -= width / 2.f;
+
     setPosition(new_pos);
 }
 
@@ -72,9 +71,8 @@ float Text::getTextWidth() const
 }
 
 //! \todo I should probably cache these results since they are unlikely to change
-Rect<float> Text::getBoundingBox()
+Rect<float> Text::getBoundingBox() const
 {
-
 
     //     // ! find dimensions of the text
     auto text_size_x =
@@ -97,23 +95,64 @@ Rect<float> Text::getBoundingBox()
     auto lowest_c = m_font->m_characters.at(lowest_char);
     utils::Vector2f text_size = {text_size_x, largest_c.bearing.y + lowest_c.size.y - lowest_c.bearing.y};
 
-    
     Rect<float> bounding_box;
     text_size.x *= getScale().x;
     text_size.y *= getScale().y;
     bounding_box.width = 0;
-    bounding_box.pos_y = getPosition().y - text_size.y/2.f;
-    bounding_box.height =  text_size.y;
-    
-    bounding_box.pos_y += 2.*(lowest_c.size.y - lowest_c.bearing.y) * getScale().y;
+    bounding_box.pos_y = getPosition().y - text_size.y / 2.f;
+    bounding_box.height = text_size.y;
+
+    bounding_box.pos_y += 2. * (lowest_c.size.y - lowest_c.bearing.y) * getScale().y;
 
     for (auto c : m_text)
     {
         auto character = m_font->m_characters.at(c);
         bounding_box.width += (character.advance >> 6) * getScale().x;
     }
-    bounding_box.pos_x = getPosition().x ;
+    bounding_box.pos_x = getPosition().x;
 
     return bounding_box;
 }
 
+#include "Renderer.h"
+
+void MultiLineText::drawInto(Renderer &canvas)
+{
+
+    utils::Vector2f word_pos = m_page_position + m_page_padding;
+    auto drawWordAndMoveCursor = [&, this](Text &t_word)
+    {
+        auto b_box = t_word.getBoundingBox();
+        if (word_pos.x + b_box.width > rightTextBorder()) //! line overflow -> newline
+        {
+            word_pos.x = leftTextBorder();
+            word_pos.y += m_line_size.y + m_line_spacing;
+        }
+        
+        t_word.setPosition(word_pos);
+        canvas.drawText(t_word);
+        word_pos.x += b_box.width + m_word_spacing;
+    };
+    
+    
+    //! iterate through words
+    std::size_t start_pos = 0;
+    std::size_t next_pos = m_text.find_first_of(' ');
+    Text t_word = {m_text.substr(start_pos, next_pos - start_pos + 1)};
+    t_word.setFont(p_font);
+    t_word.setScale(1, -1); //! fuck the flipping, fuck OpenGL coordinates, and fuck me
+
+    while (next_pos != std::string::npos)
+    {
+        t_word.setText(m_text.substr(start_pos, next_pos - start_pos + 1));
+        
+        drawWordAndMoveCursor(t_word);
+        
+        start_pos = next_pos + 1;
+        next_pos = m_text.find_first_of(' ', start_pos + 1);
+    }
+    
+    //! draw the last word
+    t_word.setText(m_text.substr(start_pos));
+    drawWordAndMoveCursor(t_word);
+}
