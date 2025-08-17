@@ -155,4 +155,6 @@ void MultiLineText::drawInto(Renderer &canvas)
     //! draw the last word
     t_word.setText(m_text.substr(start_pos));
     drawWordAndMoveCursor(t_word);
+
+    m_page_height = m_page_padding.y + word_pos.y - m_page_position.y ; 
 }
