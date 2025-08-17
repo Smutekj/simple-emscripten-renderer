@@ -126,7 +126,7 @@ bool Renderer::checkShader(const std::string &shader_id)
     {
         return true;
     }
-
+    
     try
     {
         m_shaders.load(shader_id, "basicinstanced.vert", shader_id + ".frag");
@@ -161,7 +161,7 @@ void Renderer::drawSpriteDynamic(Sprite &sprite, const std::string &shader_id)
 //! \param text constains Font info
 //! \param shader_id
 //! \param draw_type
-void Renderer::drawText(Text &text, const std::string &shader_id, DrawType draw_type)
+void Renderer::drawText(const Text &text, const std::string &shader_id, DrawType draw_type)
 {
     if (!checkShader(shader_id))
     {
@@ -243,7 +243,10 @@ void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByt
     auto tex_size = texture_size;
     Rect<float> tex_rect_norm = {tex_rect.pos_x / tex_size.x, tex_rect.pos_y / tex_size.y,
                                  tex_rect.width / tex_size.x, tex_rect.height / tex_size.y};
-    t.tex_coords = {tex_rect_norm.pos_x, tex_rect_norm.pos_y};
+    
+    //! THE 1- thing is there because all texture atlases have 0,0 in the upper left corner. OpenGL does it in lower left.
+    //! DO NOT CHANGE, WILL CAUSE PAIN!!!
+    t.tex_coords = {tex_rect_norm.pos_x, 1. - tex_rect_norm.pos_y}; 
     t.tex_size = {tex_rect_norm.width, tex_rect_norm.height};
 
     auto &batch = findSpriteBatch(texture_handles, shader, draw_type);
