@@ -126,7 +126,7 @@ void MultiLineText::drawInto(Renderer &canvas)
         if (word_pos.x + b_box.width > rightTextBorder()) //! line overflow -> newline
         {
             word_pos.x = leftTextBorder();
-            word_pos.y += m_line_size.y + m_line_spacing;
+            word_pos.y += m_line_size + m_line_spacing;
         }
         
         t_word.setPosition(word_pos);
