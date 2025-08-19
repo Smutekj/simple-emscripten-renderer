@@ -63,7 +63,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
         // spdlog::error("FREETYPE: Failed to load font");
         return false;
     }
-    FT_Set_Pixel_Sizes(face, 0,40);
+    FT_Set_Pixel_Sizes(face, 0, 40);
 
     FT_GlyphSlot slot = face->glyph;
 
@@ -93,7 +93,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
 
     auto &main_texture = m_pixels->getTexture();
     m_canvas->m_view.setCenter(main_texture.getSize() / 2.f);
-    m_canvas->m_view.setSize(main_texture.getSize());
+    m_canvas->m_view.setSize(main_texture.getSize().x, -main_texture.getSize().y);
     m_canvas->clear({1, 1, 1, 0});
     m_canvas->m_blend_factors = {BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha};
 
@@ -148,7 +148,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
 
         glyph_sprite.setPosition(glyph_pos + (character.size + 1) / 2.f);
         glyph_sprite.setScale(face->glyph->bitmap.width / 2.f,
-                              -static_cast<float>(face->glyph->bitmap.rows) / 2.f); //! MINUS FOR Y COORD IS IMPORTANT!!!!!!
+                              static_cast<float>(face->glyph->bitmap.rows) / 2.f); //! MINUS FOR Y COORD IS IMPORTANT!!!!!!
         m_canvas->drawSprite(glyph_sprite, "Font", DrawType::Dynamic);
 
         glyph_pos.x += face->glyph->bitmap.width + safety_pixels_x;
@@ -160,6 +160,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
     }
     m_canvas->drawAll();
     m_canvas->resetBatches();
+    writeTextureToFile("../", "pica.png", *m_pixels);
     
     //! delete helper texture
     glDeleteTextures(128, textures);
