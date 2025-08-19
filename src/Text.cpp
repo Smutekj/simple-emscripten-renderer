@@ -116,10 +116,22 @@ Rect<float> Text::getBoundingBox() const
 
 #include "Renderer.h"
 
+float largestCharacterHeight(Font& font)
+{
+    auto max_el_it = std::max_element(font.m_characters.begin(), font.m_characters.end(), [](auto& character1, auto& character2)
+    {
+        Character& glyph1 = character1.second;
+        Character& glyph2 = character2.second;
+        return glyph1.size.y < glyph2.size.y; 
+    });
+    return (float)(max_el_it->second.size.y);
+}
+
 void MultiLineText::drawInto(Renderer &canvas)
 {
+    m_line_size = m_text_scale * largestCharacterHeight(*p_font);
 
-    utils::Vector2f word_pos = m_page_position + m_page_padding;
+    utils::Vector2f word_pos = m_page_position + m_page_padding + utils::Vector2f{0.f,m_line_size};
     auto drawWordAndMoveCursor = [&, this](Text &t_word)
     {
         auto b_box = t_word.getBoundingBox();
@@ -140,7 +152,7 @@ void MultiLineText::drawInto(Renderer &canvas)
     std::size_t next_pos = m_text.find_first_of(' ');
     Text t_word = {m_text.substr(start_pos, next_pos - start_pos + 1)};
     t_word.setFont(p_font);
-    t_word.setScale(1, -1); //! fuck the flipping, fuck OpenGL coordinates, and fuck me
+    t_word.setScale(m_text_scale, -m_text_scale); //! fuck the flipping, fuck OpenGL coordinates, and fuck me
 
     while (next_pos != std::string::npos)
     {
