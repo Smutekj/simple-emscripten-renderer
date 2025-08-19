@@ -69,6 +69,10 @@ public:
     void resetBatches();
 
     utils::Vector2i getTargetSize() const;
+    RenderTarget& getTarget()
+{
+    return m_target;
+}
 
     ShaderHolder &getShaders();
 
