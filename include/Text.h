@@ -86,6 +86,11 @@ public:
         m_line_spacing = spacing;
     }
 
+    void setScale(float scale)
+    {
+        m_text_scale = scale;
+    }
+
     void setFont(Font *font)
     {
         p_font = font;
@@ -113,5 +118,6 @@ private:
     float m_page_height; //! is calculated from text
     float m_line_spacing = 2;
     float m_word_spacing = 10;
+    float m_text_scale = 1.;
     bool m_split_words = false;
 };
