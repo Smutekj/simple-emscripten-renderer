@@ -79,16 +79,16 @@ namespace
 
         Image<ColorByte> expected_image(target_pixels.getSize().x, target_pixels.getSize().y); //! write image by hand
         float pixel_size = 1.f / target_pixels.getSize().x;
-        for (int iy = 0; iy < result_image.y_size; ++iy)
+        for (int iy = 0; iy < result_image.getSizeY(); ++iy)
         {
-            for (int ix = 0; ix < result_image.x_size; ++ix)
+            for (int ix = 0; ix < result_image.getSizeX(); ++ix)
             {
-                int index = ix + iy * result_image.x_size;
-                float tex_coord_x = (float)ix / result_image.x_size + 0.5f * pixel_size;
-                expected_image.pixels.at(index) = {0, 0, 0, 255};
+                int index = ix + iy * result_image.getSizeX();
+                float tex_coord_x = (float)ix / result_image.getSizeX() + 0.5f * pixel_size;
+                expected_image.at(index) = {0, 0, 0, 255};
                 if (tex_coord_x >= 0.5)
                 {
-                    expected_image.pixels.at(index) = {255, 0, 0, 255};
+                    expected_image.at(index) = {255, 0, 0, 255};
                 }
             }
         }

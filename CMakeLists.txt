@@ -57,12 +57,12 @@ target_include_directories(${TARGET_LIBRARY_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/backends
 )
 
-# if(BUILD_EXAMPLES)
+if(BUILD_EXAMPLES)
 message("\n!ADDING EXAMPLES!")
 add_subdirectory(Examples)
-# endif(BUILD_EXAMPLES)
+endif(BUILD_EXAMPLES)
 
-if(BUILD_TESTS)
+# if(BUILD_TESTS)
     enable_testing()
     include(GoogleTest)
 
@@ -85,4 +85,4 @@ if(BUILD_TESTS)
     #    )
     #endif()
 
-endif(BUILD_TESTS)
+# endif(BUILD_TESTS)

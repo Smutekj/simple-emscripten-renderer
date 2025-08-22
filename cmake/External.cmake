@@ -111,7 +111,7 @@ endif()
 
 
 
-if(BUILD_TESTS)
+# if(BUILD_TESTS)
   # Google Test
   FetchContent_Declare(
     googletest
@@ -121,4 +121,4 @@ if(BUILD_TESTS)
   FetchContent_MakeAvailable(googletest)
   # For Windows: Prevent overriding the parent project's compiler/linker settings
   set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-endif()
+# endif()

@@ -53,6 +53,20 @@ struct Image
 
     bool operator==(const Image<PixelType> &other_image) const;
 
+    int getSizeX()const
+    {
+        return x_size;
+    }
+    int getSizeY()const
+    {
+        return y_size;
+    }
+
+    PixelType& at(std::size_t index)
+    {
+        return pixels.at(index);
+    } 
+
 private:
     void loadFromBuffer(FrameBuffer &tex_buffer);
     std::vector<PixelType> pixels;
