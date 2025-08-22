@@ -75,9 +75,9 @@ namespace
         canvas.clear({0, 0, 0, 0});
         canvas.drawSprite(screen_sprite, "TestShader");
         canvas.drawAll();
-        Image result_image(target_pixels); //! load data from framebuffer to cpu
+        Image<ColorByte> result_image(target_pixels); //! load data from framebuffer to cpu
 
-        Image expected_image(target_pixels.getSize().x, target_pixels.getSize().y); //! write image by hand
+        Image<ColorByte> expected_image(target_pixels.getSize().x, target_pixels.getSize().y); //! write image by hand
         float pixel_size = 1.f / target_pixels.getSize().x;
         for (int iy = 0; iy < result_image.y_size; ++iy)
         {
