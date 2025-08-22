@@ -34,7 +34,7 @@ bool loadMedia()
     
     //Load sound effects
     std::filesystem::path path = sounds_path / std::filesystem::path{"explode.wav"};
-    gScratch = Mix_LoadWAV(path.c_str());
+    gScratch = Mix_LoadWAV((const char*)path.c_str());
     if( gScratch == NULL )
     {
         printf( "Failed to load scratch sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
