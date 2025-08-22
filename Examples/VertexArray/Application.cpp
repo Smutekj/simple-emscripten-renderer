@@ -173,13 +173,10 @@ void Application::update(float dt)
     auto mouse_coords = m_window_renderer.getMouseInWorld();
     Shader::m_time += 0.016f;
 
-    Sprite enemy_ship(*m_textures.get("Ship"));
-    enemy_ship.setPosition(mouse_coords);
-    enemy_ship.setScale(m_ship_scale, m_ship_scale);
-    enemy_ship.setColor(m_sprite_color);
-
     m_window.clear({1, 1, 1, 1});
-    m_window_renderer.drawVertices(m_meteor, "VertexArrayDefault");
+    m_window.bind();
+    // m_meteor.draw(m_window_renderer.m_view, );
+    // m_window_renderer.drawVertices(m_meteor.data, "VertexArrayDefault");
     m_window_renderer.drawAll();
 
     drawUI();

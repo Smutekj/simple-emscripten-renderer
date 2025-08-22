@@ -10,7 +10,41 @@
 #include <time.h>
 #include <filesystem>
 
+#include <SDL_mixer.h>
+
 const std::filesystem::path shaders_path = {"../Resources/Shaders/"};
+const std::filesystem::path sounds_path = {"../Resources/Sounds/"};
+
+//The music that will be played
+Mix_Music* gMusic = NULL;
+
+//The sound effects that will be used
+Mix_Chunk* gScratch = NULL;
+
+bool loadMedia()
+{
+
+    // //Load music
+    // gMusic = Mix_LoadMUS( "21_sound_effects_and_music/beat.wav" );
+    // if( gMusic == NULL )
+    // {
+    //     printf( "Failed to load beat music! SDL_mixer Error: %s\n", Mix_GetError() );
+    //     return false;
+    // }
+    
+    //Load sound effects
+    std::filesystem::path path = sounds_path / std::filesystem::path{"explode.wav"};
+    gScratch = Mix_LoadWAV(path.c_str());
+    if( gScratch == NULL )
+    {
+        printf( "Failed to load scratch sound effect! SDL_mixer Error: %s\n", Mix_GetError() );
+        return false;
+    }
+    
+    return true;
+}
+
+
 
 void Application::initializeLayers()
 {
@@ -55,6 +89,7 @@ Application::Application(int width, int height) : m_window(width, height),
                                                   m_scene_pixels(width, height),
                                                   m_scene_canvas(m_scene_pixels)
 {
+    loadMedia();
 
     initializeResources();
     initializeLayers();
@@ -209,6 +244,7 @@ void Application::onMouseButtonRelease(SDL_MouseButtonEvent event)
     {
         m_wheel_is_held = false;
     }
+    Mix_PlayChannel( -1, gScratch, 0 );
 }
 
 void Application::onKeyRelease(SDL_Keycode key)

@@ -2,13 +2,16 @@
 
 #include <iostream>
 
+#include <SDL.h>
+#include <SDL_mixer.h>
+
 //! \brief constructs SDL window using it's \p width and \p height
 //! \param width
 //! \param height
 Window::Window(int width, int height)
     : RenderTarget(width, height)
 {
-    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
 // Create OpenGL context on SDL window
 #ifdef __EMSCRIPTEN__ //! emscripten does it on its own
@@ -51,6 +54,12 @@ Window::Window(int width, int height)
     printf("INFO: Desired Window size = %dx%d\n", width, height);
 
     glViewport(0, 0, size_check.x, size_check.y);
+
+    //Initialize SDL_mixer
+    if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+    {
+        printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+    }
 }
 
 Window::~Window()

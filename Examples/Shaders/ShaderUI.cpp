@@ -137,10 +137,10 @@ void ShadersWindow::drawShaderSlot(ShaderSlot &slot)
     if (ImGui::BeginListBox("Shaders", shader_box_size))
     {
 
-        for (auto &[id, shader_data] : m_slots.at(0).m_canvas.getShaders().getAllData())
+        for (auto &[id, shader_data] : m_slots.at(0).m_canvas.getShaders().getShaders())
         {
             const bool is_selected = (slot.m_selected_shader == id);
-            if (ImGui::Selectable(shader_data.p_program->getName().c_str(), is_selected))
+            if (ImGui::Selectable(shader_data->getName().c_str(), is_selected))
             {
                 slot.m_selected_shader = id;
                 slot.m_selected_uniform = ""; //! unselect uniform
@@ -206,7 +206,7 @@ void ShadersWindow::refresh()
 
         auto pos_right = shader_filename.find_last_of('.');
         std::string shader_name = shader_filename.substr(0, pos_right);
-        if (default_slot.m_canvas.getShaders().getAllData().count(shader_name) == 0)
+        if (default_slot.m_canvas.getShaders().contains(shader_name) == 0)
         {
             for (auto &slot : m_slots)
             {

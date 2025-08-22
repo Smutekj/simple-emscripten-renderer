@@ -31,7 +31,7 @@ file(GLOB SRC
 set(TARGET_LIBRARY_NAME ${PROJECT_NAME})
 add_library(${TARGET_LIBRARY_NAME} STATIC)
 target_sources(${TARGET_LIBRARY_NAME} PRIVATE ${SRC})
-target_link_libraries(${TARGET_LIBRARY_NAME} PUBLIC SDL2-static glm freetype glad )
+target_link_libraries(${TARGET_LIBRARY_NAME} PUBLIC SDL2 SDL2_mixer glm freetype glad )
 set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES CXX_STANDARD 20)
 set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
@@ -39,24 +39,28 @@ set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
 set_target_compiler_flags(${TARGET_LIBRARY_NAME})
 set_project_warnings(${TARGET_LIBRARY_NAME})
 
+message("\n\nPENIS\n\n${SDL_MIXER_INCLUDE_DIRS}\n\n")
+
 target_include_directories(${TARGET_LIBRARY_NAME}
     PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Utils>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui/backends>
+    $<BUILD_INTERFACE:${sdl_mixer_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
     SDL2
+    SDL2_mixer
     PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/backends
 )
 
-if(BUILD_EXAMPLES)
+# if(BUILD_EXAMPLES)
 message("\n!ADDING EXAMPLES!")
 add_subdirectory(Examples)
-endif(BUILD_EXAMPLES)
+# endif(BUILD_EXAMPLES)
 
 if(BUILD_TESTS)
     enable_testing()
