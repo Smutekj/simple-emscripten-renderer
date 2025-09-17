@@ -97,7 +97,7 @@ namespace utils
 
         constexpr Vector2<T> operator-(const Vector2<T> &v) const
         {
-                return {x - v.x, y - v.y};
+            return {x - v.x, y - v.y};
         }
 
         constexpr bool operator==(const Vector2<T> &v) const
@@ -246,12 +246,12 @@ namespace utils
     {
         return {std::cos(angle * to_radains), std::sin(angle * to_radains)};
     }
-    inline float dir2angle(const utils::Vector2f& dir)
+    inline float dir2angle(const utils::Vector2f &dir)
     {
         return to_degrees * std::atan2(dir.y, dir.x);
     }
 
-    inline float angleBetween(const utils::Vector2f& v1, const utils::Vector2f& v2)
+    inline float angleBetween(const utils::Vector2f &v1, const utils::Vector2f &v2)
     {
         return to_degrees * std::atan2(cross(v1, v2), dot(v1, v2));
     }
@@ -259,12 +259,19 @@ namespace utils
     inline void truncate(utils::Vector2f &vec, float max_value)
     {
         auto speed2 = utils::norm2(vec);
-        if (speed2 > max_value*max_value)
+        if (speed2 > max_value * max_value)
         {
             vec *= max_value / std::sqrt(speed2);
         }
     }
 
-}
+    inline utils::Vector2f rotate(const utils::Vector2f &input, float angle_deg)
+    {
+        float angle_rad = angle_deg * to_radains;
+        float c_a = std::cos(angle_rad);
+        float s_a = std::sin(angle_rad);
+        return {c_a * input.x - s_a * input.y,
+                s_a * input.x + c_a * input.y};
+    }
 
-inline utils::Vector2f asFloat(const utils::Vector2i &r) { return static_cast<utils::Vector2f>(r); }
+}
