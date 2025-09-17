@@ -38,7 +38,11 @@ Window::Window(int width, int height)
 
 //! load gl functions on desktops (emscripten does it on it's own)
 #ifndef __EMSCRIPTEN__
-    gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
+    #ifdef __ANDROID__
+    gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
+    #else
+    gladLoadGl((GLADloadfunc)SDL_GL_GetProcAddress);
+    #endif
 #endif
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
