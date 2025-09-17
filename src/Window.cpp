@@ -14,7 +14,7 @@ Window::Window(int width, int height)
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
 // Create OpenGL context on SDL window
-#ifdef __EMSCRIPTEN__ //! emscripten does it on its own
+#if defined(__EMSCRIPTEN__) || defined(__ANDROID__) //! emscripten does it on its own
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
