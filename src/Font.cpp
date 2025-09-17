@@ -57,12 +57,31 @@ bool Font::loadFromFile(std::filesystem::path font_file)
         return false;
     }
 
-    FT_Face face;
-    if (FT_New_Face(ft, font_file.string().c_str(), 0, &face))
+     FT_Face face;
+#if defined(__ANDROID__)
+    SDL_RWops* rw = SDL_RWFromFile(font_file.c_str(), "rb");
+// On Android this reads from assets.
+
+    if (!rw) {
+        SDL_Log("Could not open font: %s", SDL_GetError());
+    }
+
+// Read file into memory
+    Sint64 size = SDL_RWsize(rw);
+    std::vector<unsigned char> buffer(size);
+    SDL_RWread(rw, buffer.data(), 1, size);
+    SDL_RWclose(rw);
+    if (FT_New_Memory_Face(ft, buffer.data(), buffer.size(), 0, &face))
     {
-        // spdlog::error("FREETYPE: Failed to load font");
         return false;
     }
+#else
+    if (FT_New_Face(ft, font_file.string().c_str(), 0, &face))
+    {
+        return false;
+    }
+#endif
+    
     FT_Set_Pixel_Sizes(face, 0, 40);
 
     FT_GlyphSlot slot = face->glyph;
