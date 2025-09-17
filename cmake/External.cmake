@@ -106,7 +106,11 @@ if(NOT glad_POPULATED)
     FetchContent_MakeAvailable(glad)
 
     add_subdirectory("${glad_SOURCE_DIR}/cmake" glad_cmake)
-    glad_add_library(glad STATIC  API gl:core=4.6)
+    if( ${CMAKE_SYSTEM_NAME} MATCHES "Android")
+      glad_add_library(glad STATIC  API gles2:core=3.0)
+    else()
+      glad_add_library(glad STATIC  API gl:core=4.6)
+    endif()
 endif()
 
 
