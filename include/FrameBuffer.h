@@ -96,7 +96,13 @@ Image<PixelType>::Image(Texture &tex_image)
     : Image(tex_image.getSize().x, tex_image.getSize().y)
 {
 //! GLES3 does not have direct option of loading textures
-#ifndef __EMSCRIPTEN__
+#if defined(__EMSCRIPTEN__) || defined(__ANDROID__)
+    FrameBuffer texture_buffer(tex_image.getSize().x,
+                               tex_image.getSize().y,
+                               tex_image.getOptions());
+    texture_buffer.setTexture(tex_image);
+    loadFromBuffer(texture_buffer);
+#else 
     if (tex_image.getOptions().data_type == TextureDataTypes::UByte)
     {
         glGetTextureImage(tex_image.getHandle(), 0, GL_RGBA, GL_UNSIGNED_BYTE,
@@ -107,12 +113,6 @@ Image<PixelType>::Image(Texture &tex_image)
         glGetTextureImage(tex_image.getHandle(), 0, GL_RGBA, GL_FLOAT,
                           16 * tex_image.getSize().x * tex_image.getSize().y, data());
     }
-#else
-    FrameBuffer texture_buffer(tex_image.getSize().x,
-                               tex_image.getSize().y,
-                               tex_image.getOptions());
-    texture_buffer.setTexture(tex_image);
-    loadFromBuffer(texture_buffer);
 #endif
     glCheckErrorMsg("Error in loading image from texture");
 }
