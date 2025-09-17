@@ -1,4 +1,5 @@
 #include "PostEffects.h"
+#include "CommonShaders.inl"
 
 using bf = BlendFactor;
 
@@ -12,12 +13,12 @@ Bloom::Bloom(int width, int height)
       m_downsampler3(m_downsampled_pixels3),
       m_downsampler33(m_downsampled_pixels33)
 {
-    m_bloom_renderer1.addShader("gaussVert", "basicinstanced.vert", "gaussVert.frag");
-    m_bloom_renderer2.addShader("gaussHoriz", "basicinstanced.vert", "gaussHoriz.frag");
-    m_bloom_renderer2.addShader("brightness", "basicinstanced.vert", "brightness.frag");
-    m_downsampler3.addShader("gaussHoriz", "basicinstanced.vert", "gaussHoriz.frag");
-    m_downsampler3.addShader("brightness", "basicinstanced.vert", "brightness.frag");
-    m_downsampler33.addShader("gaussVert", "basicinstanced.vert", "gaussVert.frag");
+    m_bloom_renderer1.getShaders().loadFromCode("gaussVert", vertex_sprite_code, fragment_gauss_vert_code);
+    m_bloom_renderer2.getShaders().loadFromCode("gaussHoriz", vertex_sprite_code, fragment_gauss_horiz_code);
+    m_bloom_renderer2.getShaders().loadFromCode("brightness", vertex_sprite_code, fragment_brightness_code);
+    m_downsampler3.getShaders().loadFromCode("gaussHoriz", vertex_sprite_code, fragment_gauss_horiz_code);
+    m_downsampler3.getShaders().loadFromCode("brightness", vertex_sprite_code, fragment_brightness_code);
+    m_downsampler33.getShaders().loadFromCode("gaussVert", vertex_sprite_code, fragment_gauss_vert_code);
 
     m_bloom_renderer1.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
     m_bloom_renderer2.m_blend_factors = {bf::One, bf::OneMinusSrcAlpha, bf::One, bf::Zero};
@@ -27,7 +28,7 @@ void Bloom::process(Texture &source, Renderer &target)
 {
     if (!target.hasShader("combineBloom"))
     {
-        target.addShader("combineBloom", "basicinstanced.vert", "combineBloom.frag");
+        target.getShaders().loadFromCode("combineBloom", vertex_sprite_code, fragment_combine_bloom_code);
     }
 
     auto old_view = target.m_view;
@@ -163,7 +164,6 @@ Bloom3::Bloom3(int width, int height, TextureOptions options)
     initMips(3, width, height, options);
 }
 
-#include "CommonShaders.inl"
 
 void Bloom3::initMips(int n_levels, int width, int height, TextureOptions options)
 {
@@ -193,7 +193,8 @@ void Bloom3::process(Texture &source, Renderer &target)
 
     if (!target.hasShader("combineBloom"))
     {
-        target.getShaders().load("combineBloom", "basicinstanced.vert", "combineLightBloom.frag");
+            target.getShaders().loadFromCode("combineBloom", vertex_sprite_code, fragment_combine_bloom_code);
+//        target.getShaders().load("combineBloom", "basicinstanced.vert", "combineLightBloom.frag");
     }
 
     auto old_view = target.m_view;
