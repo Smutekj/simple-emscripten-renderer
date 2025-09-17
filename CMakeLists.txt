@@ -62,7 +62,7 @@ message("\n!ADDING EXAMPLES!")
 add_subdirectory(Examples)
 endif(BUILD_EXAMPLES)
 
-# if(BUILD_TESTS)
+if(BUILD_TESTS)
     enable_testing()
     include(GoogleTest)
 
@@ -85,4 +85,4 @@ endif(BUILD_EXAMPLES)
     #    )
     #endif()
 
-# endif(BUILD_TESTS)
+endif(BUILD_TESTS)
