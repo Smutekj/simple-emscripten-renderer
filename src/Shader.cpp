@@ -699,13 +699,14 @@ UniformType extractValue(std::string type_string, std::string initial_value)
 //! \returns true if the \p directory is actually an existing directory, otherwise returns false
 bool ShaderHolder::setBaseDirectory(std::filesystem::path directory)
 {
-    if (std::filesystem::exists(directory) && std::filesystem::is_directory(directory))
-    {
-        m_resources_path = directory;
-        return true;
-    }
+    m_resources_path = directory;
+    return true;
+    // if (std::filesystem::exists(directory) && std::filesystem::is_directory(directory))
+    // {
+    //     return true;
+    // }
 
-    return false;
+    // return false;
 }
 
 //! \brief default constructs with resource path being "../Resources/Shaders/"
