@@ -215,10 +215,10 @@ std::map<std::string, std::shared_ptr<Texture>> &TextureHolder::getTextures()
 //! \returns true if the \p directory is actually an existing directory, otherwise returns false
 bool TextureHolder::setBaseDirectory(std::filesystem::path directory)
 {
-    if (!std::filesystem::exists(directory) || !std::filesystem::is_directory(directory))
-    {
-        return false;
-    }
+    // if (!std::filesystem::exists(directory) || !std::filesystem::is_directory(directory))
+    // {
+    //     return false;
+    // }
 
     m_resources_path = directory;
     return true;
