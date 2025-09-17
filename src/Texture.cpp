@@ -43,8 +43,33 @@ void Texture::loadFromFile(std::string filename, TextureOptions options)
 
     stbi_set_flip_vertically_on_load(true);
     //! load texture from file
+    unsigned char* data = nullptr;
     int channels_count;
-    unsigned char *data = stbi_load(filename.c_str(), &m_width, &m_height, &channels_count, 0);
+#ifdef __ANDROID__
+    // On Android, open from assets
+    SDL_RWops* rw = SDL_RWFromFile(filename.c_str(), "rb");
+    if (!rw) {
+        throw std::runtime_error("Failed to open texture " + filename + ": " + SDL_GetError());
+    }
+
+    // Read the entire file into memory
+    Sint64 size = SDL_RWsize(rw);
+    unsigned char* buffer = new unsigned char[size];
+    Sint64 read_bytes = SDL_RWread(rw, buffer, 1, size);
+    SDL_RWclose(rw);
+
+    if (read_bytes != size) {
+        delete[] buffer;
+        throw std::runtime_error("Failed to read texture " + filename);
+    }
+
+    // Load image from memory
+    data = stbi_load_from_memory(buffer, size, &m_width, &m_height, &channels_count, 0);
+    delete[] buffer;
+#else
+    //! load texture from file
+    data = stbi_load(filename.c_str(), &m_width, &m_height, &channels_count, 0);
+#endif
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
     if (data)
