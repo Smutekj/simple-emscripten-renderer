@@ -155,7 +155,6 @@ void static extractUniformNames(VariablesData &shader_data, const std::string &f
         }
     }
 
-    file.close();
 }
 
 //! \brief read a shader file in \p filename and extracts all uniforms that are textures
@@ -193,7 +192,6 @@ void static extractUniformNames(VariablesData &shader_data, const std::string &f
             slot++;
         }
     }
-    file.close();
 }
 
 //! \brief connects a slot in shader with GL handle of the texture
