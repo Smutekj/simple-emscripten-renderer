@@ -414,7 +414,7 @@ void BloomFinal::process(Texture &source, Renderer &target)
         // ! accumulate results into first mip
         first_mip.canvas.m_blend_factors = {bf::One, bf::One, bf::One, bf::One};
         screen_sprite.setTexture(mip.pixels.getTexture());
-        auto pixels_size = target_size; // mip.pixels.getSize();
+        utils::Vector2f pixels_size = first_mip.canvas.getTargetSize(); // mip.pixels.getSize();
         screen_sprite.setPosition(pixels_size / 2.f);
         screen_sprite.setScale(pixels_size / 2.f);
         first_mip.canvas.drawSprite(screen_sprite);
