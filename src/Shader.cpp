@@ -1,7 +1,7 @@
 #include "Shader.h"
 
 
-std::istringstream loadFileToString(std::string path)
+std::string loadFileToString(std::string path)
 {
     SDL_RWops* rw = SDL_RWFromFile(path.c_str(), "rb");
     if (!rw) {
