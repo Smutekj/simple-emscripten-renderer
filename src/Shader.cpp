@@ -1,5 +1,28 @@
 #include "Shader.h"
 
+
+std::istringstream loadFileToString(std::string path)
+{
+    SDL_RWops* rw = SDL_RWFromFile(path.c_str(), "rb");
+    if (!rw) {
+        SDL_Log("Failed to open %s: %s", path.c_str(), SDL_GetError());
+        return {};
+    }
+
+    Sint64 size = SDL_RWsize(rw);
+    std::string buffer(size, '\0');
+    SDL_RWread(rw, buffer.data(), 1, size);
+    SDL_RWclose(rw);
+
+    return buffer;
+}
+
+
+std::istringstream loadFileToStream(std::string path)
+{
+    return std::istringstream{loadFileToString(path)};
+}
+
 //! \brief read a shader file in \p filename and extracts all uniforms (that are not textures!)
 //! \brief the uniform names-values pairs are stored in \p shader_data
 //! \param shader_data
@@ -93,9 +116,8 @@ void static extractTextureNamesFromCode(VariablesData &shader_data, const std::s
 //! \param filename
 void static extractUniformNames(VariablesData &shader_data, const std::string &filename)
 {
-    const auto tmp_filename = filename + ".tmp";
-    std::ifstream file(filename);
-    if (!file.is_open())
+    auto file = loadFileToStream(filename);
+    if (!file.good())
     {
         throw std::runtime_error("File not found: " + filename);
     }
@@ -142,9 +164,8 @@ void static extractUniformNames(VariablesData &shader_data, const std::string &f
 //! \param filename
 [[maybe_unused]] void static extractTextureNames(VariablesData &shader_data, std::string filename)
 {
-    const auto tmp_filename = filename + ".tmp";
-    std::ifstream file(filename);
-    if (!file.is_open())
+    auto file = loadFileToStream(filename);
+    if (!file.good())
     {
         throw std::runtime_error("File not found: " + filename);
     }
@@ -454,11 +475,15 @@ bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fra
 //! \brief does all the GL calls to load the shader on the GPU
 void Shader::recompile()
 {
+#if !defined(__ANDROID__)
     glsl_include::ShaderLoader vertex_loader = glsl_include::ShaderLoader("#include");
     glsl_include::ShaderLoader fragment_loader = glsl_include::ShaderLoader("#include");
     std::string vertex_code = vertex_loader.load_shader(m_vertex_path);
     std::string fragment_code = vertex_loader.load_shader(m_fragment_path);
-
+#else
+    std::string vertex_code = loadFileToString(m_vertex_path);
+    std::string fragment_code = loadFileToString(m_fragment_path);
+#endif
     loadFromCode(vertex_code, fragment_code);
 }
 
