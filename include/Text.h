@@ -19,7 +19,11 @@ public:
     void setFont(Font *font);
     Font *getFont() const;
     void setText(const std::string &new_text);
-    const std::string &getText() const;
+    std::string getText() const;
+    const std::wstring& getTextW() const
+    {
+        return m_text;
+    }
     void setColor(ColorByte new_color);
     const ColorByte &getColor() const;
 
@@ -33,7 +37,7 @@ public:
 
 private:
     Font *m_font = nullptr;
-    std::string m_text = "";
+    std::wstring m_text = L"";
     ColorByte m_color = {255, 255, 255, 255};
 };
 

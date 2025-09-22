@@ -57,16 +57,17 @@ bool Font::loadFromFile(std::filesystem::path font_file)
         return false;
     }
 
-     FT_Face face;
+    FT_Face face;
 #if defined(__ANDROID__)
-    SDL_RWops* rw = SDL_RWFromFile(font_file.c_str(), "rb");
-// On Android this reads from assets.
+    SDL_RWops *rw = SDL_RWFromFile(font_file.c_str(), "rb");
+    // On Android this reads from assets.
 
-    if (!rw) {
+    if (!rw)
+    {
         SDL_Log("Could not open font: %s", SDL_GetError());
     }
 
-// Read file into memory
+    // Read file into memory
     Sint64 size = SDL_RWsize(rw);
     std::vector<unsigned char> buffer(size);
     SDL_RWread(rw, buffer.data(), 1, size);
@@ -81,7 +82,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
         return false;
     }
 #endif
-    
+
     FT_Set_Pixel_Sizes(face, 0, 40);
 
     FT_GlyphSlot slot = face->glyph;
@@ -91,20 +92,35 @@ bool Font::loadFromFile(std::filesystem::path font_file)
 
     unsigned int max_width = 0;
     unsigned int max_height = 0;
-    for (unsigned char c = 0; c < 128; c++)
+
+    FT_ULong charcode;
+    FT_UInt gindex;
+
+    charcode = FT_Get_First_Char(face, &gindex);
+    while (gindex != 0)
     {
-        // load character glyph
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-        {
-            std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
-            continue;
-        }
+        FT_Load_Char(face, charcode, FT_LOAD_BITMAP_METRICS_ONLY);
+        
         max_width = std::max(face->glyph->bitmap.width, max_width);
         max_height = std::max(face->glyph->bitmap.rows, max_height);
+
+        charcode = FT_Get_Next_Char(face, charcode, &gindex);
     }
 
-    unsigned int textures[128];
-    glGenTextures(128, textures);
+    // for (unsigned char c = 0; c < 128; c++)
+    // {
+    //     // load character glyph
+    //     if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+    //     {
+    //         std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
+    //         continue;
+    //     }
+    //     max_width = std::max(face->glyph->bitmap.width, max_width);
+    //     max_height = std::max(face->glyph->bitmap.rows, max_height);
+    // }
+
+    unsigned int textures[500];
+    glGenTextures(500, textures);
     glCheckError();
 
     int safety_pixels_x = 3;
@@ -117,10 +133,12 @@ bool Font::loadFromFile(std::filesystem::path font_file)
     m_canvas->m_blend_factors = {BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha};
 
     utils::Vector2i glyph_pos = {0, 0};
-    for (unsigned char c = 0; c < 128; c++)
+
+    charcode = FT_Get_First_Char(face, &gindex);
+    while (gindex != 0)
     {
         // load character glyph
-        if (FT_Load_Char(face, c, FT_LOAD_RENDER))
+        if (FT_Load_Char(face, charcode, FT_LOAD_RENDER))
         {
             std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
             continue;
@@ -128,7 +146,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
 
         FT_Render_Glyph(slot, FT_RENDER_MODE_SDF);
 
-        glBindTexture(GL_TEXTURE_2D, textures[c]);
+        glBindTexture(GL_TEXTURE_2D, textures[gindex]);
         glCheckError();
         glTexImage2D(
             GL_TEXTURE_2D,
@@ -158,11 +176,11 @@ bool Font::loadFromFile(std::filesystem::path font_file)
                 {face->glyph->bitmap.width, face->glyph->bitmap.rows},
                 {face->glyph->bitmap_left, face->glyph->bitmap_top},
                 (unsigned int)face->glyph->advance.x};
-        m_characters.insert(std::pair<char, Character>(c, character));
+        m_characters.insert(std::pair<int, Character>(charcode, character));
 
         Sprite glyph_sprite(main_texture);
         glyph_sprite.m_tex_rect = {0, 0, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows};
-        glyph_sprite.m_texture_handles[0] = textures[c];
+        glyph_sprite.m_texture_handles[0] = textures[gindex];
         glyph_sprite.m_tex_size = character.size;
 
         glyph_sprite.setPosition(glyph_pos + (character.size + 1) / 2.f);
@@ -176,13 +194,15 @@ bool Font::loadFromFile(std::filesystem::path font_file)
             glyph_pos.y += max_height + safety_pixels_y;
             glyph_pos.x = 0;
         }
+
+        charcode = FT_Get_Next_Char(face, charcode, &gindex);
     }
     m_canvas->drawAll();
     m_canvas->resetBatches();
     // writeTextureToFile("../", "pica.png", *m_pixels);
-    
+
     //! delete helper texture
-    glDeleteTextures(128, textures);
+    glDeleteTextures(500, textures);
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4); //! set back to deafult value

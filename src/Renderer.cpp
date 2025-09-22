@@ -167,7 +167,7 @@ void Renderer::drawText(const Text &text, const std::string &shader_id, DrawType
     {
         return;
     }
-    auto &string = text.getText();
+    const auto& string = text.getTextW();
     auto font = text.getFont();
     if (!font)
     {
@@ -206,10 +206,10 @@ void Renderer::drawText(const Text &text, const std::string &shader_id, DrawType
     utils::Vector2f text_size = {bounding_box.width, bounding_box.height};
     if (text.m_draw_bounding_box)
     {
-        drawLineBatched(line_pos, {line_pos.x + text_size.x, line_pos.y}, 1, {0, 1, 0, 1});
-        drawLineBatched({line_pos.x + text_size.x, line_pos.y}, {line_pos.x + text_size.x, line_pos.y + text_size.y}, 1, {0, 1, 0, 1});
-        drawLineBatched({line_pos.x + text_size.x, line_pos.y + text_size.y}, {line_pos.x, line_pos.y + text_size.y}, 1, {0, 1, 0, 1});
-        drawLineBatched({line_pos.x, line_pos.y + text_size.y}, line_pos, 1, {0, 1, 0, 1});
+        drawLineBatched(line_pos, {line_pos.x + text_size.x, line_pos.y}, 0.2, {0, 1, 1, 1});
+        drawLineBatched({line_pos.x + text_size.x, line_pos.y}, {line_pos.x + text_size.x, line_pos.y + text_size.y}, 0.2, {0, 1, 1, 1});
+        drawLineBatched({line_pos.x + text_size.x, line_pos.y + text_size.y}, {line_pos.x, line_pos.y + text_size.y}, 0.2, {0, 1, 1, 1});
+        drawLineBatched({line_pos.x, line_pos.y + text_size.y}, line_pos, 0.2, {0, 1, 1, 1});
     }
 }
 
@@ -291,7 +291,7 @@ void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Colo
     }
     auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), draw_type, 6);
 
-    std::vector<Vertex> verts(6); //! this should be static?
+    static std::vector<Vertex> verts(6); //! this should be static?
     verts[0] = {{-1.f, -1.f}, {0.f, 0.f, 1.f, 1.f}, {0.f, 0.f}};
     verts[1] = {{1.f, -1.f}, {0.f, 0.f, 1.f, 1.f}, {1.f, 0.f}};
     verts[2] = {{1.f, 1.f}, {0.f, 0.f, 1.f, 1.f}, {1.f, 1.f}};

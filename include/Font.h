@@ -44,7 +44,7 @@ public:
 public:
     std::unique_ptr<FrameBuffer> m_pixels;  //!< stores a framebuffer to draw all characters into (Do i need to store it?)
     Texture m_texture;  //!< stores a texture with all characters that we draw from when drawing text
-    std::unordered_map<char, Character> m_characters; //!< stores all Glyph data of respective characters
+    std::unordered_map<int, Character> m_characters; //!< stores all Glyph data of respective characters
 private:
     std::unique_ptr<Renderer> m_canvas;  
 };
