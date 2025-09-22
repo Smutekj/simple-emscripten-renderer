@@ -96,31 +96,44 @@ bool Font::loadFromFile(std::filesystem::path font_file)
     FT_ULong charcode;
     FT_UInt gindex;
 
+    int char_count = 0;
     charcode = FT_Get_First_Char(face, &gindex);
     while (gindex != 0)
     {
         FT_Load_Char(face, charcode, FT_LOAD_BITMAP_METRICS_ONLY);
-        
+
         max_width = std::max(face->glyph->bitmap.width, max_width);
         max_height = std::max(face->glyph->bitmap.rows, max_height);
 
         charcode = FT_Get_Next_Char(face, charcode, &gindex);
+        char_count++;
     }
 
-    // for (unsigned char c = 0; c < 128; c++)
-    // {
-    //     // load character glyph
-    //     if (FT_Load_Char(face, c, FT_LOAD_RENDER))
-    //     {
-    //         std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
-    //         continue;
-    //     }
-    //     max_width = std::max(face->glyph->bitmap.width, max_width);
-    //     max_height = std::max(face->glyph->bitmap.rows, max_height);
-    // }
+    unsigned int atlas_texture;
+    unsigned int textures[char_count];
+    // glGenTextures(char_count, textures);
+    glGenTextures(1, &atlas_texture);
+    glCheckError();
 
-    unsigned int textures[500];
-    glGenTextures(500, textures);
+    glBindTexture(GL_TEXTURE_2D, atlas_texture);
+    glCheckError();
+    glTexImage2D(GL_TEXTURE_2D,
+        0,
+        GL_R8,
+        1000,
+        1000,
+        0,
+        GL_RED,
+        GL_UNSIGNED_BYTE,
+        nullptr);
+    glCheckError();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glCheckError();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glCheckError();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glCheckError();
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glCheckError();
 
     int safety_pixels_x = 3;
@@ -135,6 +148,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
     utils::Vector2i glyph_pos = {0, 0};
 
     charcode = FT_Get_First_Char(face, &gindex);
+    int i = 0;
     while (gindex != 0)
     {
         // load character glyph
@@ -146,28 +160,16 @@ bool Font::loadFromFile(std::filesystem::path font_file)
 
         FT_Render_Glyph(slot, FT_RENDER_MODE_SDF);
 
-        glBindTexture(GL_TEXTURE_2D, textures[gindex]);
-        glCheckError();
-        glTexImage2D(
+        glTexSubImage2D(
             GL_TEXTURE_2D,
             0,
-            GL_R8,
+            glyph_pos.x,
+            1000-glyph_pos.y - face->glyph->bitmap.rows,
             face->glyph->bitmap.width,
             face->glyph->bitmap.rows,
-            0,
             GL_RED,
             GL_UNSIGNED_BYTE,
             face->glyph->bitmap.buffer);
-        // set texture options
-        glCheckError();
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glCheckError();
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glCheckError();
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glCheckError();
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glCheckError();
 
         Character character =
             {
@@ -179,9 +181,10 @@ bool Font::loadFromFile(std::filesystem::path font_file)
         m_characters.insert(std::pair<int, Character>(charcode, character));
 
         Sprite glyph_sprite(main_texture);
-        glyph_sprite.m_tex_rect = {0, 0, (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows};
-        glyph_sprite.m_texture_handles[0] = textures[gindex];
-        glyph_sprite.m_tex_size = character.size;
+        glyph_sprite.m_tex_rect = {glyph_pos.x, glyph_pos.y,
+                                   (int)face->glyph->bitmap.width, (int)face->glyph->bitmap.rows};
+        glyph_sprite.m_texture_handles[0] = atlas_texture;
+        glyph_sprite.m_tex_size = m_pixels->getSize();
 
         glyph_sprite.setPosition(glyph_pos + (character.size + 1) / 2.f);
         glyph_sprite.setScale(face->glyph->bitmap.width / 2.f,
@@ -196,13 +199,15 @@ bool Font::loadFromFile(std::filesystem::path font_file)
         }
 
         charcode = FT_Get_Next_Char(face, charcode, &gindex);
+        i++;
     }
     m_canvas->drawAll();
     m_canvas->resetBatches();
-    // writeTextureToFile("../", "pica.png", *m_pixels);
+    writeTextureToFile("../", "pica.png", *m_pixels);
 
     //! delete helper texture
-    glDeleteTextures(500, textures);
+    glDeleteTextures(1, &atlas_texture);
+    // glDeleteTextures(char_count, textures);
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4); //! set back to deafult value
