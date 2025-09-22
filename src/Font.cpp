@@ -202,7 +202,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
     }
     m_canvas->drawAll();
     m_canvas->resetBatches();
-    writeTextureToFile("../", "pica.png", *m_pixels);
+    // writeTextureToFile("../", "pica.png", *m_pixels);
 
     //! delete helper texture
     glDeleteTextures(1, &atlas_texture);
