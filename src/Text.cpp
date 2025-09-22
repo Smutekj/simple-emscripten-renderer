@@ -1,6 +1,8 @@
 #include "Text.h"
 #include "Renderer.h"
 
+#include <codecvt>
+
 Text::Text(std::string text)
 {
     std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
