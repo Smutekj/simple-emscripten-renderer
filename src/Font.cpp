@@ -110,7 +110,6 @@ bool Font::loadFromFile(std::filesystem::path font_file)
     }
 
     unsigned int atlas_texture;
-    unsigned int textures[char_count];
     // glGenTextures(char_count, textures);
     glGenTextures(1, &atlas_texture);
     glCheckError();
@@ -207,7 +206,6 @@ bool Font::loadFromFile(std::filesystem::path font_file)
 
     //! delete helper texture
     glDeleteTextures(1, &atlas_texture);
-    // glDeleteTextures(char_count, textures);
     FT_Done_Face(face);
     FT_Done_FreeType(ft);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4); //! set back to deafult value
