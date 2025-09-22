@@ -7,6 +7,7 @@
 
 #include <chrono>
 #include <numbers>
+#include <codecvt>
 
 BlendParams::BlendParams(BlendFactor src_fact, BlendFactor dst_fact)
     : src_factor(src_fact), dst_factor(dst_fact)
