@@ -40,15 +40,35 @@ const ColorByte &Text::getColor() const
     return m_color;
 }
 
-//! \brief positions the text such that it is centered around \center
-//! \param center
+void Text::centerAroundX(float center_x)
+{
+    utils::Vector2f new_pos = {center_x, getPosition().y};
+
+    auto bb = getBoundingBox();
+    new_pos.x -= bb.width / 2.f;
+
+    setPosition(new_pos);
+}
+void Text::centerAroundY(float center_y)
+{
+    utils::Vector2f new_pos = {getPosition().x, center_y};
+
+    auto bb = getBoundingBox();
+    float depth = getDepthUnderLine();
+    new_pos.y -= bb.height / 2.f;
+    new_pos.y += depth;
+
+    setPosition(new_pos);
+}
 void Text::centerAround(const utils::Vector2f &center)
 {
     utils::Vector2f new_pos = center;
 
     auto bb = getBoundingBox();
+    float depth = getDepthUnderLine();
 
     new_pos.y -= bb.height / 2.f;
+    new_pos.y += depth;
     new_pos.x -= bb.width / 2.f;
 
     setPosition(new_pos);
@@ -72,6 +92,24 @@ float Text::getTextWidth() const
     return width;
 }
 
+float Text::getDepthUnderLine() const
+{
+    if (m_text.empty())
+    {
+        return 0.f;
+    }
+
+    auto lowest_char =
+        *std::max_element(m_text.begin(), m_text.end(), [this](auto c1, auto c2)
+                          {
+        auto car1 = m_font->m_characters.at(c1);
+        auto car2 = m_font->m_characters.at(c2);
+        return car1.size.y - car1.bearing.y < car2.size.y - car2.bearing.y; });
+
+    auto lowest_c = m_font->m_characters.at(lowest_char);
+    return (lowest_c.size.y - lowest_c.bearing.y) * getScale().y;
+}   
+
 //! \todo I should probably cache these results since they are unlikely to change
 Rect<float> Text::getBoundingBox() const
 {
@@ -81,9 +119,6 @@ Rect<float> Text::getBoundingBox() const
     }
 
     //     // ! find dimensions of the text
-    auto text_size_x =
-        std::accumulate(m_text.begin(), m_text.end(), 0, [this](int x, int character)
-                        { return m_font->m_characters.at(character).size.x + x; });
     auto largest_char =
         *std::max_element(m_text.begin(), m_text.end(), [this](auto c1, auto c2)
                           {
@@ -99,15 +134,14 @@ Rect<float> Text::getBoundingBox() const
 
     auto largest_c = m_font->m_characters.at(largest_char);
     auto lowest_c = m_font->m_characters.at(lowest_char);
-    utils::Vector2f text_size = {text_size_x, largest_c.bearing.y + (lowest_c.size.y - lowest_c.bearing.y)};
+    float text_height = largest_c.bearing.y + (lowest_c.size.y - lowest_c.bearing.y);
 
     Rect<float> bounding_box;
-    text_size.x *= getScale().x;
-    text_size.y *= getScale().y;
-    bounding_box.pos_y = getPosition().y - text_size.y / 2.f;
-    bounding_box.height = text_size.y;
+    text_height *= getScale().y;
+    bounding_box.pos_y = getPosition().y;
+    bounding_box.height = text_height;
 
-    bounding_box.pos_y += 1. * (lowest_c.size.y - lowest_c.bearing.y) * getScale().y;
+    bounding_box.pos_y -=  (lowest_c.size.y - lowest_c.bearing.y) * getScale().y;
 
     bounding_box.width = 0;
     for (auto c : m_text)
@@ -116,6 +150,7 @@ Rect<float> Text::getBoundingBox() const
         bounding_box.width += (character.advance >> 6) * getScale().x;
     }
     bounding_box.pos_x = getPosition().x;
+    // std::cout << "TEXT: " << getText() << " BB:\n" << bounding_box.height<< " \nbelow: " << (lowest_c.size.y - lowest_c.bearing.y) * getScale().y << std::endl;  
 
     return bounding_box;
 }

@@ -28,10 +28,13 @@ public:
     const ColorByte &getColor() const;
 
     Rect<float> getBoundingBox() const;
+    float getDepthUnderLine() const;
+
 
     float getTextWidth() const;
     void centerAround(const utils::Vector2f &center);
-
+    void centerAroundX(float center_x);
+    void centerAroundY(float center_y);
 public:
     bool m_draw_bounding_box = false;
 

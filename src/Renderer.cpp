@@ -189,7 +189,6 @@ void Renderer::drawText(const Text &text, const std::string &shader_id, DrawType
 
         glyph_pos.x = line_pos.x + character.bearing.x * text_scale.x + width / 2.f;
         glyph_pos.y = line_pos.y + height / 2.f - dy * text_scale.y;
-
         glyph_sprite.m_tex_rect = {character.tex_coords.x, character.tex_coords.y,
                                    character.size.x, character.size.y};
 
@@ -197,7 +196,10 @@ void Renderer::drawText(const Text &text, const std::string &shader_id, DrawType
         glyph_sprite.setPosition(glyph_pos);
         glyph_sprite.setScale(width / 2., height / 2.);
         glyph_sprite.m_color = text.getColor();
-
+        // drawLineBatched({glyph_pos.x - width/2.f, glyph_pos.y - height/2.f}, {glyph_pos.x + width/2.f, glyph_pos.y-height/2.f}, 0.5, {0, 1, 0, 1});
+        // drawLineBatched({glyph_pos.x + width/2.f, glyph_pos.y -height/2.f}, {glyph_pos.x + width/2.f, glyph_pos.y + height/2.f}, 0.5, {0, 1, 0, 1});
+        // drawLineBatched({glyph_pos.x + width/2.f, glyph_pos.y +height/2.f}, {glyph_pos.x - width/2.f, glyph_pos.y + height/2.f}, 0.5, {0, 1, 0, 1});
+        // drawLineBatched({glyph_pos.x - width/2.f, glyph_pos.y +height/2.f}, {glyph_pos.x - width/2.f, glyph_pos.y - height/2.f}, 0.5, {0, 1, 0, 1});
         line_pos.x += (character.advance >> 6) * text_scale.x;
         drawSprite(glyph_sprite, shader_id, draw_type);
     }
@@ -207,10 +209,11 @@ void Renderer::drawText(const Text &text, const std::string &shader_id, DrawType
     utils::Vector2f text_size = {bounding_box.width, bounding_box.height};
     if (text.m_draw_bounding_box)
     {
-        drawLineBatched(line_pos, {line_pos.x + text_size.x, line_pos.y}, 0.2, {0, 1, 1, 1});
-        drawLineBatched({line_pos.x + text_size.x, line_pos.y}, {line_pos.x + text_size.x, line_pos.y + text_size.y}, 0.2, {0, 1, 1, 1});
-        drawLineBatched({line_pos.x + text_size.x, line_pos.y + text_size.y}, {line_pos.x, line_pos.y + text_size.y}, 0.2, {0, 1, 1, 1});
-        drawLineBatched({line_pos.x, line_pos.y + text_size.y}, line_pos, 0.2, {0, 1, 1, 1});
+        drawLineBatched(text.getPosition(), {text.getPosition().x + text_size.x, text.getPosition().y}, 0.5, {1, 0, 0, 1});
+        drawLineBatched(line_pos, {line_pos.x + text_size.x, line_pos.y}, 0.5, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x + text_size.x, line_pos.y}, {line_pos.x + text_size.x, line_pos.y + text_size.y}, 0.5, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x + text_size.x, line_pos.y + text_size.y}, {line_pos.x, line_pos.y + text_size.y}, 0.5, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x, line_pos.y + text_size.y}, line_pos, 0.5, {0, 1, 0, 1});
     }
 }
 
