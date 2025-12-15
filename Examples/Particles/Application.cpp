@@ -53,7 +53,7 @@ void Application::initializeLayers()
     base_layer.m_canvas.setShadersPath(shaders_path);
     auto &upper_layer = m_layers.addLayer("BloomLayer", 5);
     upper_layer.m_canvas.setShadersPath(shaders_path);
-    upper_layer.addEffect(std::make_unique<Bloom3>(m_window_renderer.getTargetSize().x, m_window_renderer.getTargetSize().y));
+    upper_layer.addEffect(std::make_unique<BloomPhysical>(m_window_renderer.getTargetSize().x, m_window_renderer.getTargetSize().y));
 }
 
 void Application::initializeUI()
@@ -306,7 +306,7 @@ void Application::update(float dt)
     screen_sprite.setScale(scene_size / 2.f);
     m_window_renderer.m_view.setCenter(screen_sprite.getPosition());
     m_window_renderer.m_view.setSize(scene_size);
-    m_window_renderer.drawSprite(screen_sprite, "LastPass", DrawType::Dynamic);
+    m_window_renderer.drawSprite(screen_sprite, "LastPass");
     auto old_factors = m_window_renderer.m_blend_factors;
     m_window_renderer.m_blend_factors = {BlendFactor::One, BlendFactor::OneMinusSrcAlpha};
     m_window_renderer.drawAll();

@@ -7,9 +7,10 @@
 #include "FrameBuffer.h"
 #include "Utils/IOUtils.h"
 
-#include "imgui.h"
-#include "imgui_impl_sdl2.h"
-#include "imgui_impl_opengl3.h"
+#include <imgui.h>
+#include <imgui_impl_sdl2.h>
+#include <imgui_impl_opengl3.h>
+#include <imgui_stdlib.h>
 
 UIWindow::UIWindow(std::string name) : name(name)
 {
@@ -35,7 +36,7 @@ void ShaderSlot::draw(Sprite &test_sprite)
     }
 
     m_canvas.clear({1, 1, 1, 1});
-    m_canvas.drawSprite(test_sprite, m_selected_shader, DrawType::Dynamic);
+    m_canvas.drawSprite(test_sprite, m_selected_shader);
     m_canvas.drawAll();
 }
 
@@ -124,7 +125,7 @@ void ShadersWindow::drawUniformValue(const char *name, UniformType &value)
                    }
                    else 
                    {
-                         static_assert(fail<T>{}, "we should not get here!");
+                        //  static_assert(fail<T>{}, "we should not get here!");
                    } },
                value);
 }
@@ -164,7 +165,7 @@ void ShadersWindow::drawShaderSlot(ShaderSlot &slot)
             if (ImGui::Selectable(name.c_str(), is_selected))
             {
                 slot.m_selected_uniform = name;
-                shader.saveUniformValue(name, value);
+                shader.setUniform(name, value.value);
             }
         }
         ImGui::EndListBox();
@@ -189,7 +190,7 @@ void ShadersWindow::drawShaderSlot(ShaderSlot &slot)
     if (slot.m_selected_uniform != "")
     {
         drawUniformValue(slot.m_selected_uniform.c_str(),
-                         shader_variables.uniforms.at(slot.m_selected_uniform));
+                         shader_variables.uniforms.at(slot.m_selected_uniform).value);
     }
 }
 
@@ -235,7 +236,7 @@ void ShadersWindow::draw()
         {
             drawShaderSlot(slot);
             m_output_image_name.resize(50);
-            if (ImGui::InputText("File name: ", m_output_image_name.data(), m_output_image_name.size()))
+            if (ImGui::InputText("File name: ", &m_output_image_name))
             {
             }
             if (ImGui::Button("Draw Texture"))

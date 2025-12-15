@@ -4,12 +4,17 @@
 #include <Utils/RandomTools.h>
 #include <Utils/IOUtils.h>
 
+#include <SDL2/SDL_video.h>
+
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_opengl3.h"
 
 #include <time.h>
 #include <filesystem>
+
+#include <SDL_video.h>
+#include <SDL_timer.h>
 
 const std::filesystem::path shaders_path = {"../Resources/Shaders/"};
 
@@ -19,7 +24,7 @@ void Application::initializeLayers()
     base_layer.m_canvas.setShadersPath(shaders_path);
     auto &upper_layer = m_layers.addLayer("BloomLayer", 5);
     upper_layer.m_canvas.setShadersPath(shaders_path);
-    upper_layer.addEffect(std::make_unique<Bloom3>(m_window_renderer.getTargetSize().x, m_window_renderer.getTargetSize().y));
+    upper_layer.addEffect(std::make_unique<BloomPhysical>(m_window_renderer.getTargetSize().x, m_window_renderer.getTargetSize().y));
 }
 
 void Application::initializeUI()
@@ -239,10 +244,10 @@ void Application::update(float dt)
     auto *canvas2 = m_layers.getCanvasP(m_selected_layer_name);
     if (canvas2)
     {
-        RectangleSimple rect;
+        RectangleSimple rect(m_rect_color);
         rect.setPosition(m_window_renderer.getDefaultView().getCenter());
         rect.setScale(m_window_renderer.getDefaultView().getSize() / 8.f);
-        canvas2->drawRectangle(rect, m_rect_color);
+        canvas2->drawRectangle(rect);
     }
 
     m_scene_canvas.clear(m_background_color);
@@ -258,7 +263,7 @@ void Application::update(float dt)
     screen_sprite.setScale(scene_size / 2.f);
     m_window_renderer.m_view.setCenter(screen_sprite.getPosition());
     m_window_renderer.m_view.setSize(scene_size);
-    m_window_renderer.drawSprite(screen_sprite, "LastPass", DrawType::Dynamic);
+    m_window_renderer.drawSprite(screen_sprite, "LastPass");
     auto old_factors = m_window_renderer.m_blend_factors;
     m_window_renderer.m_blend_factors = {BlendFactor::One, BlendFactor::OneMinusSrcAlpha};
     m_window_renderer.drawAll();

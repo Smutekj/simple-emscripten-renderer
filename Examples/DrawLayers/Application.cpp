@@ -1,6 +1,5 @@
 #include "Application.h"
 
-#include <IncludesGl.h>
 #include <Utils/RandomTools.h>
 #include <Utils/IOUtils.h>
 
@@ -10,6 +9,7 @@
 
 #include <time.h>
 #include <filesystem>
+
 
 const std::filesystem::path shaders_path = {"../Resources/Shaders/"};
 
@@ -237,11 +237,11 @@ void Application::update(float dt)
     auto *canvas1 = m_layers.getCanvasP("Layer1");
     if (canvas1)
     {
-        RectangleSimple rect1;
+        RectangleSimple rect1(m_rect_color);
         rect1.setPosition(mouse_coords);
         rect1.setScale(m_window_renderer.getDefaultView().getSize() / 8.f);
         canvas1->m_blend_factors = {BlendFactor::SrcAlpha, BlendFactor::OneMinusSrcAlpha};
-        canvas1->drawRectangle(rect1, m_rect_color);
+        canvas1->drawRectangle(rect1);
     }
 
     auto *canvas2 = m_layers.getCanvasP("Layer2");

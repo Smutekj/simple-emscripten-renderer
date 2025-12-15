@@ -16,6 +16,8 @@
 #include <vector>
 #include <unordered_map>
 
+#include <SDL_events.h>
+
 enum class UIWindowType
 {
     DEBUG = 0,

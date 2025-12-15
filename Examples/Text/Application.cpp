@@ -9,6 +9,8 @@
 #include <time.h>
 #include <filesystem>
 
+#include "Text.h"
+
 Application::Application(int width, int height) : m_window(width, height),
                                                   m_window_renderer(m_window)
 {

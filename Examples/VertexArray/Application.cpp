@@ -11,13 +11,13 @@
 
 Application::Application(int width, int height) : m_window(width, height),
                                                   m_window_renderer(m_window),
-                                                  m_meteor(static_cast<GLenum>(DrawType::Dynamic), 3)
+                                                  m_meteor(DrawType::Dynamic, 3)
 {
 
     std::filesystem::path texture_directory = {__FILE__};
     texture_directory.remove_filename().append("../Resources/Textures/");
     m_textures.setBaseDirectory(texture_directory);
-    m_textures.add("Ship", "EnemyLaser.png");
+    m_textures.add("Ship", std::string{"EnemyLaser.png"});
 
     std::filesystem::path shaders_path = {__FILE__};
     shaders_path.remove_filename().append("../../Resources/Shaders/");
@@ -66,7 +66,7 @@ void Application::drawUI()
     ImGui::Begin("Text");
     Color color = {m_sprite_color.r/255.f, m_sprite_color.g/255.f, m_sprite_color.b/255.f, m_sprite_color.a/255.f};
     ImGui::ColorPicker4("Sprite Color", &color.r);
-    m_sprite_color = {color};
+    m_sprite_color = ColorByte{color};
     ImGui::End();
 
     ImGui::Render();

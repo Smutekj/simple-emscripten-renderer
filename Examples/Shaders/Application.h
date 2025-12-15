@@ -13,6 +13,10 @@
 #include <Renderer.h>
 #include <Font.h>
 
+#include <SDL_events.h>
+#include <SDL_video.h>
+#include <SDL_timer.h>
+
 void gameLoop(void *mainLoopArg);
 
 class Application

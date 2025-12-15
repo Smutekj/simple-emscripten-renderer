@@ -4,9 +4,10 @@
 #include <Utils/RandomTools.h>
 #include <Utils/IOUtils.h>
 
-#include "imgui.h"
-#include "imgui_impl_sdl2.h"
-#include "imgui_impl_opengl3.h"
+#include <imgui.h>
+#include <imgui_impl_sdl2.h>
+#include <imgui_impl_opengl3.h>
+#include <imgui_stdlib.h>
 
 #include <time.h>
 #include <filesystem>
@@ -18,7 +19,7 @@ const std::filesystem::path textures_path = {"../Resources/Textures/"};
 void drawProgramToTexture(Sprite &rect, Renderer &target, std::string program)
 {
     target.clear({1, 1, 1, 1});
-    target.drawSprite(rect, program, DrawType::Dynamic);
+    target.drawSprite(rect, program);
     target.drawAll();
 }
 

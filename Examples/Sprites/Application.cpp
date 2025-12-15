@@ -17,7 +17,7 @@ Application::Application(int width, int height) : m_window(width, height),
 {
 
     m_textures.setBaseDirectory(textures_path);
-    m_textures.add("Ship", "EnemyLaser.png");
+    m_textures.add("Ship", std::string{"EnemyLaser.png"});
 
     m_window_renderer.m_view = m_window_renderer.getDefaultView();
     
@@ -45,7 +45,7 @@ void Application::drawUI()
     ImGui::Begin("Text");
     Color color = {m_sprite_color.r/255.f, m_sprite_color.g/255.f, m_sprite_color.b/255.f, m_sprite_color.a/255.f};
     ImGui::ColorPicker4("Sprite Color", &color.r);
-    m_sprite_color = {color};
+    m_sprite_color = ColorByte{color};
     ImGui::End();
 
     ImGui::Render();
