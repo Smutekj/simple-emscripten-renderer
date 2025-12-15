@@ -57,6 +57,14 @@ target_include_directories(${TARGET_LIBRARY_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/backends
 )
 
+
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+     target_link_options(${PROJECT_NAME} PRIVATE
+         "-sUSE_SDL=2"
+         "-sUSE_SDL_MIXER=2"
+     )
+endif()
+
 if(BUILD_EXAMPLES STREQUAL ON)
     message("\n!ADDING EXAMPLES!")
     add_subdirectory(Examples)
