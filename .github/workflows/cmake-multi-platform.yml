@@ -87,14 +87,11 @@ jobs:
         echo "OS IS: $RUNNER_OS"                              
         if [ "$RUNNER_OS" == "Linux" ]; then                 
           sudo apt-get install --fix-missing libxext-dev
-          pip3 install jinja2
         elif [ "$RUNNER_OS" == "Windows" ]; then             
           choco install ninja                         
-          pip3 install jinja2          
         elif [ "$RUNNER_OS" == "macOS" ]; then
           brew update
           brew install ninja
-          # pip3 install jinja2
         else
           echo "$RUNNER_OS not supported"                     
           exit 1                                              
