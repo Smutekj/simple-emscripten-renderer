@@ -89,7 +89,8 @@ struct LayersHolder
 
     void drawInto(Renderer &target);
 
+public:
+    std::unordered_map<std::string, int> m_name2depth;
 private:
     std::map<int, std::shared_ptr<DrawLayer>> m_layers;
-    std::unordered_map<std::string, int> m_name2depth;
 };

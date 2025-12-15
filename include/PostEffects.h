@@ -27,45 +27,24 @@ class Bloom : public PostEffect
 {
 
 public:
-    Bloom(int width, int height);
+    Bloom(int width, int height, int gauss_pass_count = 3, float brightness_threshold = 1.f);
     virtual void process(Texture &source, Renderer &target) override;
     virtual ~Bloom() {}
 
 private:
-    FrameBuffer m_bloom_pass1;
-    FrameBuffer m_bloom_pass2;
-
-    Renderer m_bloom_renderer1;
-    Renderer m_bloom_renderer2;
-};
-
-class BloomFinal : public PostEffect
-{
-
-public:
-    BloomFinal(int width, int height, int mip_count = 3, int gauss_pass_count = 3, TextureOptions options = {}, std::string final_shader = "combineLightBloom");
-
-    virtual void process(Texture &source, Renderer &target) override;
-    virtual ~BloomFinal() {};
-
-    void initMips(int n_levels, int width, int height, TextureOptions option);
-    struct TexMip
-    {
-        TexMip(int width, int height, TextureOptions option)
-            : pixels(width, height, option), canvas(pixels), pixels_tmp(width, height, option), canvas_tmp(pixels_tmp)
-        {
-        }
-        FrameBuffer pixels;
-        Renderer canvas;
-        FrameBuffer pixels_tmp;
-        Renderer canvas_tmp;
-    };
-
-private:
-    std::string m_final_shader;
+    FrameBuffer m_bloom_pixels1;
+    FrameBuffer m_bloom_pixels2;
+    
+    Shader m_brightness_pass;
+    Shader m_gauss_vert_pass;
+    Shader m_gauss_horiz_pass;
+    Shader m_combine_pass;
+    ScreenSprite m_screen_sprite;
+    
     int m_gauss_pass_count;
-    std::vector<TexMip> m_mips;
+    float m_brightness_threshold;
 };
+
 
 class BloomPhysical : public PostEffect
 {
@@ -109,29 +88,6 @@ private:
 };
 
 
-class BloomSmoke : public PostEffect
-{
-
-public:
-    BloomSmoke(int width, int height);
-
-    virtual void process(Texture &source, Renderer &target) override;
-    virtual ~BloomSmoke() = default;
-
-private:
-    FrameBuffer m_bloom_pass1;
-    FrameBuffer m_bloom_pass2;
-    FrameBuffer m_downsampled_pixels3;
-    FrameBuffer m_downsampled_pixels33;
-
-    Renderer m_bloom_renderer1;
-    Renderer m_bloom_renderer2;
-    Renderer m_downsampler3;
-    Renderer m_downsampler33;
-
-    std::vector<FrameBuffer> m_mips;
-};
-
 class EdgeDetect : public PostEffect
 {
 
@@ -167,3 +123,39 @@ private:
     ScreenSprite m_screen_sprite;
 };
 
+
+class BloomFinal : public PostEffect
+{
+
+public:
+    BloomFinal(int width, int height, int mip_count = 3, int gauss_pass_count = 2, float brightness_threshold = 0.f, TextureOptions options = {});
+
+    virtual void process(Texture &source, Renderer &target) override;
+    virtual ~BloomFinal() {};
+
+private:
+    void initMips(int n_levels, int width, int height, TextureOptions option);
+    struct TexMip
+    {
+        TexMip(int width, int height, TextureOptions option)
+            : pixels(width, height, option),  pixels_tmp(width, height, option)
+        {
+        }
+        FrameBuffer pixels;
+        FrameBuffer pixels_tmp;
+    };
+
+private:
+    std::vector<TexMip> m_mips;
+    
+    Shader m_brightness_pass;
+    Shader m_gauss_vert_pass;
+    Shader m_gauss_horiz_pass;
+    Shader m_downsample_pass;
+    Shader m_combine_pass;
+    Shader m_full_pass;
+    ScreenSprite m_screen_sprite;
+    
+    int m_gauss_pass_count;
+    float m_brightness_threshold;
+};
