@@ -94,7 +94,7 @@ jobs:
         elif [ "$RUNNER_OS" == "macOS" ]; then
           brew update
           brew install ninja
-          pip3 install jinja2
+          # pip3 install jinja2
         else
           echo "$RUNNER_OS not supported"                     
           exit 1                                              
