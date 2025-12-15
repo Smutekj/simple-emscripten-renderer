@@ -91,6 +91,6 @@ struct LayersHolder
 
 public:
     std::unordered_map<std::string, int> m_name2depth;
-private:
     std::map<int, std::shared_ptr<DrawLayer>> m_layers;
+private:
 };

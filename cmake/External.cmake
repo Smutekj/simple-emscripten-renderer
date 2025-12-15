@@ -10,6 +10,17 @@ FetchContent_MakeAvailable(glm)
 
 
 ############# SDL2 #############
+set(SDL_AUDIO ON CACHE BOOL "" FORCE)
+set(SDL_HAPTIC OFF CACHE BOOL "" FORCE)
+set(SDL_JOYSTICK OFF CACHE BOOL "" FORCE)
+set(SDL_FILE OFF CACHE BOOL "" FORCE)
+set(SDL_CPUINFO ON CACHE BOOL "" FORCE)
+set(SDL_FILESYSTEM OFF CACHE BOOL "" FORCE)
+set(SDL_SENSOR OFF CACHE BOOL "" FORCE)
+set(SDL_POWER OFF CACHE BOOL "" FORCE)
+set(SDL_RENDER OFF CACHE BOOL "" FORCE)
+set(SDL_THREADS ON CACHE BOOL "" FORCE)
+set(SDL_TIMERS OFF CACHE BOOL "" FORCE)
 FetchContent_Declare(
   SDL2
   GIT_REPOSITORY https://github.com/libsdl-org/SDL
@@ -108,8 +119,9 @@ if(NOT glad_POPULATED)
 
     add_subdirectory("${glad_SOURCE_DIR}/cmake" glad_cmake)
     if( ${CMAKE_SYSTEM_NAME} MATCHES "Android")
-      glad_add_library(glad STATIC  API gles2:core=3.0)
+      glad_add_library(glad STATIC  API gles2:core=3.0 )
     else()
+      set(GLAD_EXTENSIONS "GL_EXT_framebuffer_multisample")
       glad_add_library(glad STATIC  API gl:core=4.6)
     endif()
 endif()

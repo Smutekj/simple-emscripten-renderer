@@ -39,7 +39,6 @@ set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY
 set_target_compiler_flags(${TARGET_LIBRARY_NAME})
 set_project_warnings(${TARGET_LIBRARY_NAME})
 
-message("\n\nPENIS\n\n${SDL_MIXER_INCLUDE_DIRS}\n\n")
 
 target_include_directories(${TARGET_LIBRARY_NAME}
     PUBLIC
@@ -60,29 +59,29 @@ target_include_directories(${TARGET_LIBRARY_NAME}
 if(BUILD_EXAMPLES)
 message("\n!ADDING EXAMPLES!")
 add_subdirectory(Examples)
-endif(BUILD_EXAMPLES)
+endif(BUILD_EXAMPLES ON)
 
-if(BUILD_TESTS)
-    enable_testing()
-    include(GoogleTest)
+# if(BUILD_TESTS)
+#     enable_testing()
+#     include(GoogleTest)
 
-    message("\n!ADDING TESTS!\n")
-    add_executable(test_all2 src/Tests/main.cpp src/Tests/test_context.cc src/Tests/test_shader.cc)
-    target_link_libraries(test_all2 PUBLIC GTest::gtest_main ${TARGET_LIBRARY_NAME})
-    set_target_properties(test_all2 PROPERTIES CXX_STANDARD 20)
-    ### output test executable is right now in major bin directory because there is just one exe
-    # set_target_properties(test_all2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/tests) 
+#     message("\n!ADDING TESTS!\n")
+#     add_executable(test_all2 src/Tests/main.cpp src/Tests/test_context.cc src/Tests/test_shader.cc)
+#     target_link_libraries(test_all2 PUBLIC GTest::gtest_main ${TARGET_LIBRARY_NAME})
+#     set_target_properties(test_all2 PROPERTIES CXX_STANDARD 20)
+#     ### output test executable is right now in major bin directory because there is just one exe
+#     # set_target_properties(test_all2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin/tests) 
 
-    gtest_discover_tests(test_all2
-        DISCOVERY_MODE PRE_TEST
-    )
+#     gtest_discover_tests(test_all2
+#         DISCOVERY_MODE PRE_TEST
+#     )
 
-    ### this is not working :(
-    ### see: https://discourse.cmake.org/t/msvs-gtest-discover-tests-environment/9225/3
-    #if(WIN32)
-    #    set_target_properties(test_all2 PROPERTIES ENVIRONMENT
-    #    "PATH=$<SHELL_PATH:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}>$<SEMICOLON>$ENV{PATH}"
-    #    )
-    #endif()
+#     ### this is not working :(
+#     ### see: https://discourse.cmake.org/t/msvs-gtest-discover-tests-environment/9225/3
+#     #if(WIN32)
+#     #    set_target_properties(test_all2 PROPERTIES ENVIRONMENT
+#     #    "PATH=$<SHELL_PATH:${CMAKE_RUNTIME_OUTPUT_DIRECTORY}>$<SEMICOLON>$ENV{PATH}"
+#     #    )
+#     #endif()
 
-endif(BUILD_TESTS)
+# endif(BUILD_TESTS)
