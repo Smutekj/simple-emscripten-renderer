@@ -22,7 +22,7 @@ jobs:
         build_type: [Release]
         c_compiler: [gcc, clang, cl]
         include:
-          - os: macos-13
+          - os: macos-15
             flags: "-GNinja"
             build_type: Release
           - os: windows-latest
