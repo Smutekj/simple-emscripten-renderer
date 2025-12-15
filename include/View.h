@@ -1,14 +1,10 @@
 #pragma once
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/matrix_transform_2d.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <glm/mat4x4.hpp>
 
 #include "Vector2.h"
 #include "Rect.h"
-
 
 //! \class View
 //! \brief defines rectangle in the world coordinates, which will be drawn on screen
@@ -18,34 +14,25 @@ class View
 
 public:
     View() = default;
+    View(const utils::Vector2f &center, const utils::Vector2f &size);
 
     void setSize(float width, float height);
-
     template <class VecType>
-    void setSize(VecType new_size)
-    {
-        setSize(new_size.x, new_size.y);
-    }
-
-    utils::Vector2f getSize()const;
+    void setSize(VecType new_size);
+    utils::Vector2f getSize() const;
+    utils::Vector2f getScale() const;
 
     void setCenter(float cx, float cy);
     template <class VecType>
-    void setCenter(VecType new_center)
-    {
-        setCenter(new_center.x, new_center.y);
-    }
-
-    utils::Vector2f getCenter()const;
-    utils::Vector2f getScale()const;
+    void setCenter(VecType new_center);
+    utils::Vector2f getCenter() const;
 
     void zoom(float factor);
 
     glm::mat4 &getMatrix();
 
-    bool contains(const utils::Vector2f& query) const;
-    bool intersects(const Rectf& query) const;
-
+    bool contains(const utils::Vector2f &query) const;
+    bool intersects(const Rectf &query) const;
 
 private:
     void recomputeMatrix();
@@ -59,6 +46,16 @@ private:
     float m_height = 2;
 
     bool m_needs_recompute = true;
-
 };
 
+template <class VecType>
+void View::setSize(VecType new_size)
+{
+    setSize(new_size.x, new_size.y);
+}
+
+template <class VecType>
+void View::setCenter(VecType new_center)
+{
+    setCenter(new_center.x, new_center.y);
+}

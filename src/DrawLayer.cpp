@@ -1,22 +1,37 @@
 #include "DrawLayer.h"
 
-DrawLayer::DrawLayer(int width, int height)
-    : m_pixels(width, height),
-      m_canvas(m_pixels),
-      m_tmp_pixels1(width, height),
-      m_tmp_canvas1(m_tmp_pixels1),
-      m_tmp_pixels2(width, height),
-      m_tmp_canvas2(m_tmp_pixels2)
+#include "Sprite.h"
+
+DrawLayer::DrawLayer(int width, int height) : m_pixels(width, height),
+                                              m_canvas(m_pixels),
+                                              m_tmp_pixels1(width, height),
+                                              m_tmp_canvas1(m_tmp_pixels1),
+                                              m_tmp_pixels2(width, height),
+                                              m_tmp_canvas2(m_tmp_pixels2)
 {
 }
-DrawLayer::DrawLayer(int width, int height, TextureOptions options)
-    : m_pixels(width, height, options),
-      m_canvas(m_pixels),
-      m_tmp_pixels1(width, height, options),
-      m_tmp_canvas1(m_tmp_pixels1),
-      m_tmp_pixels2(width, height, options),
-      m_tmp_canvas2(m_tmp_pixels2)
+
+DrawLayer::DrawLayer(int width, int height, TextureOptions options, int mult) : m_mult(mult),
+                                                                                m_pixels(width, height, options),
+                                                                                m_canvas(m_pixels),
+                                                                                m_tmp_pixels1(width, height, options),
+                                                                                m_tmp_canvas1(m_tmp_pixels1),
+                                                                                m_tmp_pixels2(width, height, options),
+                                                                                m_tmp_canvas2(m_tmp_pixels2)
 {
+}
+
+void DrawLayer::resize(int w, int h)
+{
+
+    m_pixels.resize(w / m_mult, h / m_mult);
+    m_tmp_pixels1.resize(w / m_mult, h / m_mult);
+    m_tmp_pixels2.resize(w / m_mult, h / m_mult);
+
+    for (auto &effect : m_effects)
+    {
+        effect->resize(w / m_mult, h / m_mult);
+    }
 }
 
 void DrawLayer::toggleActivate()
@@ -31,8 +46,6 @@ bool DrawLayer::isActive() const
 
 void DrawLayer::draw(Renderer &window_rend)
 {
-    m_canvas.drawAll();
-
     int n_effects = m_effects.size();
     if (n_effects >= 2)
     {
@@ -51,28 +64,29 @@ void DrawLayer::draw(Renderer &window_rend)
     }
     else if (n_effects == 1)
     {
+        m_canvas.drawAll();
         m_effects.at(0)->process(m_pixels.getTexture(), window_rend);
     }
     else if (n_effects == 0)
     {
-        drawDirectly(window_rend);
+        m_canvas.drawAllInto(window_rend.getTarget());
     }
 }
 
-void DrawLayer::drawDirectly(Renderer &canvas)
+void DrawLayer::drawDirectly(Renderer &target)
 {
-    auto old_view = canvas.m_view;
-    auto target_size = canvas.getTargetSize();
+    auto old_view = target.m_view;
+    auto target_size = target.getTargetSize();
     Sprite screen_sprite(m_pixels.getTexture());
     screen_sprite.setPosition(target_size / 2.f);
     screen_sprite.setScale(target_size / 2.f);
 
-    canvas.m_view.setCenter(screen_sprite.getPosition());
-    canvas.m_view.setSize(target_size);
+    target.m_view.setCenter(screen_sprite.getPosition());
+    target.m_view.setSize(target_size);
 
-    canvas.drawSprite(screen_sprite, "SpriteDefault", DrawType::Dynamic);
-    canvas.drawAll();
-    canvas.m_view = old_view;
+    target.drawSprite(screen_sprite, "SpriteDefault");
+    target.drawAll();
+    target.m_view = old_view;
 }
 
 void DrawLayer::addEffect(std::unique_ptr<PostEffect> effect)
@@ -90,9 +104,9 @@ Color DrawLayer::getBackground()
     return m_background_color;
 }
 
-DrawLayer &LayersHolder::addLayer(std::string name, int depth, TextureOptions options, int height, int width )
+DrawLayer &LayersHolder::addLayer(std::string name, int depth, TextureOptions options, int height, int width, int mult)
 {
-    auto new_layer = std::make_shared<DrawLayer>(height, width, options);
+    auto new_layer = std::make_shared<DrawLayer>(height, width, options, mult);
     m_layers[depth] = new_layer;
     m_name2depth[name] = depth;
     return *new_layer;
@@ -221,7 +235,7 @@ void LayersHolder::drawSprite(const std::string &layer, Sprite &sprite, const st
     auto p_canvas = getCanvasP(layer);
     if (p_canvas)
     {
-        p_canvas->drawSprite(sprite, shader_id, DrawType::Dynamic);
+        p_canvas->drawSprite(sprite, shader_id);
     }
 }
 
@@ -231,7 +245,7 @@ void LayersHolder::drawLine(const std::string &layer,
     auto p_canvas = getCanvasP(layer);
     if (p_canvas)
     {
-        p_canvas->drawLineBatched(start, end, thickness, color, DrawType::Dynamic);
+        p_canvas->drawLineBatched(start, end, thickness, color);
     }
 }
 
@@ -240,6 +254,14 @@ void LayersHolder::drawRectangle(const std::string &layer, RectangleSimple &rect
     auto p_canvas = getCanvasP(layer);
     if (p_canvas)
     {
-        p_canvas->drawRectangle(rect, color, shader_id, DrawType::Dynamic);
+        p_canvas->drawRectangle(rect, shader_id);
+    }
+}
+
+void LayersHolder::resize(int w, int h)
+{
+    for (auto &[d, canvas] : m_layers)
+    {
+        canvas->resize(w, h);
     }
 }

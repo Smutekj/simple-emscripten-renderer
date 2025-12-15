@@ -1,5 +1,7 @@
 #include "RenderTarget.h"
 
+#include "IncludesGl.h"
+
 //! \brief constructs from width and height
 //! \param width
 //! \param height
@@ -13,6 +15,12 @@ utils::Vector2i RenderTarget::getSize() const
     return m_target_size;
 }
 
+//! \returns y/x aspect ratio
+float RenderTarget::getAspect() const
+{
+    return static_cast<float>(m_target_size.y) / m_target_size.x;
+}
+
 //! \brief does GL calls to bind the target
 void RenderTarget::bind()
 {
@@ -20,7 +28,7 @@ void RenderTarget::bind()
     glCheckErrorMsg("Error in Bind");
 }
 
-//! \brief clears the target Color and Depth buffers 
+//! \brief clears the target Color and Depth buffers
 //! \param  color      the new color of each pixel
 void RenderTarget::clear(Color color)
 {

@@ -2,6 +2,8 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
+#include <map>
 
 #include <FrameBuffer.h>
 #include <Renderer.h>
@@ -13,9 +15,11 @@ class DrawLayer
 
 public:
     DrawLayer(int width, int height);
-    DrawLayer(int width, int height, TextureOptions options);
+    DrawLayer(int width, int height, TextureOptions options, int mult = 1);
 
     void toggleActivate();
+
+    void resize(int w, int h);
 
     bool isActive() const;
 
@@ -33,6 +37,8 @@ public:
     Renderer m_canvas;    //!< main canvas to draw into
 
 private:
+    int m_mult = 1;
+
     FrameBuffer m_tmp_pixels1; //!< helper pixels to do post effects
     Renderer m_tmp_canvas1;    //!< helper canvas to do post effects
 
@@ -49,10 +55,15 @@ private:
 struct LayersHolder
 {
 
-    DrawLayer &addLayer(std::string name, int depth, TextureOptions options = {}, int height = 800, int width = 600);
+    // LayersHolder(Renderer &base_canvas)
+    //     : m_base_canvas(base_canvas) {}
+
+    DrawLayer &addLayer(std::string name, int depth, TextureOptions options = {}, int height = 800, int width = 600, int mult = 1);
     // DrawLayer &addLayerOnTop(std::string name);
     // DrawLayer &addLayerDown(std::string name);
     bool hasLayer(const std::string &name);
+
+    void resize(int w, int h);
 
     std::shared_ptr<DrawLayer> getLayer(const std::string &name);
 
@@ -78,6 +89,7 @@ struct LayersHolder
 
     void drawInto(Renderer &target);
 
+private:
     std::map<int, std::shared_ptr<DrawLayer>> m_layers;
-    std::map<std::string, int> m_name2depth;
+    std::unordered_map<std::string, int> m_name2depth;
 };

@@ -143,12 +143,12 @@ namespace
         EXPECT_EQ(variables.uniforms.count("u_test_uniform_vec3"), 1);
         EXPECT_EQ(variables.uniforms.count("u_test_uniform_vec4"), 1);
 
-        EXPECT_FLOAT_EQ(std::get<float>(variables.uniforms.at("u_test_uniform_float")), 0.f); //! 0 is the default value
-        EXPECT_EQ(std::get<int>(variables.uniforms.at("u_test_uniform_int")), 1);
+        EXPECT_FLOAT_EQ(std::get<float>(variables.uniforms.at("u_test_uniform_float").value), 0.f); //! 0 is the default value
+        EXPECT_EQ(std::get<int>(variables.uniforms.at("u_test_uniform_int").value), 1);
 
         try
         {
-            auto vec2 = std::get<glm::vec2>(variables.uniforms.at("u_test_uniform_vec2"));
+            auto vec2 = std::get<glm::vec2>(variables.uniforms.at("u_test_uniform_vec2").value);
             EXPECT_FLOAT_EQ(vec2.x, 1.);
             EXPECT_FLOAT_EQ(vec2.y, 2.);
         }
@@ -159,7 +159,7 @@ namespace
 
         try
         {
-            auto vec3 = std::get<glm::vec3>(variables.uniforms.at("u_test_uniform_vec3"));
+            auto vec3 = std::get<glm::vec3>(variables.uniforms.at("u_test_uniform_vec3").value);
             EXPECT_FLOAT_EQ(vec3.x, 1.);
             EXPECT_FLOAT_EQ(vec3.y, 2.);
             EXPECT_FLOAT_EQ(vec3.z, 3.);
@@ -170,7 +170,7 @@ namespace
         }
         try
         {
-            auto vec4 = std::get<glm::vec4>(variables.uniforms.at("u_test_uniform_vec4"));
+            auto vec4 = std::get<glm::vec4>(variables.uniforms.at("u_test_uniform_vec4").value);
             EXPECT_FLOAT_EQ(vec4.x, 1.);
             EXPECT_FLOAT_EQ(vec4.y, 2.);
             EXPECT_FLOAT_EQ(vec4.z, 3.);

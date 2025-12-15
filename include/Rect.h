@@ -22,15 +22,15 @@ struct Rect
 
     bool inline intersects(const Rect<T> &r2) const
     {
-        auto min_x = pos_x - width/2;
-        auto max_x = pos_x + width/2;
-        auto min_y = pos_y - height/2;
-        auto max_y = pos_y + height/2;
+        auto min_x = pos_x;
+        auto max_x = pos_x + width;
+        auto min_y = pos_y;
+        auto max_y = pos_y + height;
     
-        auto min_x_other = r2.pos_x - r2.width/2;
-        auto max_x_other = r2.pos_x + r2.width/2;
-        auto min_y_other = r2.pos_y - r2.height/2;
-        auto max_y_other = r2.pos_y + r2.height/2;
+        auto min_x_other = r2.pos_x;
+        auto max_x_other = r2.pos_x + r2.width;
+        auto min_y_other = r2.pos_y;
+        auto max_y_other = r2.pos_y + r2.height;
 
         bool intersects_x = min_x <= max_x_other && max_x >= min_x_other;
         bool intersects_y = min_y <= max_y_other && max_y >= min_y_other;

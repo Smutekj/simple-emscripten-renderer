@@ -1,10 +1,16 @@
 #include "Shader.h"
 
+#include "ShaderLoader.h"
+
+#include <SDL2/SDL.h>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtc/matrix_transform.hpp>
 
 std::string loadFileToString(std::string path)
 {
-    SDL_RWops* rw = SDL_RWFromFile(path.c_str(), "rb");
-    if (!rw) {
+    SDL_RWops *rw = SDL_RWFromFile(path.c_str(), "rb");
+    if (!rw)
+    {
         SDL_Log("Failed to open %s: %s", path.c_str(), SDL_GetError());
         return {};
     }
@@ -16,7 +22,6 @@ std::string loadFileToString(std::string path)
 
     return buffer;
 }
-
 
 std::istringstream loadFileToStream(std::string path)
 {
@@ -56,13 +61,13 @@ void static extractUniformNamesFromCode(VariablesData &shader_data, const std::s
             {
                 uniform_name.pop_back();
             }
-            shader_data.uniforms[uniform_name] = value;
+            shader_data.uniforms[uniform_name] = {value, true};
         }
     }
 }
 
 //! \brief removes initial values of uniforms from shader code
-//!         This is necessary because    
+//!         This is necessary because
 //! \param code       string containing old shader code
 //! \returns new string with reduced code
 std::string removeInitialValues(const std::string &code)
@@ -114,7 +119,7 @@ void static extractTextureNamesFromCode(VariablesData &shader_data, const std::s
 //! \brief the uniform names-values pairs are stored in \p shader_data
 //! \param shader_data
 //! \param filename
-void static extractUniformNames(VariablesData &shader_data, const std::string &filename)
+void extractUniformNames(VariablesData &shader_data, const std::string &filename)
 {
     auto file = loadFileToStream(filename);
     if (!file.good())
@@ -151,10 +156,9 @@ void static extractUniformNames(VariablesData &shader_data, const std::string &f
             {
                 uniform_name.pop_back();
             }
-            shader_data.uniforms[uniform_name] = value;
+            shader_data.uniforms[uniform_name] = {value, true};
         }
     }
-
 }
 
 //! \brief read a shader file in \p filename and extracts all uniforms that are textures
@@ -205,34 +209,21 @@ std::string VariablesData::setTexture(int slot, GLuint handle)
 
     if (name_it != textures.end())
     {
-        textures.at(name_it->first) = {slot, handle};
+        textures.at(name_it->first) = {slot, handle, true};
         return name_it->first;
     }
     return "";
 }
 
-//! \brief does GL calls to set values to all uniforms in the shader
-//! \brief does GL calls to set values to all uniforms in the shader
-void Shader::setUniforms()
-{
-    for (auto &[name, value] : m_variables.uniforms)
-    {
-        setUniform2(name, value);
-    }
-
-    if (m_variables.uniforms.contains("u_time"))
-    {
-        m_variables.uniforms.at("u_time") = Shader::m_time;
-    }
-    glCheckError();
-}
-
 //! \param name     name of the uniform
 //! \param value    value of the uniform (the gl call is determined by the value type)
 template <class ValueType>
-constexpr void Shader::setUniform(const std::string &name, const ValueType &value)
+constexpr void Shader::updateUniform(const std::string &name, const ValueType &value)
 {
-    if constexpr (std::is_same_v<ValueType, float>)
+    if constexpr (std::is_same_v<ValueType, UniformType>)
+    {
+    }
+    else if constexpr (std::is_same_v<ValueType, float>)
     {
         setFloat(name, value);
     }
@@ -278,48 +269,33 @@ const std::string &Shader::getName() const
     return m_shader_name;
 }
 
-
-bool Shader::wasSuccessfullyBuilt()const
+bool Shader::wasSuccessfullyBuilt() const
 {
     return m_successfully_built;
 }
 
+void Shader::setTexture(const std::string &uniform_tex_key, int slot, GLuint tex_handle)
+{
+    if (m_variables.textures.contains(uniform_tex_key))
+    {
+        m_variables.textures.at(uniform_tex_key) = {slot, tex_handle, true};
+    }
+}
 //! \brief does GL calls to activate textures at the slots
-void Shader::activateTexture(TextureArray handles)
+void Shader::setTexture(TextureArray handles)
 {
     for (size_t slot = 0; slot < handles.size(); ++slot)
     {
         if (handles.at(slot) != 0)
         {
             auto name = m_variables.setTexture(slot, handles.at(slot));
-            setInt(name, slot);
         }
     }
 }
 
-
-void Shader::setUniform2(const std::string &uniform_name, UniformType uniform_value)
+void Shader::setUniform(const std::string &uniform_name, UniformType uniform_value)
 {
-    std::visit([&uniform_name, this](auto &&t)
-               {
-            using T = std::decay_t<decltype(t)>;
-            setUniform<T>(uniform_name, t); }, uniform_value);
-    glCheckErrorMsg((uniform_name + " does not exist in the shader").c_str());
-
-    if (m_variables.uniforms.count(uniform_name) > 0)
-    {
-        m_variables.uniforms.at(uniform_name) = uniform_value;
-    }
-    else
-    {
-        m_variables.uniforms[uniform_name] = uniform_value;
-    }
-}
-
-void Shader::saveUniformValue(const std::string &uniform_name, UniformType uniform_value)
-{
-
-    m_variables.uniforms.at(uniform_name) = uniform_value;
+    m_variables.uniforms[uniform_name] = {uniform_value, true};
 }
 
 void Shader::retrieveCode(const char *code_path, std::string &code)
@@ -351,7 +327,7 @@ void Shader::retrieveCode(const char *code_path, std::string &code)
         code = shader_stream.str();
         std::cout << code << "\n";
     }
-    catch (std::ifstream::failure& e)
+    catch (std::ifstream::failure &e)
     {
         std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
     }
@@ -365,11 +341,12 @@ Shader::Shader(const std::string &vertex_shader_code, const std::string &frament
     }
     extractUniformNamesFromCode(m_variables, frament_shader_code);
     extractTextureNamesFromCode(m_variables, frament_shader_code);
-    m_shader_name = frament_shader_code; 
+    m_shader_name = frament_shader_code;
 }
 
 //! \brief construct from paths to vertex and fragment shaders
-Shader::Shader(const std::filesystem::path &vertex_path, const std::filesystem::path &fragment_path,
+Shader::Shader(const std::filesystem::path &vertex_path,
+               const std::filesystem::path &fragment_path,
                const std::string &shader_name) : m_vertex_path(vertex_path.string()),
                                                  m_fragment_path(fragment_path.string()),
                                                  m_shader_name(shader_name)
@@ -401,7 +378,8 @@ bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fra
     {
         extractTextureNamesFromCode(m_variables, fragment_code);
         extractUniformNamesFromCode(m_variables, fragment_code);
-    }catch(std::exception& e)
+    }
+    catch (std::exception &e)
     {
         std::cout << "failed to extract variales from code!" << std::endl;
         return false;
@@ -483,6 +461,8 @@ void Shader::recompile()
     std::string fragment_code = loadFileToString(m_fragment_path);
 #endif
     loadFromCode(vertex_code, fragment_code);
+
+    extractUniformNames(m_variables, getFragmentPath());
 }
 
 //! \brief calls glUseProgram(id)
@@ -513,8 +493,44 @@ void Shader::use()
     }
     glUseProgram(m_id);
     glCheckErrorMsg("Error in Shader use");
+
+    updateUniforms();
 }
 
+void Shader::updateUniforms()
+{
+    for (auto &[key, uniform] : m_variables.uniforms)
+    {
+        if (uniform.needs_update)
+        {
+            auto update_value = [&key, this](auto &&v)
+            {
+                using T = std::decay_t<decltype(v)>;
+                updateUniform<T>(key, v);
+            };
+            glCheckErrorMsg((key + " does not exist in the shader").c_str());
+            std::visit(update_value, uniform.value);
+
+            uniform.needs_update = false;
+        }
+    }
+
+    //! This is retarded, I should just have start-time attribute as part of vertex attributes or something...
+    if (m_variables.uniforms.contains("u_time"))
+    {
+        m_variables.uniforms.at("u_time") = {Shader::m_time, true};
+        updateUniform("u_time", Shader::m_time);
+    }
+
+    for (auto &[key, uniform_tex] : m_variables.textures)
+    {
+        if (uniform_tex.needs_update)
+        {
+            setInt(key, uniform_tex.slot);
+            uniform_tex.needs_update = false;
+        }
+    }
+}
 //! utility uniform functions
 void Shader::setBool(const std::string &name, bool value) const
 {
@@ -715,177 +731,4 @@ UniformType extractValue(std::string type_string, std::string initial_value)
         }
     }
     return value;
-}
-
-//! \brief sets base path for searching shaders when loading
-//! \param directory    path to a directory
-//! \returns true if the \p directory is actually an existing directory, otherwise returns false
-bool ShaderHolder::setBaseDirectory(std::filesystem::path directory)
-{
-    m_resources_path = directory;
-    return true;
-    // if (std::filesystem::exists(directory) && std::filesystem::is_directory(directory))
-    // {
-    //     return true;
-    // }
-
-    // return false;
-}
-
-//! \brief default constructs with resource path being "../Resources/Shaders/"
-ShaderHolder::ShaderHolder()
-{
-    m_resources_path = std::filesystem::path{"../Resources/Shaders/"};
-}
-
-//! \brief constructs with specified \p resources_path
-//! \param resources_path   path to directory where you store your shaders
-ShaderHolder::ShaderHolder(std::filesystem::path resources_path)
-    : m_resources_path(resources_path)
-{
-}
-
-//! \brief removes shader with \p shader_id from the holder
-//! \param shader_id   id of the shader to be removed
-void ShaderHolder::erase(const std::string &shader_id)
-{
-    m_shaders.erase(shader_id);
-    // m_shader_data.erase(shader_id);
-}
-
-const ShaderHolder::ShaderMap &ShaderHolder::getShaders() const
-{
-    return m_shaders;
-}
-
-//! \param shader_id   id of the shader to be removed
-//! \returns true if the \p shader_id is contained in the holder
-bool ShaderHolder::contains(const std::string &shader_id) const
-{
-    return m_shaders.count(shader_id) > 0;
-}
-
-// ShaderHolder::ShaderUIDataMap &ShaderHolder::getAllData()
-// {
-//     return m_shader_data;
-// }
-
-Shader &ShaderHolder::get(const std::string &id)
-{
-    return *m_shaders.at(id);
-}
-
-//! \brief calls glUseProgram() if the \p shader_id is contained
-//! \param shader_id   id of the shader to be removed
-void ShaderHolder::use(const std::string &id)
-{
-    if (contains(id))
-    {
-        m_shaders.at(id)->use();
-    }
-}
-
-//! \brief loads shader with id \p name
-//! \brief vertex shader is located at: \p vertex_filename
-//! \brief fragment shader is located at: \p fragment_filename
-//! \brief the uniform names-values pairs are stored in \p shader_data
-//! \param name
-//! \param vertex_filename
-//! \param fragment_filename
-bool ShaderHolder::load(const std::string &name,
-                        const std::string &vertex_filename, const std::string &fragment_filename)
-{
-    if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
-    {
-        m_shaders.erase(name);
-        // m_shader_data.erase(name);
-    }
-
-    std::filesystem::path vertex_path = m_resources_path.string() + vertex_filename; //! no idea if this works on windows?????
-    std::filesystem::path fragment_path = m_resources_path.string() + fragment_filename;
-
-    auto new_shader = std::make_unique<Shader>(vertex_path, fragment_path);
-    if (!new_shader->wasSuccessfullyBuilt())
-    {
-        return false;
-    }
-    m_shaders[name] = std::move(new_shader);
-    auto &shader = m_shaders.at(name);
-    shader->m_shader_name = name;
-    // m_shader_data.insert({name, *shader});
-
-    shader->use();
-    extractUniformNames(shader->m_variables, shader->getFragmentPath());
-
-    return true;
-}
-
-//! \brief loads shader with id \p name
-//! \brief vertex shader code is directly in \p vertex_code string
-//! \brief fragment shader code is directly in \p fragment_code string
-//! \brief the uniform names-values pairs are stored in \p shader_data
-//! \param name
-//! \param vertex_code
-//! \param fragment_code
-//! \returns true if succesfully added
-bool ShaderHolder::loadFromCode(const std::string &name,
-                                const std::string &vertex_code, const std::string &fragment_code)
-{
-    if (m_shaders.count(name) > 0) //! get rid of it first if shader with same name existed;
-    {
-        return false; //! erasing fucks somethign up :(
-        m_shaders.erase(name);
-        // m_shader_data.erase(name);
-    }
-
-    auto new_shader = std::make_unique<Shader>(vertex_code, fragment_code);
-    if (!new_shader->wasSuccessfullyBuilt())
-    {
-        return false;
-    }
-    //! if built add it to the holder
-    m_shaders[name] = std::move(new_shader);
-    auto &shader = m_shaders.at(name);
-    shader->m_shader_name = name;
-    // m_shader_data.insert({ name, *shader });
-    return true;
-}
-
-// ShaderUIData &ShaderHolder::getData(const std::string &name)
-// {
-//     return m_shader_data.at(name);
-// }
-
-//! \brief updates all uniform values based on the data in fragment shader file
-void ShaderHolder::initializeUniforms()
-{
-    for (auto &[shader_name, shader] : m_shaders)
-    {
-        // m_shader_data.insert({shader_name, *shader});
-
-        extractUniformNames(shader->m_variables, shader->getFragmentPath());
-    }
-}
-
-//! \brief forces reload of all the shaders in the container
-void ShaderHolder::refresh()
-{
-    std::vector<std::string> to_refresh;
-    for (auto &[shader_name, shader] : m_shaders)
-    {
-
-        std::filesystem::path f_path = shader->getFragmentPath();
-        auto last_time = std::filesystem::last_write_time(f_path);
-        if (last_time != shader->m_last_writetime)
-        {
-            to_refresh.push_back(shader_name);
-        }
-    }
-    while (!to_refresh.empty())
-    {
-        auto shader_id = to_refresh.back();
-        to_refresh.pop_back();
-        auto vertex_path = m_shaders.at(shader_id)->getVertexPath();
-        auto fragment_path = m_shaders.at(shader_id)->getFragmentPath();
-    }
 }

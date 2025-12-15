@@ -1,45 +1,23 @@
 #pragma once
 
 #include "Rect.h"
-#include "Batch.h"
-#include "Rectangle.h"
-#include "Sprite.h"
-#include "Texture.h"
 #include "RenderTarget.h"
-#include "Text.h"
+#include "BatchConfig.h"
+#include "ShaderHolder.h"
+#include "View.h"
 
 #include <memory>
 #include <set>
 
-//! \enum BlendFactor
-//! \brief a factor in the color blending equation
-//! for details see: \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glBlendFuncSeparate.xhtml
-enum class BlendFactor
-{
-    One = GL_ONE,
-    Zero = GL_ZERO,
-    SrcAlpha = GL_SRC_ALPHA,
-    OneMinusSrcAlpha = GL_ONE_MINUS_SRC_ALPHA,
-    SrcColor = GL_SRC_COLOR,
-};
+#include "Batch.h"
+#include "BlendParams.h"
+#include "Sprite.h"
 
-//! \struct BlendParams
-//! \brief holds info for color blending for OpenGL
-//!  the order of parameters corresponds to the order in glBlendFunSeparate(...);
-//! for details see: \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glBlendFuncSeparate.xhtml
-struct BlendParams
-{
-    BlendFactor src_factor = BlendFactor::One;
-    BlendFactor dst_factor = BlendFactor::OneMinusSrcAlpha;
-    BlendFactor src_alpha = BlendFactor::One;
-    BlendFactor dst_alpha = BlendFactor::OneMinusSrcAlpha;
-
-    BlendParams() = default;
-    BlendParams(BlendFactor src_fact, BlendFactor dst_fact);
-    BlendParams(BlendFactor src_fact, BlendFactor dst_fact, BlendFactor src_a, BlendFactor dst_a);
-};
-
+class Text;
+class Texture;
 class Font;
+class RectangleSimple;
+
 
 //! \class Renderer
 //! \brief acts as a canvas, with draw functions for:
@@ -48,60 +26,44 @@ class Font;
 //! drawAll() method should be used to do the actual GL calls and to do the actual screen drawing
 class Renderer
 {
-    using BatchPtr = std::shared_ptr<Batch>;
-    using SpriteBatchPtr = std::shared_ptr<SpriteBatch>;
-
+    
 public:
-    Renderer(RenderTarget &target);
+    explicit Renderer(RenderTarget &target);
 
-    void drawSprite(Sprite &sprite, const std::string &shader_id = "SpriteDefault", DrawType draw_type = DrawType::Dynamic);
-    void drawSpriteDynamic(Sprite &sprite, const std::string &shader_id);
-    void drawText(const Text &text, const std::string &shader_id = "TextDefault", DrawType draw_type = DrawType::Dynamic);
+    void drawSprite(Sprite &sprite, const std::string &shader_id = "SpriteDefault");
+    void drawText(const Text &text, const std::string &shader_id = "TextDefault");
+    void drawText2(const Text &text, const std::string &shader_id = "TextDefault2");
     void drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color);
-    void drawRectangle(RectangleSimple &r, Color color, const std::string &shader_id = "VertexArrayDefault", DrawType draw_type = DrawType::Dynamic);
-    void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color, DrawType draw_type = DrawType::Dynamic);
+    void drawRectangle(RectangleSimple &r, const std::string &shader_id = "VertexArrayDefault");
+    void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color);
     void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 32);
     void drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f &scale, Color color, int n_verts = 51, std::string shader_id = "VertexArrayDefault");
-    void drawVertices(std::vector<Vertex> &verts, const std::string &shader_id = "VertexArrayDefault",
-                      DrawType draw_type = DrawType::Dynamic, std::shared_ptr<Texture> p_texture = nullptr);
+    void drawVertices(std::vector<Vertex> &verts, const std::string &shader_id = "VertexArrayDefault", std::shared_ptr<Texture> p_texture = nullptr);
 
     void drawAll();
+    void drawAllInto(RenderTarget &target);
     void resetBatches();
 
     utils::Vector2i getTargetSize() const;
-    RenderTarget& getTarget()
-{
-    return m_target;
-}
+    RenderTarget &getTarget() const;
 
-    ShaderHolder &getShaders();
-
-    bool hasShader(std::string id);
     void clear(Color c);
 
+    ShaderHolder &getShaders();
+    bool hasShader(std::string id);
     void addShader(std::string id, std::string vertex_path, std::string fragment_path);
     Shader &getShader(const std::string &id);
     Shader *getShaderP(const std::string &id);
+    bool setShadersPath(std::filesystem::path directory);
+
     utils::Vector2f getMouseInWorld();
     utils::Vector2i getMouseInScreen();
 
     View getDefaultView() const;
-
-    bool setShadersPath(std::filesystem::path directory);
-
 private:
     void drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect, Vec2 texture_size,
-                            TextureArray &textures, const std::string &shader_id, DrawType draw_type);
+                            TextureArray &textures, const std::string &shader_id);
 
-    Batch &findBatch(GLuint texture_id, Shader &shader, DrawType draw_type, int num_vertices_inserted);
-    Batch &findBatch(TextureArray texture_ids, Shader &shader, DrawType draw_type, int num_vertices_inserted);
-    SpriteBatch &findSpriteBatch(GLuint texture_id, Shader &shader, DrawType draw_type);
-    SpriteBatch &findSpriteBatch(TextureArray texture_ids, Shader &shader, DrawType draw_type);
-
-    Batch &findFreeBatch(BatchConfig config, Shader &shader, DrawType draw_type, int num_vertices_inserted);
-    SpriteBatch &findFreeSpriteBatch(BatchConfig config, Shader &shader, DrawType draw_type);
-
-    BatchPtr createBatch(const BatchConfig &config, Shader &shader, DrawType draw_type);
 
     bool checkShader(const std::string &shader_id);
 
@@ -111,10 +73,18 @@ public:
     BlendParams m_blend_factors; //!< OpenGL factors of the blend equation
 
 private:
+    //! dirty flags
+    bool m_blend_factors_changed = true;
+    bool m_viewport_changed = true;
+
     ShaderHolder m_shaders; //!< stores shaders that we can use in this canvas (will probably just use singleton later on...)
 
-    std::unordered_map<BatchConfig, std::vector<BatchPtr>> m_config2batches; //!< stores batches
-    std::unordered_map<BatchConfig, std::vector<SpriteBatchPtr>> m_config2sprite_batches;
+    BatchRegistry m_batches;
 
     RenderTarget &m_target; //!< the actual draw target
 };
+
+
+//! \brief utility function to pass a texture into a buffer via a shader
+void renderToTraget(Renderer &target, const Texture &source, const std::string &shader_id);
+void renderToTarget(RenderTarget &target, const Texture &source, Shader& shader);

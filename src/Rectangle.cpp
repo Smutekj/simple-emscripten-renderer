@@ -2,6 +2,7 @@
 
 #include "Shader.h"
 #include "Texture.h"
+#include "RenderTarget.h"
 #include "View.h"
 
 DrawRectangle::DrawRectangle(Shader &shader) : m_shader(&shader)
@@ -30,7 +31,6 @@ void DrawRectangle::initialize()
     glCheckError();
 }
 
-
 //! \brief draws into a target spec using the \p view
 //! \param terget       GL handle of the render target
 //! \param view         tells us what part of the world is drawn.
@@ -39,14 +39,13 @@ void DrawRectangle::draw(GLuint target, View &view)
 
     glBindFramebuffer(GL_FRAMEBUFFER, target);
 
+    m_shader->setUniform("u_view_projection", view.getMatrix());
+    m_shader->setUniform("u_transform", getMatrix());
     m_shader->use();
-    m_shader->setMat4("u_view_projection", view.getMatrix());
-    m_shader->setMat4("u_transform", getMatrix());
 
     if (m_texture)
     {
-        m_shader->setInt("u_texture", 0);
-        m_texture->bind();
+        m_texture->bind(0);
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
@@ -64,7 +63,6 @@ void DrawRectangle::draw(GLuint target, View &view)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-
 void DrawRectangle::setShader(Shader &shader)
 {
     m_shader = &shader;
@@ -77,7 +75,7 @@ void DrawRectangle::setTexture(Texture &texture)
 
 void DrawRectangle::setColor(Color color)
 {
-    for (auto& vertex : m_verts)
+    for (auto &vertex : m_verts)
     {
         vertex.color = color;
     }
@@ -108,20 +106,120 @@ std::vector<Vertex> DrawRectangle::getVerts()
     return new_verts;
 }
 
-// Sprite::Sprite(Texture &texture, Shader &shader)
-//     : Rectangle(shader)
-// {
-//     setTexture(texture);
-// }
+DrawSprite::~DrawSprite()
+{
+    glDeleteVertexArrays(1, &m_vao);
+    glDeleteBuffers(1, &m_vbo);
+}
 
-// void Sprite::setTextureRect(Rect<int> tex_rect)
-// {
-//     auto tex_size = m_texture->getSize();
-//     m_tex_rect = {tex_rect.pos_x / tex_size.x, tex_rect.pos_y / tex_size.y,
-//                   tex_rect.width / tex_size.x, tex_rect.height / tex_size.y};
+DrawSprite::DrawSprite()
+{
 
-//     m_verts[0].tex_coord = {m_tex_rect.pos_x, m_tex_rect.pos_y};
-//     m_verts[1].tex_coord = {m_tex_rect.pos_x + m_tex_rect.width, m_tex_rect.pos_y};
-//     m_verts[2].tex_coord = {m_tex_rect.pos_x + m_tex_rect.width, m_tex_rect.pos_y + m_tex_rect.height};
-//     m_verts[3].tex_coord = {m_tex_rect.pos_x, m_tex_rect.pos_y + m_tex_rect.height};
-// }
+    static constexpr float VERTEX_RECT[6 * 4] = {
+        -1, -1, 0, 0,
+        -1, +1, 0, 1,
+        +1, -1, 1, 0,
+        +1, +1, 1, 1,
+        +1, -1, 1, 0,
+        -1, +1, 0, 1};
+
+    glGenBuffers(1, &m_vbo);
+
+    glGenVertexArrays(1, &m_vao);
+    glBindVertexArray(m_vao);
+
+    glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(VERTEX_RECT), (void *)VERTEX_RECT, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE,
+                          4 * sizeof(float), (void *)(0 * sizeof(float)));
+    glVertexAttribDivisor(0, 0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE,
+                          4 * sizeof(float), (void *)(2 * sizeof(float)));
+    glVertexAttribDivisor(1, 0);
+    glCheckError();
+
+    glBindVertexArray(0);
+}
+
+void DrawSprite::draw(RenderTarget &target, Shader &shader, TextureArray textures, View &view)
+{
+
+    target.bind();
+
+    shader.setUniform("u_view_projection", view.getMatrix());
+    shader.setUniform("u_transform", getMatrix());
+    shader.use();
+
+    for (int tex_id = 0; tex_id < textures.size(); ++tex_id)
+    {
+        if (textures[tex_id] != 0)
+        {
+            glActiveTexture(GL_TEXTURE0 + tex_id);
+            glBindTexture(GL_TEXTURE_2D, textures[tex_id]);
+            glCheckError();
+        }
+    }
+
+    glBindVertexArray(m_vao);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glCheckError();
+
+    glBindVertexArray(0);
+}
+
+void ScreenSprite::draw(RenderTarget &target, Shader &shader, const Texture &source)
+{
+    DrawSprite screen_sprite;
+    Vec2 target_size = target.getSize();
+    screen_sprite.setPosition(target_size / 2.f);
+    screen_sprite.setScale(target_size / 2.f);
+
+    View view;
+    view.setCenter(target_size / 2.f);
+    view.setSize(target_size);
+
+    glViewport(0, 0, target.getSize().x, target.getSize().y);
+    screen_sprite.draw(target, shader, {source.getHandle(), 0}, view);
+}
+
+template <class... Textures>
+void ScreenSprite::draw(RenderTarget &target, Shader &shader, const Textures &...sources)
+{
+
+    static_assert((std::is_same_v<Textures, Texture> && ...),
+                  "All parameters must be Texture");
+
+    DrawSprite screen_sprite;
+    Vec2 target_size = target.getSize();
+    screen_sprite.setPosition(target_size / 2.f);
+    screen_sprite.setScale(target_size / 2.f);
+
+    View view;
+    view.setCenter(target_size / 2.f);
+    view.setSize(target_size);
+
+    // Collect texture handles
+    std::array<TextureHandle, sizeof...(sources)> tex_array{
+        sources.getHandle()...};
+
+    glViewport(0, 0, target.getSize().x, target.getSize().y);
+    screen_sprite.draw(target, shader, tex_array, view);
+}
+void ScreenSprite::draw(RenderTarget &target, Shader &shader, const Texture &source, const Texture &source2)
+{
+    DrawSprite screen_sprite;
+    Vec2 target_size = target.getSize();
+    screen_sprite.setPosition(target_size / 2.f);
+    screen_sprite.setScale(target_size / 2.f);
+
+    View view;
+    view.setCenter(target_size / 2.f);
+    view.setSize(target_size);
+
+    glViewport(0, 0, target.getSize().x, target.getSize().y);
+    screen_sprite.draw(target, shader, {source.getHandle(), source2.getHandle()}, view);
+}

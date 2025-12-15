@@ -11,8 +11,6 @@
 #include <SDL2/SDL.h>
 #else
 #include <glad/gl.h>
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_opengl.h>
 #endif
 
 #include <vector>
@@ -20,8 +18,6 @@
 #include <numeric>
 #include <iostream>
 
-constexpr int N_MAX_TEXTURES_IN_SHADER = 2; //! maximum number of texture slots
-using TextureArray = std::array<GLuint, N_MAX_TEXTURES_IN_SHADER>;
 
 using IndexType = unsigned short;
 

@@ -4,6 +4,9 @@
 
 #include <SDL.h>
 #include <SDL_mixer.h>
+#include "IncludesGl.h"
+
+SDL_GLContext m_gl_context;
 
 //! \brief constructs SDL window using it's \p width and \p height
 //! \param width
@@ -24,9 +27,10 @@ Window::Window(int width, int height)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
 #endif
 
-    SDL_GL_SetSwapInterval(1);
+    auto check = SDL_GL_SetSwapInterval(0);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+
     // Create SDL window
     m_handle =
         SDL_CreateWindow("Hello Triangle Minimal",
@@ -38,14 +42,15 @@ Window::Window(int width, int height)
 
 //! load gl functions on desktops (emscripten does it on it's own)
 #ifndef __EMSCRIPTEN__
-    #ifdef __ANDROID__
+#ifdef __ANDROID__
     gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
-    #else
+#else
     gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
-    #endif
 #endif
+#endif
+
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     // glEnable(GL_DEPTH_TEST);
     // glDepthFunc(GL_LESS);
     glCheckError();
@@ -59,10 +64,10 @@ Window::Window(int width, int height)
 
     glViewport(0, 0, size_check.x, size_check.y);
 
-    //Initialize SDL_mixer
-    if( Mix_OpenAudio( 44100, MIX_DEFAULT_FORMAT, 2, 2048 ) < 0 )
+    // Initialize SDL_mixer
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) < 0)
     {
-        printf( "SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError() );
+        printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
     }
 }
 
@@ -85,7 +90,7 @@ SDL_Window *Window::getHandle() const
 }
 
 //! \returns an associated SDL_GLcontext
-SDL_GLContext *Window::getContext()
+void *Window::getContext()
 {
     return &m_gl_context;
 }

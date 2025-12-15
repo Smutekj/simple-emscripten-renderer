@@ -1,31 +1,39 @@
 #include "Renderer.h"
 
+#include "Batch.h"
+
 #include "Rectangle.h"
 #include "Texture.h"
 #include "Font.h"
+#include "Text.h"
+#include "Sprite.h"
 #include "CommonShaders.inl"
 
 #include <chrono>
 #include <numbers>
 #include <codecvt>
 
-BlendParams::BlendParams(BlendFactor src_fact, BlendFactor dst_fact)
-    : src_factor(src_fact), dst_factor(dst_fact)
-{
-}
-BlendParams::BlendParams(BlendFactor src_fact, BlendFactor dst_fact, BlendFactor src_a, BlendFactor dst_a)
-    : src_factor(src_fact), dst_factor(dst_fact), src_alpha(src_a), dst_alpha(dst_a)
-{
-}
+#include <SDL2/SDL_mouse.h>
+
+#include <glm/trigonometric.hpp>
 
 Renderer::Renderer(RenderTarget &target)
-    : m_viewport(0.f, 0.f, 1.f, 1.f),
-      m_target(target)
+    : m_target(target),
+      m_viewport(0.f, 0.f, 1.f, 1.f)
 {
     //! load default shaders
     m_shaders.loadFromCode("VertexArrayDefault", vertex_vertexarray_code, fragment_fullpass_code);
     m_shaders.loadFromCode("SpriteDefault", vertex_sprite_code, fragment_fullpass_texture_code);
+    m_shaders.loadFromCode("SpritePass", vertex_sprite_code, fragment_fullpass_texture_code_no_alpha);
     m_shaders.loadFromCode("TextDefault", vertex_sprite_code, fragment_text_code);
+    m_shaders.loadFromCode("TextDefault2", vertex_text_code, fragment_text2_code);
+
+    //! register Default Batch Types
+    m_batches.registerBatch<utils::Vector2f, SpriteInstance>(makeSpriteBatch);
+    m_batches.registerBatch<utils::Vector2f, TextInstance>(makeTextBatch);
+    m_batches.registerBatch<Vertex, float>(makeVertexBatch);
+
+    m_view = getDefaultView();
 }
 
 utils::Vector2i Renderer::getTargetSize() const
@@ -47,25 +55,6 @@ bool Renderer::hasShader(std::string id)
 void Renderer::clear(Color c)
 {
     m_target.clear(c);
-    
-    for(auto& [config, batch] : m_config2batches)
-    {
-        if(config.draw_type != DrawType::Static)
-        {
-            std::for_each(batch.begin(), batch.end(), [](auto& b){
-                b->clear();
-            });
-        }
-    }
-    for(auto& [config, batch] : m_config2sprite_batches)
-    {
-        if(config.draw_type != DrawType::Static)
-        {
-            std::for_each(batch.begin(), batch.end(), [](auto& b){
-                b->clear();
-            });
-        }
-    }
 }
 
 void Renderer::addShader(std::string id, std::string vertex_path, std::string fragment_path)
@@ -111,7 +100,7 @@ utils::Vector2i Renderer::getMouseInScreen()
 View Renderer::getDefaultView() const
 {
     View default_view;
-    auto window_size = getTargetSize();
+    utils::Vector2f window_size = getTargetSize();
     default_view.setCenter(window_size / 2.f);
     default_view.setSize(window_size);
     return default_view;
@@ -127,7 +116,7 @@ bool Renderer::checkShader(const std::string &shader_id)
     {
         return true;
     }
-    
+
     try
     {
         m_shaders.load(shader_id, "basicinstanced.vert", shader_id + ".frag");
@@ -142,41 +131,33 @@ bool Renderer::checkShader(const std::string &shader_id)
 //! \brief draws a \p sprite using shader given by \p shader_id
 //! \param sprite       contains textures info and sprite transformations
 //! \param shader_id
-//! \param draw_type    Static or Dynamic draws
-void Renderer::drawSprite(Sprite &sprite, const std::string &shader_id, DrawType draw_type)
+void Renderer::drawSprite(Sprite &sprite, const std::string &shader_id)
 {
     if (checkShader(shader_id))
     {
         drawSpriteUnpacked(sprite.getPosition(), sprite.getScale(), sprite.getRotation(), sprite.m_color,
-                           sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id, draw_type);
+                           sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id);
     }
 }
 
-//! TODO: Figure out what the idea was here?
-void Renderer::drawSpriteDynamic(Sprite &sprite, const std::string &shader_id)
-{
-    drawSprite(sprite, shader_id, DrawType::Dynamic);
-}
-
-//! \brief draws text using a font in the \p text
-//! \param text constains Font info
-//! \param shader_id
-//! \param draw_type
-void Renderer::drawText(const Text &text, const std::string &shader_id, DrawType draw_type)
+void Renderer::drawText2(const Text &text, const std::string &shader_id)
 {
     if (!checkShader(shader_id))
     {
         return;
     }
-    const auto& string = text.getTextW();
+    auto &shader = m_shaders.get(shader_id);
+    const auto &string = text.getTextW();
     auto font = text.getFont();
     if (!font)
     {
         return;
     }
-    Sprite glyph_sprite(font->getTexture());
 
-    auto text_scale = text.getScale();
+    BatchConfig config({font->getTexture().getHandle(), font->getCharmapTexId()}, &shader);
+
+    TextInstance glyph;
+    utils::Vector2f text_scale = text.getScale();
     auto center_pos = text.getPosition();
     auto line_pos = center_pos;
     utils::Vector2f glyph_pos = center_pos;
@@ -189,19 +170,18 @@ void Renderer::drawText(const Text &text, const std::string &shader_id, DrawType
 
         glyph_pos.x = line_pos.x + character.bearing.x * text_scale.x + width / 2.f;
         glyph_pos.y = line_pos.y + height / 2.f - dy * text_scale.y;
-        glyph_sprite.m_tex_rect = {character.tex_coords.x, character.tex_coords.y,
-                                   character.size.x, character.size.y};
 
-        //! setPosition sets center of the sprite not the corner position. so we must correct for that
-        glyph_sprite.setPosition(glyph_pos);
-        glyph_sprite.setScale(width / 2., height / 2.);
-        glyph_sprite.m_color = text.getColor();
-        // drawLineBatched({glyph_pos.x - width/2.f, glyph_pos.y - height/2.f}, {glyph_pos.x + width/2.f, glyph_pos.y-height/2.f}, 0.5, {0, 1, 0, 1});
-        // drawLineBatched({glyph_pos.x + width/2.f, glyph_pos.y -height/2.f}, {glyph_pos.x + width/2.f, glyph_pos.y + height/2.f}, 0.5, {0, 1, 0, 1});
-        // drawLineBatched({glyph_pos.x + width/2.f, glyph_pos.y +height/2.f}, {glyph_pos.x - width/2.f, glyph_pos.y + height/2.f}, 0.5, {0, 1, 0, 1});
-        // drawLineBatched({glyph_pos.x - width/2.f, glyph_pos.y +height/2.f}, {glyph_pos.x - width/2.f, glyph_pos.y - height/2.f}, 0.5, {0, 1, 0, 1});
+        glyph.pos = glyph_pos;
+        glyph.scale = {width / 2.f, height / 2.f};
+        glyph.fill_color = text.getColor();
+        glyph.edge_color = text.m_edge_color;
+        glyph.glow_color = text.m_glow_color;
+        glyph.char_code = font->m_charcode2texcode.at(string.at(glyph_ind));
+
+        m_batches.pushInstance(glyph, config);
+        //! pushTextInstance(glyph);
+
         line_pos.x += (character.advance >> 6) * text_scale.x;
-        drawSprite(glyph_sprite, shader_id, draw_type);
     }
 
     auto bounding_box = text.getBoundingBox();
@@ -209,11 +189,80 @@ void Renderer::drawText(const Text &text, const std::string &shader_id, DrawType
     utils::Vector2f text_size = {bounding_box.width, bounding_box.height};
     if (text.m_draw_bounding_box)
     {
-        drawLineBatched(text.getPosition(), {text.getPosition().x + text_size.x, text.getPosition().y}, 0.5, {1, 0, 0, 1});
-        drawLineBatched(line_pos, {line_pos.x + text_size.x, line_pos.y}, 0.5, {0, 1, 0, 1});
-        drawLineBatched({line_pos.x + text_size.x, line_pos.y}, {line_pos.x + text_size.x, line_pos.y + text_size.y}, 0.5, {0, 1, 0, 1});
-        drawLineBatched({line_pos.x + text_size.x, line_pos.y + text_size.y}, {line_pos.x, line_pos.y + text_size.y}, 0.5, {0, 1, 0, 1});
-        drawLineBatched({line_pos.x, line_pos.y + text_size.y}, line_pos, 0.5, {0, 1, 0, 1});
+        drawLineBatched(text.getPosition(), {text.getPosition().x + text_size.x, text.getPosition().y}, 1.5, {1, 0, 0, 1});
+        drawLineBatched(line_pos, {line_pos.x + text_size.x, line_pos.y}, 1.5, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x + text_size.x, line_pos.y}, {line_pos.x + text_size.x, line_pos.y + text_size.y}, 1.5, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x + text_size.x, line_pos.y + text_size.y}, {line_pos.x, line_pos.y + text_size.y}, 1.5, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x, line_pos.y + text_size.y}, line_pos, 1.5, {0, 1, 0, 1});
+    }
+}
+
+//! \brief draws text using a font in the \p text
+//! \param text constains Font info
+//! \param shader_id
+//! \param draw_type
+void Renderer::drawText(const Text &text, const std::string &shader_id)
+{
+    if (!checkShader(shader_id))
+    {
+        return;
+    }
+    const auto &string = text.getTextW();
+    auto font = text.getFont();
+    if (!font)
+    {
+        return;
+    }
+    Sprite glyph_sprite(font->getTexture());
+
+    utils::Vector2f text_scale = text.getScale();
+    auto line_pos = text.getPosition();
+    if (text.m_is_centered)
+    {
+        auto bb = text.getBoundingBox();
+        auto depth = text.getDepthUnderLine();
+        line_pos.x -= bb.width / 2.f;
+        line_pos.y -= bb.height / 2.f;
+        line_pos.y += depth;
+    }
+    for (std::size_t glyph_ind = 0; glyph_ind < string.size(); ++glyph_ind)
+    {
+        auto character = font->m_characters.at(string.at(glyph_ind));
+        float width = character.size.x * text_scale.x;
+        float height = character.size.y * text_scale.y;
+        float dy = character.size.y - character.bearing.y;
+
+        utils::Vector2f glyph_pos = {
+            line_pos.x + character.bearing.x * text_scale.x + width / 2.f,
+            line_pos.y + height / 2.f - dy * text_scale.y};
+
+        glyph_sprite.m_tex_rect = {character.tex_coords.x, character.tex_coords.y,
+                                   character.size.x, character.size.y};
+
+        //! setPosition sets center of the sprite not the corner position. so we must correct for that
+        glyph_sprite.setPosition(glyph_pos);
+        glyph_sprite.setScale(width / 2., height / 2.);
+        glyph_sprite.m_color = text.getColor();
+        height = character.bb.height;
+        width = character.bb.width;
+        // drawLineBatched({glyph_pos.x - width/2.f, glyph_pos.y - height/2.f}, {glyph_pos.x + width/2.f, glyph_pos.y-height/2.f}, 0.5, {0, 1, 0, 1});
+        // drawLineBatched({glyph_pos.x + width/2.f, glyph_pos.y -height/2.f}, {glyph_pos.x + width/2.f, glyph_pos.y + height/2.f}, 0.5, {0, 1, 0, 1});
+        // drawLineBatched({glyph_pos.x + width/2.f, glyph_pos.y +height/2.f}, {glyph_pos.x - width/2.f, glyph_pos.y + height/2.f}, 0.5, {0, 1, 0, 1});
+        // drawLineBatched({glyph_pos.x - width/2.f, glyph_pos.y +height/2.f}, {glyph_pos.x - width/2.f, glyph_pos.y - height/2.f}, 0.5, {0, 1, 0, 1});
+        line_pos.x += (character.advance >> 6) * text_scale.x;
+        drawSprite(glyph_sprite, shader_id);
+    }
+
+    auto bounding_box = text.getBoundingBox();
+    line_pos = {bounding_box.pos_x, bounding_box.pos_y};
+    utils::Vector2f text_size = {bounding_box.width, bounding_box.height};
+    if (text.m_draw_bounding_box)
+    {
+        drawLineBatched(text.getPosition(), {text.getPosition().x + text_size.x, text.getPosition().y}, 1.5, {1, 0, 0, 1});
+        drawLineBatched(line_pos, {line_pos.x + text_size.x, line_pos.y}, 1.5, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x + text_size.x, line_pos.y}, {line_pos.x + text_size.x, line_pos.y + text_size.y}, 1.5, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x + text_size.x, line_pos.y + text_size.y}, {line_pos.x, line_pos.y + text_size.y}, 1.5, {0, 1, 0, 1});
+        drawLineBatched({line_pos.x, line_pos.y + text_size.y}, line_pos, 1.5, {0, 1, 0, 1});
     }
 }
 
@@ -227,17 +276,11 @@ void Renderer::drawText(const Text &text, const std::string &shader_id, DrawType
 //! \param draw_type
 void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
                                   Vec2 texture_size, TextureArray &texture_handles,
-                                  const std::string &shader_id, DrawType draw_type)
+                                  const std::string &shader_id)
 {
     auto &shader = m_shaders.get(shader_id);
 
-    if (draw_type == DrawType::Static)
-    {
-        std::cout << "STATIC DRAW NOT SUPPORTED YET!!!";
-        return;
-    }
-
-    Trans t;
+    SpriteInstance t;
     t.angle = angle;
     t.trans = center;
     t.scale = scale;
@@ -245,18 +288,16 @@ void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByt
 
     //! normalize the texture rectangle to be between [0,1] just as OpenGL likes it
     auto tex_size = texture_size;
-    Rect<float> tex_rect_norm = {tex_rect.pos_x / tex_size.x, tex_rect.pos_y / tex_size.y,
-                                 tex_rect.width / tex_size.x, tex_rect.height / tex_size.y};
-    
+    Rect<float> tex_rect_norm = {tex_rect.pos_x / (float)tex_size.x, tex_rect.pos_y / (float)tex_size.y,
+                                 tex_rect.width / (float)tex_size.x, tex_rect.height / (float)tex_size.y};
+
     //! THE 1- thing is there because all texture atlases have 0,0 in the upper left corner. OpenGL does it in lower left.
-    //! DO NOT CHANGE, WILL CAUSE PAIN!!!
-    t.tex_coords = {tex_rect_norm.pos_x, 1. - tex_rect_norm.pos_y}; 
+    t.tex_coords = {tex_rect_norm.pos_x, 1. - tex_rect_norm.pos_y};
     t.tex_size = {tex_rect_norm.width, tex_rect_norm.height};
 
-    auto &batch = findSpriteBatch(texture_handles, shader, draw_type);
-    if (batch.addSprite(t))
-    {
-    }
+    BatchConfig config(texture_handles, &shader);
+
+    m_batches.pushInstance(t, config);
 }
 
 //! \brief draws line connecting \p point_a and \p point_b
@@ -286,15 +327,12 @@ void Renderer::drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color
 //! \param thickness
 //! \param color
 //! TODO: connect with drawLineBatched
-void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color,
-                               DrawType draw_type)
+void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color)
 {
     if (!checkShader("VertexArrayDefault"))
     {
         return;
     }
-    auto &batch = findBatch(0, m_shaders.get("VertexArrayDefault"), draw_type, 6);
-
     static std::vector<Vertex> verts(6); //! this should be static?
     verts[0] = {{-1.f, -1.f}, {0.f, 0.f, 1.f, 1.f}, {0.f, 0.f}};
     verts[1] = {{1.f, -1.f}, {0.f, 0.f, 1.f, 1.f}, {1.f, 0.f}};
@@ -306,7 +344,7 @@ void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Colo
     Vec2 dr = {point_b.x - point_a.x, point_b.y - point_a.y};
     Transform matrix;
     matrix.setRotation(glm::degrees(std::atan2(dr.y, dr.x)));
-    matrix.setScale(std::sqrt(dr.x * dr.x + dr.y * dr.y) / 2.f, thickness);
+    matrix.setScale(std::sqrt(dr.x * dr.x + dr.y * dr.y) / 2.f, thickness / 2.f);
     matrix.setPosition((point_a.x + point_b.x) / 2.f, (point_a.y + point_b.y) / 2.f);
 
     //! set color and transform positions
@@ -316,7 +354,9 @@ void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Colo
         v.color = color;
     }
 
-    batch.pushVertexArray(verts);
+    drawVertices(verts);
+
+    // batch.pushVertexArray(verts);
 }
 
 //! \brief draws a rectangle \p rect
@@ -324,21 +364,22 @@ void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Colo
 //! \param color
 //! \param shader_id
 //! \param draw_type
-void Renderer::drawRectangle(RectangleSimple &rect, Color color,
-                             const std::string &shader_id, DrawType draw_type)
+void Renderer::drawRectangle(RectangleSimple &rect,
+                             const std::string &shader_id)
 {
 
     auto &shader_name = m_shaders.contains(shader_id) ? shader_id : "VertexArrayDefault";
+    auto &shader = m_shaders.get(shader_name);
 
-    auto &batch = findBatch(0, m_shaders.get(shader_name), draw_type, 6);
+    BatchConfig config({0, 0}, &shader);
 
     std::vector<Vertex> verts(6); //! this should be static?
-    verts[0] = {{-rect.width / 2.f, -rect.height / 2.f}, color, {0.f, 0.f}};
-    verts[1] = {{+rect.width / 2.f, -rect.height / 2.f}, color, {1.f, 0.f}};
-    verts[2] = {{+rect.width / 2.f, +rect.height / 2.f}, color, {1.f, 1.f}};
-    verts[3] = {{-rect.width / 2.f, +rect.height / 2.f}, color, {0.f, 1.f}};
-    verts[4] = {{-rect.width / 2.f, -rect.height / 2.f}, color, {0.f, 0.f}};
-    verts[5] = {{+rect.width / 2.f, +rect.height / 2.f}, color, {1.f, 1.f}};
+    verts[0] = {{-1.f / 2.f, -1.f / 2.f}, rect.m_color, {0.f, 0.f}};
+    verts[1] = {{+1.f / 2.f, -1.f / 2.f}, rect.m_color, {1.f, 0.f}};
+    verts[2] = {{+1.f / 2.f, +1.f / 2.f}, rect.m_color, {1.f, 1.f}};
+    verts[3] = {{-1.f / 2.f, +1.f / 2.f}, rect.m_color, {0.f, 1.f}};
+    verts[4] = {{-1.f / 2.f, -1.f / 2.f}, rect.m_color, {0.f, 0.f}};
+    verts[5] = {{+1.f / 2.f, +1.f / 2.f}, rect.m_color, {1.f, 1.f}};
 
     //! set color and transform positions
     for (auto &v : verts)
@@ -346,7 +387,7 @@ void Renderer::drawRectangle(RectangleSimple &rect, Color color,
         rect.transform(v.pos);
     }
 
-    batch.pushVertexArray(verts);
+    m_batches.pushVertices(verts, config);
 }
 
 //! \brief draws a circle centered at: \p center with a radius of \p radius
@@ -367,30 +408,36 @@ void Renderer::drawCricleBatched(Vec2 center, float radius, Color color, int n_v
 //! \param n_verts      number of vertices making the circle
 void Renderer::drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f &scale, Color color, int n_verts, std::string shader_id)
 {
-    auto &batch = findBatch(0, m_shaders.get(shader_id), DrawType::Dynamic, n_verts);
-
     auto pi = std::numbers::pi_v<float>;
 
+    if (!m_shaders.contains(shader_id))
+    {
+        return;
+    }
+    auto &shader = m_shaders.get(shader_id);
+    BatchConfig config({0, 0}, &shader);
+
     auto n_verts_circumference = n_verts - 1;
-    batch.pushVertex({center, color, {0, 0}});
+    std::vector<Vertex> verts;
+
+    float angle_r = glm::radians(angle);
+    float d_angle = 2.f * pi / n_verts_circumference;
+
+    utils::Vector2f pos = {std::cos(angle_r), std::sin(angle_r)};
+    Vertex v_prev = {{center.x + pos.x * scale.x, center.y + pos.y * scale.y}, color, {pos.x, pos.y}};
     for (int i = 0; i < n_verts_circumference; ++i)
     {
-        float x = std::cos(2.f * i * pi / n_verts_circumference + glm::radians(angle));
-        float y = std::sin(2.f * i * pi / n_verts_circumference + glm::radians(angle));
-        Vertex v = {{center.x + x * scale.x, center.y + y * scale.y}, color, {x, y}};
-        batch.pushVertex(v);
+        pos = {std::cos((i + 1) * d_angle + angle_r), std::sin((i + 1) * d_angle + angle_r)};
+        Vertex v = {{center.x + pos.x * scale.x, center.y + pos.y * scale.y}, color, {pos.x, pos.y}};
+
+        verts.push_back({center, color, {0, 0}});
+        verts.push_back(v_prev);
+        verts.push_back(v);
+
+        v_prev = v;
     }
 
-    auto &indices = batch.m_indices;
-    indices.resize(indices.size() - n_verts); //! get rid of indices just created by pushVertex
-    auto last_index = batch.getLastInd() - n_verts;
-    //! make triangles by specifying indices
-    for (IndexType i = 0; i < n_verts_circumference; ++i)
-    {
-        indices.push_back(last_index);
-        indices.push_back((i) % n_verts_circumference + last_index + 1);
-        indices.push_back((i + 1) % n_verts_circumference + last_index + 1);
-    }
+    m_batches.pushVertices(verts, config);
 }
 
 //! \brief draws vertices in the \p verts VertexArray using the texture \p p_texture
@@ -399,9 +446,8 @@ void Renderer::drawEllipseBatched(Vec2 center, float angle, const utils::Vector2
 //! \param shader_id
 //! \param p_texture    pointer to a used texture
 void Renderer::drawVertices(std::vector<Vertex> &verts, const std::string &shader_id,
-                            DrawType draw_type, std::shared_ptr<Texture> p_texture)
+                            std::shared_ptr<Texture> p_texture)
 {
-
     if (!m_shaders.contains(shader_id))
     {
         return;
@@ -409,28 +455,18 @@ void Renderer::drawVertices(std::vector<Vertex> &verts, const std::string &shade
     auto &shader = m_shaders.get(shader_id);
 
     GLuint texture_id = p_texture ? p_texture->getHandle() : 0;
-    auto &batch = findBatch(texture_id, shader, draw_type, static_cast<int>(verts.size()));
 
-    auto n_verts = verts.size();
+    BatchConfig config({texture_id, 0}, &shader);
+    m_batches.pushVertices(verts, config);
 
-    for (size_t i = 0; i < n_verts; ++i)
-    {
-        batch.pushVertex(verts[i]);
-    }
+    // auto &batch = findBatch(texture_id, shader, static_cast<int>(verts.size()));
+    // auto n_verts = verts.size();
+    // for (size_t i = 0; i < n_verts; ++i)
+    // {
+    //     batch.pushVertex(verts[i]);
+    // }
 }
 
-//! \brief does GL calls for setting the blend function parameters
-//! \param params   OpenGL blend equation parameters
-static void setBlendFunc(BlendParams params = {})
-{
-    auto df = static_cast<GLuint>(params.dst_factor);
-    auto da = static_cast<GLuint>(params.dst_alpha);
-    auto sf = static_cast<GLuint>(params.src_factor);
-    auto sa = static_cast<GLuint>(params.src_alpha);
-
-    glBlendFuncSeparate(sf, df, sa, da);
-    glCheckErrorMsg("Error in glBlendFuncSeparate!");
-}
 
 //! \brief sets base directory used for finding shader files
 //! \param directory
@@ -440,11 +476,27 @@ bool Renderer::setShadersPath(std::filesystem::path directory)
     return m_shaders.setBaseDirectory(directory);
 }
 
-//! \brief deletes batches -- 
+//! \brief deletes batches --
 void Renderer::resetBatches()
 {
-    m_config2sprite_batches.clear();
-    m_config2batches.clear();
+}
+
+void Renderer::drawAllInto(RenderTarget &target)
+{
+    target.bind();
+
+    if (m_blend_factors_changed)
+    {
+        setBlendParams(m_blend_factors);
+    }
+
+    //! set proper view
+    glViewport(m_viewport.pos_x * m_target.getSize().x,
+               m_viewport.pos_y * m_target.getSize().y,
+               m_viewport.width * m_target.getSize().x,
+               m_viewport.height * m_target.getSize().y);
+
+    m_batches.renderAll(m_view);
 }
 
 //! \brief draws all the batched calls into a associated RenderTarget
@@ -452,168 +504,47 @@ void Renderer::resetBatches()
 //! \brief (the previous message is for when I forget to do that)
 void Renderer::drawAll()
 {
-
-    setBlendFunc(m_blend_factors);
-
-    m_target.bind(); //! binds the corresponding opengl framebuffer (or window)
-    //! set proper view
-
-    glViewport(m_viewport.pos_x * m_target.getSize().x,
-               m_viewport.pos_y * m_target.getSize().y,
-               m_viewport.width * m_target.getSize().x,
-               m_viewport.height * m_target.getSize().y);
-
-    std::vector<BatchConfig> to_delete;
-    for (auto &[config, batches] : m_config2sprite_batches)
-    {
-        for (auto &batch : batches)
-        {
-            batch->flush(m_view);
-        }
-        //! clear dynamic batches
-        if (config.draw_type != DrawType::Static)
-        {
-            to_delete.push_back(config);
-        }
-    }
-
-    while (!to_delete.empty())
-    {
-        // m_config2sprite_batches.at(to_delete.back()).clear();
-        to_delete.pop_back();
-    }
-    for (auto &[config, batches] : m_config2batches)
-    {
-
-        for (auto &batch : batches)
-        {
-            batch->flush(m_view);
-        }
-
-        //! clear dynamic batches
-        if (config.draw_type != DrawType::Static)
-        {
-            to_delete.push_back(config);
-        }
-    }
-
-    while (!to_delete.empty())
-    {
-        // m_config2batches.at(to_delete.back()).clear();
-        to_delete.pop_back();
-    }
+    drawAllInto(m_target);
 }
 
-//! \param texture_ids  An array containing Open GL texture ids
-//! \param shader
-//! \param draw_type
-//! \returns an existing batch with corresponding configuration
-//! \returns a new batch in case no batch with the configuration exists
-Batch &Renderer::findBatch(TextureArray texture_ids, Shader &shader, DrawType draw_type, int num_vertices_inserted)
+RenderTarget &Renderer::getTarget() const
 {
-    BatchConfig config = {texture_ids, shader.getId(), draw_type};
-    if (m_config2batches.count(config) != 0) //! batch with config exists
+    return m_target;
+}
+
+void renderToTarget(RenderTarget &target, const Texture &source, Shader &shader)
+{
+
+    DrawSprite screen_sprite;
+    Vec2 target_size = target.getSize();
+    screen_sprite.setPosition(target_size / 2.f);
+    screen_sprite.setScale(target_size / 2.f);
+
+    View view;
+    view.setCenter(target_size / 2.f);
+    view.setSize(target_size);
+
+    screen_sprite.draw(target, shader, {source.getHandle(), 0}, view);
+}
+
+void renderToTraget(Renderer &target, const Texture &source, const std::string &shader_id)
+{
+    if (!target.hasShader(shader_id))
     {
-        return findFreeBatch(config, shader, draw_type, num_vertices_inserted);
+        return;
     }
 
-    m_config2batches[config];
-    //! create the new batch
-    m_config2batches.at(config).push_back(createBatch(config, shader, draw_type));
-    return *m_config2batches.at(config).back();
+    auto old_view = target.m_view;
+    target.m_view = target.getDefaultView();
+
+    utils::Vector2f target_size = target.getTargetSize();
+    Sprite screen_sprite(source);
+    screen_sprite.setPosition(target_size / 2.f);
+    screen_sprite.setScale(target_size / 2.f);
+
+    target.drawSprite(screen_sprite, shader_id);
+    target.drawAll();
+
+    target.m_view = old_view;
 }
 
-//! \param texture_ids
-//! \param shader
-//! \param draw_type
-//! \returns an existing batch with corresponding configuration
-//! \returns a new batch in case no batch with the configuration exists
-SpriteBatch &Renderer::findSpriteBatch(TextureArray texture_ids, Shader &shader, DrawType draw_type)
-{
-    BatchConfig config = {texture_ids, shader.getId(), draw_type};
-    if (m_config2sprite_batches.count(config) != 0) //! batch with config exists
-    {
-        return findFreeSpriteBatch(config, shader, draw_type);
-    }
-
-    //! add new configuration
-    m_config2sprite_batches[config];
-    //! create the new batch
-    m_config2sprite_batches.at(config).push_back(std::make_unique<SpriteBatch>(config, shader));
-    return *m_config2sprite_batches.at(config).back();
-}
-
-//! \param texture_id
-//! \param shader
-//! \param draw_type
-//! \returns an existing batch with corresponding configuration
-//! \returns a new batch in case no batch with the configuration exists
-Batch &Renderer::findBatch(GLuint texture_id, Shader &shader, DrawType draw_type, int num_vertices_inserted)
-{
-    BatchConfig config = {texture_id, shader.getId(), draw_type};
-    if (m_config2batches.count(config) != 0) //! batch with config exists
-    {
-        return findFreeBatch(config, shader, draw_type, num_vertices_inserted);
-    }
-
-    m_config2batches[config];
-    //! create the new batch
-    m_config2batches.at(config).push_back(createBatch(config, shader, draw_type));
-    return *m_config2batches.at(config).back();
-}
-
-//! \param texture_id
-//! \param shader
-//! \param draw_type
-//! \returns an existing batch with corresponding configuration
-//! \returns a new batch in case no batch with the configuration exists
-SpriteBatch &Renderer::findSpriteBatch(GLuint texture_id, Shader &shader, DrawType draw_type)
-{
-    BatchConfig config = {texture_id, shader.getId(), draw_type};
-    if (m_config2sprite_batches.count(config) != 0) //! batch with config exists
-    {
-        return findFreeSpriteBatch(config, shader, draw_type);
-    }
-
-    //! add new configuration
-    m_config2sprite_batches[config];
-    //! create the new batch
-    m_config2sprite_batches.at(config).push_back(std::make_unique<SpriteBatch>(config, shader));
-    return *m_config2sprite_batches.at(config).back();
-}
-
-//! \brief a factory method for a batch
-//! \returns a pointer to a batch
-Renderer::BatchPtr Renderer::createBatch(const BatchConfig &config, Shader &shader, DrawType draw_type)
-{
-    return std::move(std::make_unique<Batch>(config, shader, draw_type));
-}
-
-Batch &Renderer::findFreeBatch(BatchConfig config, Shader &shader, DrawType draw_type, int num_vertices_inserted)
-{
-    auto &batches = m_config2batches.at(config);
-    for (auto &batch : batches)
-    {
-        if (batch->getFreeVerts() >= num_vertices_inserted)
-        {
-            return *batch;
-        }
-    }
-
-    //! there is no free batch so we create a new one;
-    batches.emplace_back(createBatch(config, shader, draw_type));
-    return *batches.back();
-}
-
-SpriteBatch &Renderer::findFreeSpriteBatch(BatchConfig config, Shader &shader, DrawType draw_type)
-{
-    auto &batches = m_config2sprite_batches.at(config);
-    auto it = std::find_if(batches.begin(), batches.end(), [](auto &batch)
-                           { return batch->getFreeVerts() >= 1; });
-    if (it != batches.end())
-    {
-        return **it;
-    }
-    m_config2sprite_batches.at(config).push_back(std::make_unique<SpriteBatch>(config, shader));
-    return *batches.back();
-}

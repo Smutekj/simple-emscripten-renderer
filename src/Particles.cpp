@@ -23,7 +23,7 @@ void Particles::setSpawnPos(utils::Vector2f pos)
     m_spawn_pos = pos;
 }
 
-void Particles::setPeriod(int spawn_period)
+void Particles::setPeriod(float spawn_period)
 {
     m_spawn_period = spawn_period;
 }
@@ -110,7 +110,7 @@ void Particles::integrate(float dt)
     {
         auto &particle = particles[p_ind];
         particle.time += dt;
-        particle.color = interpolate(m_init_color, m_final_color, particle.time / particle.life_time);
+        // particle.color = interpolate(m_init_color, m_final_color, particle.time / particle.life_time);
         m_updater(particle, dt);
     }
 }
@@ -134,8 +134,8 @@ void Particles::draw(Renderer &canvas)
         rect.setPosition(particle.pos.x, particle.pos.y);
         rect.setRotation(particle.angle);
         rect.setScale(particle.scale.x, particle.scale.y);
-
-        canvas.drawRectangle(rect, particle.color, m_shader_id, DrawType::Dynamic);
+        rect.m_color = particle.color;
+        canvas.drawRectangle(rect, m_shader_id);
     }
 }
 
@@ -209,7 +209,7 @@ void TexturedParticles::draw(Renderer &renderer)
         sprite.setRotation(particle.angle);
         sprite.setScale(particle.scale.x, particle.scale.y);
 
-        renderer.drawSprite(sprite, "Instanced", DrawType::Dynamic);
+        renderer.drawSprite(sprite);
     }
 }
 

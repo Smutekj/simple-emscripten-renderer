@@ -1,60 +1,15 @@
 #pragma once
 
-#include "IncludesGl.h"
+#include "GLTypeDefs.h"
 #include "Vertex.h"
 
 #include <filesystem>
 #include <string>
 #include <memory>
-#include <map>
-
-using TextureHandle = GLuint;
-
-//! \enum TexMappingParam
-//! \brief options for texture mapping procedure
-//! translates into corresponding OpenGL integers explanations are here:
-//! \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexParameter.xhtml
-enum class TexMappingParam
-{
-    Nearest = GL_NEAREST,                               
-    Linear = GL_LINEAR,
-    NearestMipmapLinear = GL_NEAREST_MIPMAP_LINEAR,
-    NearestMipmapNearest = GL_NEAREST_MIPMAP_NEAREST,
-    LinearMipmapLinear = GL_LINEAR_MIPMAP_LINEAR,
-    LinearMipmapNearest = GL_LINEAR_MIPMAP_NEAREST,
-};
-
-//! \enum TextureDataTypes
-//! \brief options for data types stored in texture pixels
-//! \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexParameter.xhtml
-enum class TextureDataTypes
-{
-    Float = GL_FLOAT,
-    UByte = GL_UNSIGNED_BYTE,
-};
-
-//! \enum TextureFormat
-//! \brief format of the data stored in each texture pixel 
-//! this will influences the data format of the texture pixels in shaders
-//! \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexParameter.xhtml
-enum class TextureFormat
-{
-    RGBA = GL_RGBA,
-    Red = GL_RED,
-    RGBA16F = GL_RGBA16F,
-};
-
-//! \enum TexWrapParam
-//! \brief specifies the boundary condition used in drawing textures
-//! \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexParameter.xhtml
-enum class TexWrapParam
-{
-    Repeat = GL_REPEAT,         //!< uses periodic boundary conditions in texture space (cool for making patters)
-    ClampEdge = GL_CLAMP_TO_EDGE //!< uses fixed value boundary condition in texture space, if the 
-};
+#include <unordered_map>
 
 //! \struct TextureOptions
-//! \brief aggregates different OpenGL texture configurations  
+//! \brief aggregates different OpenGL texture configurations
 //! based exactly on these options:
 //! \ref https://registry.khronos.org/OpenGL-Refpages/es3.0/html/glTexParameter.xhtml
 struct TextureOptions
@@ -63,15 +18,15 @@ struct TextureOptions
     TextureFormat internal_format = TextureFormat::RGBA16F;
     TextureDataTypes data_type = TextureDataTypes::Float;
     TexMappingParam mag_param = TexMappingParam::Linear;
-    TexMappingParam min_param = TexMappingParam::Linear;
-    TexWrapParam wrap_x = TexWrapParam::Repeat;
-    TexWrapParam wrap_y = TexWrapParam::Repeat;
+    TexMappingParam min_param = TexMappingParam::LinearMipmapLinear;
+    TexWrapParam wrap_x = TexWrapParam::ClampEdge;
+    TexWrapParam wrap_y = TexWrapParam::ClampEdge;
 };
 
 //! \class Texture
 //! \brief manages data in the texture
 //!  This class corresponds to the actual data on the GPU
-//!  Textures should be created sparingly, whereas we can have as many Sprites as we want 
+//!  Textures should be created sparingly, whereas we can have as many Sprites as we want
 class Texture
 {
     enum class ImageFormat
@@ -80,54 +35,64 @@ class Texture
         Png,
     };
 
-public:    
+public:
     Texture() = default;
     Texture(std::filesystem::path image_file, TextureOptions options = {});
     Texture(int width, int height, TextureOptions options = {});
+    Texture(const unsigned char *buffer, std::size_t size, TextureOptions options = {});
 
     ~Texture();
-    Texture(const Texture& other) = default;
-    Texture(Texture&& other) = default;
-    Texture& operator=(const Texture& other) = default;
-    Texture& operator=(Texture&& other) = default;
-
+    Texture(const Texture &other);
+    Texture(Texture &&other) = default;
+    Texture &operator=(const Texture &other) = default;
+    Texture &operator=(Texture &&other) = default;
 
     void loadFromFile(std::string filename, TextureOptions options = {});
+    void loadFromBytes(const unsigned char *buffer, std::size_t size, TextureOptions options = {});
     void create(int width, int height, TextureOptions options = {});
+
+    void setWrapX(TexWrapParam wrap_x);
+    void setWrapY(TexWrapParam wrap_y);
+    void setMappingMinify(TexMappingParam map_min);
+    void setMappingMagnify(TexMappingParam map_mag);
 
     void bind(int slot = 0);
     Vec2 getSize() const;
-    GLuint getHandle() const;
+    TextureHandle getHandle() const;
 
-    const TextureOptions& getOptions()const;
+    const TextureOptions &getOptions() const;
 
 private:
     void invalidate();
     void initialize(TextureOptions options);
 
 private:
-    GLuint m_texture_handle = 0;        //! OpenGL id for texture
+    GLuint m_texture_handle = 0; //! OpenGL id for texture
     TextureOptions m_options;
 
     int m_width = 0;
     int m_height = 0;
 };
- 
- //! \class TextureHolder
- //! \brief holds textures based on id given by string
+
+//! \class TextureHolder
+//! \brief holds textures based on id given by string
 class TextureHolder
 {
 
 public:
     bool add(std::string texture_name, Texture &texture);
-    bool add(std::string texture_name, std::string filename);
+    bool add(std::string texture_name, std::string filename, TextureOptions opt = {});
+    bool add(std::string texture_name, std::filesystem::path texture_file_path, TextureOptions opt = {});
+    bool add(std::string texture_name, const unsigned char *buffer, std::size_t size, TextureOptions opt = {});
+
+    void erase(const std::string &texture_id);
 
     std::shared_ptr<Texture> get(std::string name) const;
-    std::map<std::string, std::shared_ptr<Texture>>& getTextures();
+    std::unordered_map<std::string, std::shared_ptr<Texture>> &getTextures();
 
     bool setBaseDirectory(std::filesystem::path directory);
 
 private:
-    std::map<std::string, std::shared_ptr<Texture>> m_textures;
+    std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;
     std::filesystem::path m_resources_path;
 };

@@ -2,7 +2,8 @@
 
 #include "RenderTarget.h"
 
-#include <iostream>
+
+struct SDL_Window;
 
 //! \class Window
 //! \brief A class containing SDL handles to a window
@@ -13,7 +14,7 @@ public:
     ~Window();
 
     SDL_Window *getHandle() const;
-    SDL_GLContext* getContext();
+    void* getContext();
 
     bool shouldClose() const;
     void close();
@@ -24,5 +25,4 @@ public:
 private:
     bool m_should_close = false;
     SDL_Window *m_handle = nullptr;
-    SDL_GLContext m_gl_context = nullptr;
 };

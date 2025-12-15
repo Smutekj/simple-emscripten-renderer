@@ -22,7 +22,7 @@ struct Particle
     float time = 0;
 
     Particle() = default;
-    virtual ~Particle() = default;
+   virtual ~Particle() = default;
 
     Particle(utils::Vector2f init_pos, utils::Vector2f init_vel, utils::Vector2f acc = {0, 0}, utils::Vector2f scale = {1, 1},
              Color color = {0, 0, 1, 1}, float life_time = 69);
@@ -42,7 +42,7 @@ class Particles
 public:
     explicit Particles() = default;
     explicit Particles(int n_max_particles = 100);
-    ~Particles() = default;
+    virtual ~Particles() = default;
     void update(float dt);
 
     virtual void draw(Renderer &target);
@@ -58,7 +58,7 @@ public:
     void setRepeat(bool repeats);
     bool getRepeat() const;
 
-    void setPeriod(int period);
+    void setPeriod(float period);
     int getPeriod() const;
 
     void setUpdater(std::function<void(Particle &, float dt)> new_updater);
@@ -85,7 +85,7 @@ protected:
     std::function<Particle(utils::Vector2f)> m_emitter = [](utils::Vector2f)
     { return Particle{}; };
 
-    VectorMap<Particle> m_particle_pool;
+    utils::VectorMap<Particle> m_particle_pool;
 
     float m_spawn_period = 0.03; //!< m_spawn_period secs need to pass for one particle
     float m_spawn_timer = 0;  //!< measures frames since last spawn

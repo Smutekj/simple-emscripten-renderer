@@ -1,12 +1,9 @@
 #pragma once
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/matrix_transform_2d.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include <glm/mat4x4.hpp>
 
-#include "Vertex.h"
+#include "Utils/Vector2.h"
 
 //! \class Transform
 //! \brief basic class which encapsulates a transformation matrix
@@ -17,57 +14,31 @@ class Transform
 public:
     void setPosition(float x, float y);
     template <class VecType>
-    void setPosition(VecType new_pos)
-    {
-        setPosition(new_pos.x, new_pos.y);
-    }
-    template <class VecType>
-    void setScale(VecType s)
-    {
-        setScale(s.x, s.y);
-    }
-
+    void setPosition(VecType new_pos);
+    
     void setScale(float sx, float sy);
+    template <class VecType>
+    void setScale(VecType s);
+    
     void setRotation(float angle);
 
-    Vec2 getPosition()const
-    {
-        return {m_translation_x, m_translation_y};
-    }
-    Vec2 getScale()const
-    {
-        return {m_scale_x, m_scale_y};
-    }
-    float getRotation()const
-    {
-        return m_rotation;
-    }
-
+    utils::Vector2f getPosition()const;
+    utils::Vector2f getScale()const;
+    float getRotation()const;
+    
     void rotate(float angle);
+
     void move(float tx, float ty);
     template <class VecType>
-    void move(VecType new_pos)
-    {
-        move(new_pos.x, new_pos.y);
-    }
+    void move(VecType new_pos);
 
     void scale(float sx, float sy);
     template <class VecType>
-    void scale(VecType new_pos)
-    {
-        scale(new_pos.x, new_pos.y);
-    }
+    void scale(VecType new_pos);
 
     glm::mat4 &getMatrix();
 
-    void transform(Vec2& pos)
-    {
-        auto& mat = getMatrix();
-        auto new_pos = mat * glm::vec4(pos.x, pos.y, 0, 1);
-        pos = {new_pos.x, new_pos.y};
-        
-    }
-
+    void transform(utils::Vector2f& pos);
 private:
     glm::mat4 m_matrix;
 
@@ -78,3 +49,27 @@ private:
     float m_scale_x = 1.f;
     float m_scale_y = 1.f;
 };
+
+template <class VecType>
+void Transform::move(VecType new_pos)
+{
+    move(new_pos.x, new_pos.y);
+}
+
+template <class VecType>
+void Transform::scale(VecType new_pos)
+{
+    scale(new_pos.x, new_pos.y);
+}
+
+template <class VecType>
+void Transform::setPosition(VecType new_pos)
+{
+    setPosition(new_pos.x, new_pos.y);
+}
+
+template <class VecType>
+void Transform::setScale(VecType s)
+{
+    setScale(s.x, s.y);
+}

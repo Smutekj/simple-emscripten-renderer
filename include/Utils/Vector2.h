@@ -7,6 +7,7 @@
 #include <ostream>
 #include <numbers>
 
+
 namespace utils
 {
 
@@ -112,16 +113,16 @@ namespace utils
             }
         }
 
-        template <class X>
-        friend std::ostream &operator<<(std::ostream &os, const Vector2<X> &vec);
+        // template <class X>
+        // friend std::ostream &operator<<(std::ostream &os, const Vector2<X> &vec);
     };
-
-    template <class T>
-    std::ostream &operator<<(std::ostream &os, const Vector2<T> &vec)
-    {
-        os << "[" << vec.x << ", " << vec.y << "] ";
-        return os;
-    }
+    
+    // template <class T>
+    // std::ostream &operator<<(std::ostream &os, const Vector2<T> &vec)
+    // {
+    //     os << "[" << vec.x << ", " << vec.y << "] ";
+    //     return os;
+    // }
 
     template <class T, class Scalar>
     constexpr Vector2<T> inline operator*(Scalar i, const Vector2<T> &v)
@@ -207,6 +208,7 @@ namespace utils
         return ab_cond && cd_cond;
     }
 
+    //! NOTE: THIS IS WRONG PROBABLY DO NOT USE AND FIX IT!!!
     template <class VecType>
     bool inline segmentsIntersectOrTouch(const VecType &a, const VecType &b, const VecType &c, const VecType &d)
     {
@@ -239,6 +241,7 @@ namespace utils
         return false;
     }
 
+
     //! ANGLES AND DIRECTIONS
     const auto to_radains = std::numbers::pi_v<float> / 180.f;
     const auto to_degrees = 180.f / std::numbers::pi_v<float>;
@@ -249,6 +252,15 @@ namespace utils
     inline float dir2angle(const utils::Vector2f &dir)
     {
         return to_degrees * std::atan2(dir.y, dir.x);
+    }
+
+    inline float radians(float degrees)
+    {
+        return degrees * to_radains;
+    }
+    inline float degrees(float radians)
+    {
+        return radians * to_degrees;
     }
 
     inline float angleBetween(const utils::Vector2f &v1, const utils::Vector2f &v2)
@@ -274,4 +286,4 @@ namespace utils
                 s_a * input.x + c_a * input.y};
     }
 
-}
+} // namespace utils

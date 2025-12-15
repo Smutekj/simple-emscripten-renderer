@@ -1,5 +1,15 @@
 #include "View.h"
 
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/matrix_transform_2d.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
+View::View(const utils::Vector2f &center, const utils::Vector2f &size)
+    : m_center_x(center.x), m_center_y(center.y), m_width(size.x), m_height(size.y)
+{
+    m_needs_recompute = true;
+}
+
 void View::setSize(float width, float height)
 {
     m_width = width;
@@ -8,7 +18,7 @@ void View::setSize(float width, float height)
     m_needs_recompute = true;
 }
 
-utils::Vector2f View::getSize()const
+utils::Vector2f View::getSize() const
 {
     return {m_width, m_height};
 }
@@ -46,15 +56,15 @@ glm::mat4 &View::getMatrix()
     return m_view_matrix;
 }
 
-bool View::contains(const utils::Vector2f& query) const
+bool View::contains(const utils::Vector2f &query) const
 {
 
-    return query.x >= (m_center_x - m_width/2.f) && query.x <= (m_center_x + m_width/2.f) &&
-            query.y >= (m_center_y - m_height/2.f) && query.y <= (m_center_y + m_height/2.f);
+    return query.x >= (m_center_x - m_width / 2.f) && query.x <= (m_center_x + m_width / 2.f) &&
+           query.y >= (m_center_y - m_height / 2.f) && query.y <= (m_center_y + m_height / 2.f);
 }
 
-//! \brief called automatically whenever the actual matrix is needed 
-//! \brief and has changed since last time 
+//! \brief called automatically whenever the actual matrix is needed
+//! \brief and has changed since last time
 void View::recomputeMatrix()
 {
     m_view_matrix = glm::mat4(1.0f);
@@ -64,9 +74,8 @@ void View::recomputeMatrix()
     m_needs_recompute = false;
 }
 
-
-bool View::intersects(const Rectf& query) const
+bool View::intersects(const Rectf &query) const
 {
-    Rectf view_rect = {m_center_x, m_center_y, m_width, m_height};
+    Rectf view_rect = {m_center_x - m_width/2.f, m_center_y - m_height/2.f, m_width, m_height};
     return query.intersects(view_rect);
 }

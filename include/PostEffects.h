@@ -2,13 +2,24 @@
 
 #include <FrameBuffer.h>
 #include <Renderer.h>
-
+#include <Rectangle.h>
 
 class PostEffect
 {
 public:
     virtual void process(Texture &source, Renderer &target) = 0;
+    void resize(int w, int h)
+    {
+        if (w == 0 || h == 0)
+        {
+            return;
+        }
+        resizeImpl(w, h);
+    };
+    virtual void resizeImpl(int w, int h) {};
+
     virtual ~PostEffect() = default;
+
 protected:
 };
 
@@ -17,89 +28,15 @@ class Bloom : public PostEffect
 
 public:
     Bloom(int width, int height);
-    virtual void process(Texture &source, Renderer &target)override;
+    virtual void process(Texture &source, Renderer &target) override;
     virtual ~Bloom() {}
 
 private:
     FrameBuffer m_bloom_pass1;
     FrameBuffer m_bloom_pass2;
-    FrameBuffer m_downsampled_pixels3;
-    FrameBuffer m_downsampled_pixels33;
 
     Renderer m_bloom_renderer1;
     Renderer m_bloom_renderer2;
-    Renderer m_downsampler3;
-    Renderer m_downsampler33;
-};
-
-class Bloom2 : public PostEffect
-{
-
-public:
-    Bloom2(int width, int height, TextureOptions options = {});
-
-    virtual void process(Texture &source, Renderer &target) override;
-    virtual ~Bloom2() {};
-
-    struct TexMip
-    {
-        TexMip(int width, int height)
-            : m_pixels(width, height), m_pixels2(width, height), m_canvas(m_pixels), m_canvas2(m_pixels2)
-        {
-        }
-
-        FrameBuffer m_pixels;
-        FrameBuffer m_pixels2;
-        Renderer m_canvas;
-        Renderer m_canvas2;
-    };
-
-    void initMips(int n_levels)
-    {
-        int width = 800;
-        int height = 600;
-        for (int i = 0; i < n_levels; ++i)
-        {
-            m_mips.emplace_back(width, height);
-            width /= 2;
-            height /= 2;
-        }
-    }
-
-private:
-    FrameBuffer m_downsampled_pixels3;
-    FrameBuffer m_downsampled_pixels33;
-
-    std::vector<FrameBuffer> m_mips;
-
-    Renderer m_downsampler3;
-    Renderer m_downsampler33;
-};
-
-class Bloom3 : public PostEffect
-{
-
-public:
-    Bloom3(int width, int height, TextureOptions options = {});
-
-    virtual void process(Texture &source, Renderer &target) override;
-    virtual ~Bloom3(){};
-
-
-    void initMips(int n_levels, int width, int height, TextureOptions option);
-    struct TexMip
-    {
-        TexMip(int width, int height, TextureOptions option)
-        : pixels(width, height, option), canvas(pixels), pixels_tmp(width, height, option), canvas_tmp(pixels_tmp)
-        {}
-        FrameBuffer pixels;
-        Renderer canvas;
-        FrameBuffer pixels_tmp;
-        Renderer canvas_tmp;
-    };
-
-private:
-    std::vector<TexMip> m_mips;
 };
 
 class BloomFinal : public PostEffect
@@ -109,15 +46,15 @@ public:
     BloomFinal(int width, int height, int mip_count = 3, int gauss_pass_count = 3, TextureOptions options = {}, std::string final_shader = "combineLightBloom");
 
     virtual void process(Texture &source, Renderer &target) override;
-    virtual ~BloomFinal(){};
-
+    virtual ~BloomFinal() {};
 
     void initMips(int n_levels, int width, int height, TextureOptions option);
     struct TexMip
     {
         TexMip(int width, int height, TextureOptions option)
-        : pixels(width, height, option), canvas(pixels), pixels_tmp(width, height, option), canvas_tmp(pixels_tmp)
-        {}
+            : pixels(width, height, option), canvas(pixels), pixels_tmp(width, height, option), canvas_tmp(pixels_tmp)
+        {
+        }
         FrameBuffer pixels;
         Renderer canvas;
         FrameBuffer pixels_tmp;
@@ -130,42 +67,47 @@ private:
     std::vector<TexMip> m_mips;
 };
 
-class SmoothLight : public PostEffect
+class BloomPhysical : public PostEffect
 {
 
 public:
-    SmoothLight(int width, int height, TextureOptions options = {});
+    BloomPhysical(int width, int height, int mip_count = 3, int gauss_pass_count = 3, TextureOptions options = {}, std::string final_shader = "combineLightBloom");
 
     virtual void process(Texture &source, Renderer &target) override;
-    virtual ~SmoothLight() = default;
+    virtual ~BloomPhysical() {};
+    virtual void resizeImpl(int w, int h) override
+    {
+        m_bright_pixels.resize(w, h);
+        int mip_count = m_mips.size();
+        m_mips.clear();
+        initMips(mip_count, w, h, m_options);
+    }
 
+    void initMips(int n_levels, int width, int height, TextureOptions option);
     struct TexMip
     {
-        TexMip(int width, int height)
-            : m_pixels(width, height), m_pixels2(width, height), m_canvas(m_pixels), m_canvas2(m_pixels2)
-        {
-        }
+        TexMip(int width, int height, TextureOptions option);
 
-        FrameBuffer m_pixels;
-        FrameBuffer m_pixels2;
-        Renderer m_canvas;
-        Renderer m_canvas2;
+        float getAspect() const;
+        float getWidth() const ;
+        float getHeight() const;
+
+        FrameBuffer pixels;
     };
 
-
 private:
-    FrameBuffer m_bloom_pass1;
-    FrameBuffer m_bloom_pass2;
-    FrameBuffer m_downsampled_pixels3;
-    FrameBuffer m_downsampled_pixels33;
+    TextureOptions m_options;
+    FrameBuffer m_bright_pixels;
+    ScreenSprite m_screen_sprite;
 
-    std::vector<FrameBuffer> m_mips;
+    std::vector<TexMip> m_mips;
 
-    Renderer m_bloom_renderer1;
-    Renderer m_bloom_renderer2;
-    Renderer m_downsampler3;
-    Renderer m_downsampler33;
+    Shader m_brightness_pass;
+    Shader m_downsample_pass;
+    Shader m_upsample_pass;
+    Shader m_mixer_pass;
 };
+
 
 class BloomSmoke : public PostEffect
 {
@@ -186,7 +128,7 @@ private:
     Renderer m_bloom_renderer2;
     Renderer m_downsampler3;
     Renderer m_downsampler33;
-    
+
     std::vector<FrameBuffer> m_mips;
 };
 
@@ -200,12 +142,15 @@ public:
     virtual ~EdgeDetect() = default;
 
 private:
-    FrameBuffer m_vert_pass;
-    FrameBuffer m_horiz_pass;
+    FrameBuffer m_vert_pixels;
+    FrameBuffer m_horiz_pixels;
 
-    Renderer m_vert_canvas;
-    Renderer m_horiz_canvas;
-  
+    ScreenSprite m_screen_sprite;
+
+    Shader m_vert_pass;
+    Shader m_edge_detect_pass;
+    Shader m_horiz_pass;
+    Shader m_combine_edges_pass;
 };
 class LightCombine : public PostEffect
 {
@@ -217,7 +162,8 @@ public:
     virtual ~LightCombine() = default;
 
 private:
+    Shader m_multiply_pass;
     FrameBuffer m_multiply_texture;
-    Renderer m_multiply_canvas;
-
+    ScreenSprite m_screen_sprite;
 };
+

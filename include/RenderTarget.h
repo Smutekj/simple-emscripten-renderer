@@ -2,8 +2,7 @@
 
 #include "Vector2.h"
 #include "Vertex.h"
-#include "IncludesGl.h"
-
+#include "GLTypeDefs.h"
 
 //! \class RenderTarget
 //! \brief  OpenGL Target to draw into.
@@ -18,6 +17,7 @@ protected:
 public:
     utils::Vector2i getSize()const;
     void bind();
+    float getAspect()const;
 
     //! \brief does not necessarily clear the currently bound RenderTarget!!! DO NOT FORGET!!!
     void clear(Color c);
