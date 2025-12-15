@@ -306,81 +306,81 @@ InstancedBatch::InstancedBatch(std::vector<std::byte> vertex_data, VAOId layout)
     initVertexArrayObject(layout);
 }
 
-#define PARENS ()
+// #define PARENS ()
 
-/*---------------------------------------------------------------------------------*/
-#define EXPAND(...) EXPAND4(EXPAND4(EXPAND4(EXPAND4(__VA_ARGS__))))
-#define EXPAND4(...) EXPAND3(EXPAND3(EXPAND3(EXPAND3(__VA_ARGS__))))
-#define EXPAND3(...) __VA_ARGS__
-/*---------------------------------------------------------------------------------*/
-#define FOR_EACH(macro, ...) \
-    __VA_OPT__(EXPAND(FOR_EACH_HELPER(macro, __VA_ARGS__)))
-#define FOR_EACH_HELPER(macro, a1, ...) \
-    macro(a1)                           \
-        __VA_OPT__(, FOR_EACH_AGAIN PARENS(macro, __VA_ARGS__))
-#define FOR_EACH_AGAIN() FOR_EACH_HELPER
-/*---------------------------------------------------------------------------------*/
-#define FOR_EACH_P(macro, first, ...) \
-    __VA_OPT__(EXPAND(FOR_EACH_HELPER_P(macro, first, __VA_ARGS__)))
-#define FOR_EACH_HELPER_P(macro, first, a1, ...) \
-    macro(first, a1)                             \
-        __VA_OPT__(, FOR_EACH_AGAIN_P PARENS(macro, first, __VA_ARGS__))
-#define FOR_EACH_AGAIN_P() FOR_EACH_HELPER_P
-/*---------------------------------------------------------------------------------*/
-#define STRINGIFY(arg) #arg
-#define NUMARGS(...) (sizeof((const char *[]){FOR_EACH(STRINGIFY, __VA_ARGS__)}) / sizeof(const char *))
-/*---------------------------------------------------------------------------------*/
-#define SIZEOF_MEMBER(Base, member) \
-    sizeof(Base::member)
-/*---------------------------------------------------------------------------------*/
-#define DESCRIBE_ATTRIBUTE(AttributeType, ...)                                                              \
-    namespace describe                                                                                      \
-    {                                                                                                       \
-        class AttributeType##_DESCRIPTOR                                                                    \
-        {                                                                                                   \
-        public:                                                                                             \
-            inline static int ATTRIB_COUNT = NUMARGS(__VA_ARGS__);                                          \
-            inline static std::vector<int> OFFSETS = {FOR_EACH_P(offsetof, AttributeType, __VA_ARGS__)};    \
-            inline static std::vector<int> SIZES = {FOR_EACH_P(SIZEOF_MEMBER, AttributeType, __VA_ARGS__)}; \
-        };                                                                                                  \
-                                                                                                            \
-        template <>                                                                                         \
-        std::vector<int> getOffsets<AttributeType>()                                                        \
-        {                                                                                                   \
-            return AttributeType##_DESCRIPTOR::OFFSETS;                                                     \
-        }                                                                                                   \
-        template <>                                                                                         \
-        std::vector<int> getSizes<AttributeType>()                                                          \
-        {                                                                                                   \
-            return AttributeType##_DESCRIPTOR::SIZES;                                                       \
-        }                                                                                                   \
-    }
+// /*---------------------------------------------------------------------------------*/
+// #define EXPAND(...) EXPAND4(EXPAND4(EXPAND4(EXPAND4(__VA_ARGS__))))
+// #define EXPAND4(...) EXPAND3(EXPAND3(EXPAND3(EXPAND3(__VA_ARGS__))))
+// #define EXPAND3(...) __VA_ARGS__
+// /*---------------------------------------------------------------------------------*/
+// #define FOR_EACH(macro, ...) \
+//     __VA_OPT__(EXPAND(FOR_EACH_HELPER(macro, __VA_ARGS__)))
+// #define FOR_EACH_HELPER(macro, a1, ...) \
+//     macro(a1)                           \
+//         __VA_OPT__(, FOR_EACH_AGAIN PARENS(macro, __VA_ARGS__))
+// #define FOR_EACH_AGAIN() FOR_EACH_HELPER
+// /*---------------------------------------------------------------------------------*/
+// #define FOR_EACH_P(macro, first, ...) \
+//     __VA_OPT__(EXPAND(FOR_EACH_HELPER_P(macro, first, __VA_ARGS__)))
+// #define FOR_EACH_HELPER_P(macro, first, a1, ...) \
+//     macro(first, a1)                             \
+//         __VA_OPT__(, FOR_EACH_AGAIN_P PARENS(macro, first, __VA_ARGS__))
+// #define FOR_EACH_AGAIN_P() FOR_EACH_HELPER_P
+// /*---------------------------------------------------------------------------------*/
+// #define STRINGIFY(arg) #arg
+// #define NUMARGS(...) (sizeof((const char *[]){FOR_EACH(STRINGIFY, __VA_ARGS__)}) / sizeof(const char *))
+// /*---------------------------------------------------------------------------------*/
+// #define SIZEOF_MEMBER(Base, member) \
+//     sizeof(Base::member)
+// /*---------------------------------------------------------------------------------*/
+// #define DESCRIBE_ATTRIBUTE(AttributeType, ...)                                                              \
+//     namespace describe                                                                                      \
+//     {                                                                                                       \
+//         class AttributeType##_DESCRIPTOR                                                                    \
+//         {                                                                                                   \
+//         public:                                                                                             \
+//             inline static int ATTRIB_COUNT = NUMARGS(__VA_ARGS__);                                          \
+//             inline static std::vector<int> OFFSETS = {FOR_EACH_P(offsetof, AttributeType, __VA_ARGS__)};    \
+//             inline static std::vector<int> SIZES = {FOR_EACH_P(SIZEOF_MEMBER, AttributeType, __VA_ARGS__)}; \
+//         };                                                                                                  \
+//                                                                                                             \
+//         template <>                                                                                         \
+//         std::vector<int> getOffsets<AttributeType>()                                                        \
+//         {                                                                                                   \
+//             return AttributeType##_DESCRIPTOR::OFFSETS;                                                     \
+//         }                                                                                                   \
+//         template <>                                                                                         \
+//         std::vector<int> getSizes<AttributeType>()                                                          \
+//         {                                                                                                   \
+//             return AttributeType##_DESCRIPTOR::SIZES;                                                       \
+//         }                                                                                                   \
+//     }
 
-/*---------------------------------------------------------------------------------*/
+// /*---------------------------------------------------------------------------------*/
 
-namespace describe
-{
-    template <class DescribedType>
-    std::vector<int> getOffsets() { return {}; }
-    template <class DescribedType>
-    std::vector<int> getSizes() { return {}; }
-};
+// namespace describe
+// {
+//     template <class DescribedType>
+//     std::vector<int> getOffsets() { return {}; }
+//     template <class DescribedType>
+//     std::vector<int> getSizes() { return {}; }
+// };
 
-struct Instance
-{
-    char x;
-    double y;
-};
-DESCRIBE_ATTRIBUTE(Instance, x, y);
-DESCRIBE_ATTRIBUTE(Vertex, pos, color, tex_coord);
+// struct Instance
+// {
+//     char x;
+//     double y;
+// };
+// DESCRIBE_ATTRIBUTE(Instance, x, y);
+// DESCRIBE_ATTRIBUTE(Vertex, pos, color, tex_coord);
 
-template <class VertexData, class InstanceData>
-VAOId getVAOId()
-{
-    VAOId id;
-    // id.instance_size = si
-    auto offsets = describe::getOffsets<InstanceData>();
-    id.instanced_attributes;
+// template <class VertexData, class InstanceData>
+// VAOId getVAOId()
+// {
+//     VAOId id;
+//     // id.instance_size = si
+//     auto offsets = describe::getOffsets<InstanceData>();
+//     id.instanced_attributes;
 
-    return id;
-}
+//     return id;
+// }
