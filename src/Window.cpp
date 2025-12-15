@@ -45,7 +45,7 @@ Window::Window(int width, int height)
 #ifdef __ANDROID__
     gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
 #else
-    gladLoadGL((GLADloadfunc)SDL_GL_GetProcAddress);
+    gladLoadGL();
 #endif
 #endif
 

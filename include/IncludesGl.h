@@ -10,7 +10,7 @@
 #include <glad/gles2.h>
 #include <SDL2/SDL.h>
 #else
-#include <glad/gl.h>
+#include <glad/glad.h>
 #endif
 
 #include <vector>

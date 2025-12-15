@@ -104,27 +104,28 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten") # emscripten has its own SDL2
   message(STATUS "SDL_mixer binary directory: ${sdl_mixer_BINARY_DIR}")
 endif()
 
-############# glad #############
-FetchContent_Declare(
-    glad
-    GIT_REPOSITORY https://github.com/Dav1dde/glad
-    GIT_TAG        v2.0.6
-    GIT_SHALLOW    TRUE
-    GIT_PROGRESS   TRUE
-)
-FetchContent_GetProperties(glad)
-if(NOT glad_POPULATED)
-    message("Fetching glad")
-    FetchContent_MakeAvailable(glad)
 
-    add_subdirectory("${glad_SOURCE_DIR}/cmake" glad_cmake)
-    if( ${CMAKE_SYSTEM_NAME} MATCHES "Android")
-      glad_add_library(glad STATIC  API gles2:core=3.0 )
-    else()
-      set(GLAD_EXTENSIONS "GL_EXT_framebuffer_multisample")
-      glad_add_library(glad STATIC  API gl:core=4.6)
-    endif()
-endif()
+# ############# glad #############
+# FetchContent_Declare(
+#     glad
+#     GIT_REPOSITORY https://github.com/Dav1dde/glad
+#     GIT_TAG        v2.0.6
+#     GIT_SHALLOW    TRUE
+#     GIT_PROGRESS   TRUE
+# )
+# FetchContent_GetProperties(glad)
+# if(NOT glad_POPULATED)
+#     message("Fetching glad")
+#     FetchContent_MakeAvailable(glad)
+
+#     add_subdirectory("${glad_SOURCE_DIR}/cmake" glad_cmake)
+#     if( ${CMAKE_SYSTEM_NAME} MATCHES "Android")
+#       glad_add_library(glad STATIC  API gles2:core=3.0 )
+#     else()
+#       set(GLAD_EXTENSIONS "GL_EXT_framebuffer_multisample")
+#       glad_add_library(glad STATIC  API gl:core=4.6)
+#     endif()
+# endif()
 
 
 

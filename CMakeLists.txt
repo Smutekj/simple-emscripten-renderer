@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD 20)
 include(cmake/CompilerFlags.cmake)
 include(cmake/CompilerWarnings.cmake)
 
+add_subdirectory(external/glad)
 add_subdirectory(external/freetype)
 include(cmake/External.cmake)
 
@@ -56,10 +57,10 @@ target_include_directories(${TARGET_LIBRARY_NAME}
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/backends
 )
 
-if(BUILD_EXAMPLES)
-message("\n!ADDING EXAMPLES!")
-add_subdirectory(Examples)
-endif(BUILD_EXAMPLES ON)
+if(BUILD_EXAMPLES STREQUAL ON)
+    message("\n!ADDING EXAMPLES!")
+    add_subdirectory(Examples)
+endif()
 
 # if(BUILD_TESTS)
 #     enable_testing()
