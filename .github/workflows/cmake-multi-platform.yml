@@ -22,7 +22,7 @@ jobs:
         build_type: [Release]
         c_compiler: [gcc, clang, cl]
         include:
-          - os: macos-13
+          - os: macos-15
             flags: "-GNinja"
             build_type: Release
           - os: windows-latest
@@ -94,7 +94,7 @@ jobs:
         elif [ "$RUNNER_OS" == "macOS" ]; then
           brew update
           brew install ninja
-          pip3 install jinja2
+          # pip3 install jinja2
         else
           echo "$RUNNER_OS not supported"                     
           exit 1                                              
