@@ -12,6 +12,7 @@
 #include <variant>
 #include <filesystem>
 
+#include "Color.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/mat4x4.hpp>
@@ -31,7 +32,7 @@ struct TextureGlData
 };
 
 //! Types used in GLSL for uniforms
-using UniformType = std::variant<float, bool, int, glm::vec4, glm::vec3, glm::vec2, glm::mat4>;
+using UniformType = std::variant<float, bool, int, glm::vec4, glm::vec3, glm::vec2, glm::mat4, Color>;
 
 //! \struct VariablesData
 //! \brief contains mappings from uniform names of uniforms and textures in corresponding shader
@@ -96,20 +97,6 @@ private:
 
     void retrieveCode(const char *code_path, std::string &code);
 
-    // utility uniform functions
-    void setBool(const std::string &name, bool value) const;
-    void setInt(const std::string &name, int value) const;
-    void setFloat(const std::string &name, float value) const;
-    void setVec2(const std::string &name, const glm::vec2 &value) const;
-    void setVec2(const std::string &name, float x, float y) const;
-    void setVec3(const std::string &name, const glm::vec3 &value) const;
-    void setVec3(const std::string &name, float x, float y, float z) const;
-    void setVec4(const std::string &name, const glm::vec4 &value) const;
-    void setVec4(const std::string &name, float x, float y, float z, float w) const;
-    void setMat2(const std::string &name, const glm::mat2 &mat) const;
-    void setMat3(const std::string &name, const glm::mat3 &mat) const;
-    void setMat4(const std::string &name, const glm::mat4 &mat) const;
-
 private:
     unsigned int m_id = 0; //!< OpenGL id of the program
     std::string m_vertex_path;
@@ -126,7 +113,6 @@ public:
     inline static float m_time;
 };
 
-
 std::vector<std::string> inline separateLine(std::string line, char delimiter = ' ');
 
 inline std::string trim(const std::string &input);
@@ -134,3 +120,124 @@ inline std::string trim(const std::string &input);
 inline bool replace(std::string &str, const std::string &from, const std::string &to);
 
 inline UniformType extractValue(std::string type_string, std::string initial_value);
+
+enum class ShaderType
+{
+    Vertex,
+    Fragment,
+    Geometry,
+    TessControl,
+    TessEvaluation,
+    Compute,
+};
+
+GLenum getGLCode(ShaderType type)
+{
+
+    using st = ShaderType;
+    switch (type)
+    {
+    case st::Vertex:
+        return GL_VERTEX_SHADER;
+    case st::Fragment:
+        return GL_FRAGMENT_SHADER;
+    case st::Geometry:
+        return GL_GEOMETRY_SHADER;
+    case st::TessControl:
+        return GL_TESS_CONTROL_SHADER;
+    case st::TessEvaluation:
+        return GL_TESS_EVALUATION_SHADER;
+    case st::Compute:
+        return GL_COMPUTE_SHADER;
+    };
+    return 0;
+}
+std::string getShaderTypeName(ShaderType type)
+{
+    using st = ShaderType;
+    switch (type)
+    {
+    case st::Vertex:
+        return "Vertex";
+    case st::Fragment:
+        return "Fragment";
+    case st::Geometry:
+        return "Geometry";
+    case st::TessControl:
+        return "Tesselation Control";
+    case st::TessEvaluation:
+        return "Tesselation Evaluation";
+    case st::Compute:
+        return "Compute";
+    };
+    return "";
+}
+
+class Shader2
+{
+
+public:
+    explicit Shader2(const std::string &source_code, ShaderType type);
+    explicit Shader2(const std::filesystem::path &code_path, ShaderType type);
+    ~Shader2();
+
+    GLuint getId() const;
+
+    bool isCompiled() const;
+    bool compile(const std::string &source_code);
+
+private:
+    bool m_compiled = false;
+    ShaderType m_type;
+    GLuint m_id = 0;
+};
+
+class ShaderProgram
+{
+public:
+    ShaderProgram();
+    ~ShaderProgram();
+
+    void pushShader(const std::string &shader_code, ShaderType type);
+    void linkShaders();
+
+    void use() const;
+
+    bool isValid() const;
+
+    void setUniform(const std::string &uniform_name, UniformType value);
+    VariablesData &getUniforms();
+
+private:
+    void updateUniforms();
+
+private:
+    bool m_valid = false;
+    bool m_linked = false;
+    VariablesData m_uniforms;
+    GLuint m_id = 0;
+};
+
+/* class ShaderProgramHolder
+{
+    void addShader()
+    {
+
+    }
+
+    void refresh()
+    {
+
+    }
+
+private:
+    struct ShaderFileData
+    {
+        std::string shader_id;
+        std::filesystem::file_time_type last_write_time;
+        std::filesystem::path path;
+    };
+
+    std::unordered_map<std::string, std::unordered_map<ShaderType, ShaderFileData>> m_file_info;
+    std::unordered_map<std::string, ShaderProgram> m_shaders;
+} */;

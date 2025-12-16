@@ -197,7 +197,66 @@ void extractUniformNames(VariablesData &shader_data, const std::string &filename
         }
     }
 }
-
+//! utility uniform functions
+void setBool(GLuint id, const std::string &name, bool value) 
+{
+    glUniform1i(glGetUniformLocation(id, name.c_str()), (int)value);
+}
+// ------------------------------------------------------------------------
+void setInt(GLuint id, const std::string &name, int value) 
+{
+    glUniform1i(glGetUniformLocation(id, name.c_str()), value);
+};
+// ------------------------------------------------------------------------
+void setFloat(GLuint id, const std::string &name, float value) 
+{
+    glUniform1f(glGetUniformLocation(id, name.c_str()), value);
+};
+// ------------------------------------------------------------------------
+void setVec2(GLuint id, const std::string &name, const glm::vec2 &value)
+{
+    glUniform2fv(glGetUniformLocation(id, name.c_str()), 1, &value[0]);
+}
+// ------------------------------------------------------------------------
+void setVec2(GLuint id, const std::string &name, float x, float y)
+{
+    glUniform2f(glGetUniformLocation(id, name.c_str()), x, y);
+}
+// ------------------------------------------------------------------------
+void setVec3(GLuint id, const std::string &name, const glm::vec3 &value)
+{
+    glUniform3fv(glGetUniformLocation(id, name.c_str()), 1, &value[0]);
+}
+// ------------------------------------------------------------------------
+void setVec3(GLuint id, const std::string &name, float x, float y, float z)
+{
+    glUniform3f(glGetUniformLocation(id, name.c_str()), x, y, z);
+}
+// ------------------------------------------------------------------------
+void setVec4(GLuint id, const std::string &name, const glm::vec4 &value)
+{
+    glUniform4fv(glGetUniformLocation(id, name.c_str()), 1, &value[0]);
+}
+// ------------------------------------------------------------------------
+void setVec4(GLuint id, const std::string &name, float x, float y, float z, float w)
+{
+    glUniform4f(glGetUniformLocation(id, name.c_str()), x, y, z, w);
+}
+// ------------------------------------------------------------------------
+void setMat2(GLuint id, const std::string &name, const glm::mat2 &mat)
+{
+    glUniformMatrix2fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+// ------------------------------------------------------------------------
+void setMat3(GLuint id, const std::string &name, const glm::mat3 &mat)
+{
+    glUniformMatrix3fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
+// ------------------------------------------------------------------------
+void setMat4(GLuint id, const std::string &name, const glm::mat4 &mat)
+{
+    glUniformMatrix4fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
+}
 //! \brief connects a slot in shader with GL handle of the texture
 //! \param slot   the slot where the texture will be bound
 //! \param handle the GL handle of the texture
@@ -225,39 +284,39 @@ constexpr void Shader::updateUniform(const std::string &name, const ValueType &v
     }
     else if constexpr (std::is_same_v<ValueType, float>)
     {
-        setFloat(name, value);
+        setFloat(m_id, name, value);
     }
     else if constexpr (std::is_same_v<ValueType, bool>)
     {
-        setBool(name, value);
+        setBool(m_id, name, value);
     }
     else if constexpr (std::is_same_v<ValueType, int>)
     {
-        setInt(name, value);
+        setInt(m_id, name, value);
     }
     else if constexpr (std::is_same_v<ValueType, glm::vec2>)
     {
-        setVec2(name, value);
+        setVec2(m_id, name, value);
     }
     else if constexpr (std::is_same_v<ValueType, glm::vec3>)
     {
-        setVec3(name, value);
+        setVec3(m_id, name, value);
     }
     else if constexpr (std::is_same_v<ValueType, glm::vec4>)
     {
-        setVec4(name, value);
+        setVec4(m_id, name, value);
     }
     else if constexpr (std::is_same_v<ValueType, glm::mat2>)
     {
-        setMat2(name, value);
+        setMat2(m_id, name, value);
     }
     else if constexpr (std::is_same_v<ValueType, glm::mat3>)
     {
-        setMat3(name, value);
+        setMat3(m_id, name, value);
     }
     else if constexpr (std::is_same_v<ValueType, glm::mat4>)
     {
-        setMat4(name, value);
+        setMat4(m_id, name, value);
     }
     else
     {
@@ -526,73 +585,18 @@ void Shader::updateUniforms()
     {
         if (uniform_tex.needs_update)
         {
-            setInt(key, uniform_tex.slot);
+            setUniform(key, uniform_tex.slot);
             uniform_tex.needs_update = false;
         }
     }
 }
-//! utility uniform functions
-void Shader::setBool(const std::string &name, bool value) const
-{
-    glUniform1i(glGetUniformLocation(m_id, name.c_str()), (int)value);
-}
-
-void Shader::setInt(const std::string &name, int value) const
-{
-    glUniform1i(glGetUniformLocation(m_id, name.c_str()), value);
-};
-void Shader::setFloat(const std::string &name, float value) const
-{
-    glUniform1f(glGetUniformLocation(m_id, name.c_str()), value);
-};
 
 GLuint Shader::getId() const
 {
     return m_id;
 }
 
-void Shader::setVec2(const std::string &name, const glm::vec2 &value) const
-{
-    glUniform2fv(glGetUniformLocation(m_id, name.c_str()), 1, &value[0]);
-}
-void Shader::setVec2(const std::string &name, float x, float y) const
-{
-    glUniform2f(glGetUniformLocation(m_id, name.c_str()), x, y);
-}
-// ------------------------------------------------------------------------
-void Shader::setVec3(const std::string &name, const glm::vec3 &value) const
-{
-    glUniform3fv(glGetUniformLocation(m_id, name.c_str()), 1, &value[0]);
-}
-void Shader::setVec3(const std::string &name, float x, float y, float z) const
-{
-    glUniform3f(glGetUniformLocation(m_id, name.c_str()), x, y, z);
-}
-// ------------------------------------------------------------------------
-void Shader::setVec4(const std::string &name, const glm::vec4 &value) const
-{
-    glUniform4fv(glGetUniformLocation(m_id, name.c_str()), 1, &value[0]);
-}
 
-void Shader::setVec4(const std::string &name, float x, float y, float z, float w) const
-{
-    glUniform4f(glGetUniformLocation(m_id, name.c_str()), x, y, z, w);
-}
-// ------------------------------------------------------------------------
-void Shader::setMat2(const std::string &name, const glm::mat2 &mat) const
-{
-    glUniformMatrix2fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
-}
-// ------------------------------------------------------------------------
-void Shader::setMat3(const std::string &name, const glm::mat3 &mat) const
-{
-    glUniformMatrix3fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
-}
-// ------------------------------------------------------------------------
-void Shader::setMat4(const std::string &name, const glm::mat4 &mat) const
-{
-    glUniformMatrix4fv(glGetUniformLocation(m_id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
-}
 
 void Shader::setReloadOnChange(bool new_flag_value)
 {
@@ -731,4 +735,216 @@ UniformType extractValue(std::string type_string, std::string initial_value)
         }
     }
     return value;
+}
+
+Shader2::Shader2(const std::string &source_code, ShaderType type)
+    : m_type(type)
+{
+    m_id = glCreateShader(getGLCode(m_type));
+    compile(source_code);
+}
+Shader2::Shader2(const std::filesystem::path &code_path, ShaderType type)
+    : m_type(type)
+{
+    m_id = glCreateShader(getGLCode(m_type));
+    // compile();
+}
+
+Shader2::~Shader2()
+{
+    glDeleteShader(m_id);
+}
+
+GLuint Shader2::getId() const
+{
+    return m_id;
+}
+
+bool Shader2::isCompiled() const
+{
+    return m_compiled;
+}
+
+bool Shader2::compile(const std::string &source_code)
+{
+    const char *shader_code = "";
+    glShaderSource(m_id, 1, &shader_code, NULL);
+    glCompileShader(m_id);
+    glCheckError();
+
+    // print compile errors if any
+    GLint success;
+    glGetShaderiv(m_id, GL_COMPILE_STATUS, &success);
+    if (!success)
+    {
+        int log_length;
+        glGetShaderiv(m_id, GL_INFO_LOG_LENGTH, &log_length);
+        std::string log_info_text;
+        log_info_text.resize(log_length + 1);
+
+        glGetShaderInfoLog(m_id, log_length, NULL, log_info_text.data());
+        std::cout << "ERROR IN COMPILATION OF SHADER TYPE: " << getShaderTypeName(m_type) << "\n"
+                  << log_info_text << std::endl;
+        return false;
+    };
+
+    m_compiled = true;
+    return true;
+}
+
+ShaderProgram::ShaderProgram()
+{
+    m_id = glCreateProgram();
+}
+ShaderProgram::~ShaderProgram()
+{
+    glDeleteProgram(m_id);
+}
+
+void ShaderProgram::pushShader(const std::string &shader_code, ShaderType type)
+{
+    Shader2 shader(shader_code, type);
+
+    extractUniformNamesFromCode(m_uniforms, shader_code);
+    extractTextureNamesFromCode(m_uniforms, shader_code);
+
+    if (!shader.isCompiled())
+    {
+        m_valid = false;
+        return;
+    }
+    glAttachShader(m_id, shader.getId());
+}
+
+void ShaderProgram::linkShaders()
+{
+    if (m_valid)
+    {
+        glLinkProgram(m_id);
+        glCheckError();
+        m_linked = true;
+    }
+}
+
+void ShaderProgram::use() const
+{
+    if (m_linked)
+    {
+        glUseProgram(m_id);
+    }
+    else
+    {
+        std::cout << "WARNING: Trying to use an unlinked shader!" << std::endl;
+    }
+}
+
+bool ShaderProgram::isValid() const
+{
+    return m_valid;
+}
+
+VariablesData &ShaderProgram::getUniforms()
+{
+    return m_uniforms;
+}
+
+void ShaderProgram::setUniform(const std::string &uniform_name, UniformType value)
+{
+    if (!m_uniforms.uniforms.contains(uniform_name))
+    {
+        std::cout << "WARNING: Uniform Name: " << uniform_name << " Does not exist!" << std::endl;
+        return;
+    }
+
+    m_uniforms.uniforms.at(uniform_name) = {value, true};
+}
+
+
+//! \param name     name of the uniform
+//! \param value    value of the uniform (the gl call is determined by the value type)
+template <class ValueType>
+void updateUniform(GLuint m_id, const std::string &name, const ValueType &value)
+{
+    if constexpr (std::is_same_v<ValueType, UniformType>)
+    {
+    }
+    else if constexpr (std::is_same_v<ValueType, float>)
+    {
+        setFloat(m_id, name, value);
+    }
+    else if constexpr (std::is_same_v<ValueType, bool>)
+    {
+        setBool(m_id, name, value);
+    }
+    else if constexpr (std::is_same_v<ValueType, int>)
+    {
+        setInt(m_id, name, value);
+    }
+    else if constexpr (std::is_same_v<ValueType, glm::vec2>)
+    {
+        setVec2(m_id, name, value);
+    }
+    else if constexpr (std::is_same_v<ValueType, glm::vec3>)
+    {
+        setVec3(m_id, name, value);
+    }
+    else if constexpr (std::is_same_v<ValueType, glm::vec4>)
+    {
+        setVec4(m_id, name, value);
+    }
+    else if constexpr (std::is_same_v<ValueType, glm::mat2>)
+    {
+        setMat2(m_id, name, value);
+    }
+    else if constexpr (std::is_same_v<ValueType, glm::mat3>)
+    {
+        setMat3(m_id, name, value);
+    }
+    else if constexpr (std::is_same_v<ValueType, glm::mat4>)
+    {
+        setMat4(m_id, name, value);
+    }
+    else if constexpr (std::is_same_v<ValueType, Color>)
+    {
+        setVec4(m_id, name, glm::vec4(value.r, value.g, value.b, value.a));
+    }
+    else
+    {
+    }
+}
+
+void ShaderProgram::updateUniforms()
+{
+
+    for (auto &[key, uniform] : m_uniforms.uniforms)
+    {
+        if (uniform.needs_update)
+        {
+            auto update_value = [&key, this](auto &&v)
+            {
+                using T = std::decay_t<decltype(v)>;
+                updateUniform<T>(m_id, key, v);
+            };
+            glCheckErrorMsg((key + " does not exist in the shader").c_str());
+            std::visit(update_value, uniform.value);
+
+            uniform.needs_update = false;
+        }
+    }
+
+    //! This is retarded, I should just have start-time attribute as part of vertex attributes or something...
+    if (m_uniforms.uniforms.contains("u_time"))
+    {
+        m_uniforms.uniforms.at("u_time") = {Shader::m_time, true};
+        updateUniform(m_id, "u_time", Shader::m_time);
+    }
+
+    for (auto &[key, uniform_tex] : m_uniforms.textures)
+    {
+        if (uniform_tex.needs_update)
+        {
+            setUniform(key, uniform_tex.slot);
+            uniform_tex.needs_update = false;
+        }
+    }
 }
