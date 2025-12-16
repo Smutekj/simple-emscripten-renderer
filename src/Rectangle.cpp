@@ -144,6 +144,10 @@ DrawSprite::DrawSprite()
 
     glBindVertexArray(0);
 }
+GLuint DrawSprite::getVAO() const
+{
+    return m_vao;
+}
 
 void DrawSprite::draw(RenderTarget &target, Shader &shader, TextureArray textures, View &view)
 {
@@ -171,55 +175,47 @@ void DrawSprite::draw(RenderTarget &target, Shader &shader, TextureArray texture
     glBindVertexArray(0);
 }
 
+void ScreenSprite::draw(RenderTarget &target, Shader &shader, TextureArray texture_handles)
+{
+    glViewport(0, 0, target.getSize().x, target.getSize().y);
+    target.bind();
+    shader.use();
+
+    for (int tex_id = 0; tex_id < texture_handles.size(); ++tex_id)
+    {
+        if (texture_handles[tex_id] != 0)
+        {
+            glActiveTexture(GL_TEXTURE0 + tex_id);
+            glBindTexture(GL_TEXTURE_2D, texture_handles[tex_id]);
+            glCheckError();
+        }
+    }
+
+    glBindVertexArray(m_screen_sprite.getVAO());
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glCheckError();
+
+    glBindVertexArray(0);
+}
+
 void ScreenSprite::draw(RenderTarget &target, Shader &shader, const Texture &source)
 {
-    DrawSprite screen_sprite;
-    Vec2 target_size = target.getSize();
-    screen_sprite.setPosition(target_size / 2.f);
-    screen_sprite.setScale(target_size / 2.f);
-
-    View view;
-    view.setCenter(target_size / 2.f);
-    view.setSize(target_size);
-
-    glViewport(0, 0, target.getSize().x, target.getSize().y);
-    screen_sprite.draw(target, shader, {source.getHandle(), 0}, view);
+    draw(target, shader, TextureArray{source.getHandle(), 0});
 }
 
 template <class... Textures>
 void ScreenSprite::draw(RenderTarget &target, Shader &shader, const Textures &...sources)
 {
-
     static_assert((std::is_same_v<Textures, Texture> && ...),
-                  "All parameters must be Texture");
-
-    DrawSprite screen_sprite;
-    Vec2 target_size = target.getSize();
-    screen_sprite.setPosition(target_size / 2.f);
-    screen_sprite.setScale(target_size / 2.f);
-
-    View view;
-    view.setCenter(target_size / 2.f);
-    view.setSize(target_size);
-
+                  "All types of sources must have type Texture");
     // Collect texture handles
     std::array<TextureHandle, sizeof...(sources)> tex_array{
         sources.getHandle()...};
 
-    glViewport(0, 0, target.getSize().x, target.getSize().y);
-    screen_sprite.draw(target, shader, tex_array, view);
+    draw(target, shader, tex_array);
 }
+
 void ScreenSprite::draw(RenderTarget &target, Shader &shader, const Texture &source, const Texture &source2)
 {
-    DrawSprite screen_sprite;
-    Vec2 target_size = target.getSize();
-    screen_sprite.setPosition(target_size / 2.f);
-    screen_sprite.setScale(target_size / 2.f);
-
-    View view;
-    view.setCenter(target_size / 2.f);
-    view.setSize(target_size);
-
-    glViewport(0, 0, target.getSize().x, target.getSize().y);
-    screen_sprite.draw(target, shader, {source.getHandle(), source2.getHandle()}, view);
+    draw(target, shader, TextureArray{source.getHandle(), source2.getHandle()});
 }

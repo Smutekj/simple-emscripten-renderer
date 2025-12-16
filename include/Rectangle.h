@@ -54,14 +54,18 @@ public:
 
     void draw(RenderTarget &target, Shader &shader, TextureArray textures, View &view);
 
+    GLuint getVAO()const;
+
 private:
     GLuint m_vao = 0;
     GLuint m_vbo = 0;
 };
 
+//! \brief Sprite that is used for drawing on the entire target.
 class ScreenSprite
 {
 public:
+    void draw(RenderTarget &target, Shader &shader, TextureArray texture_handles);
     void draw(RenderTarget &target, Shader &shader, const Texture &source);
     void draw(RenderTarget &target, Shader &shader, const Texture &source, const Texture &source2);
     template <class... Textures>

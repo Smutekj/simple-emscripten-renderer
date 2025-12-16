@@ -143,6 +143,10 @@ void ShaderHolder::refresh()
     {
 
         std::filesystem::path f_path = shader->getFragmentPath();
+        if(f_path.empty()) //! if the shader was loaded from code
+        {
+            continue;
+        }
         auto last_time = std::filesystem::last_write_time(f_path);
         if (last_time != shader->m_last_writetime)
         {

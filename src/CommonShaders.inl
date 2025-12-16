@@ -101,11 +101,9 @@ layout(location = 0) in vec2 a_position;
 layout(location = 1) in vec2 a_tex_pos;
 out vec2 v_tex_coord;
 out vec4 v_color;
-uniform mat4 u_view_projection ;
-uniform mat4 u_transform;
 void main()
 {
-    gl_Position = u_view_projection * u_transform * vec4(a_position, 0., 1.);
+    gl_Position =  vec4(a_position.xy, 0., 1.);
     v_tex_coord= a_tex_pos;
     v_color = vec4(1.);
 }
@@ -184,7 +182,6 @@ constexpr const char *fragment_fullpass_texture_code_no_alpha = R"V0G0N(#version
                                                                 }
                                                             )V0G0N";
 
-
 constexpr const char *fragment_text2_code = R"V0G0N(#version 300 es
 precision highp float;
 in vec2 v_tex_coord;
@@ -240,36 +237,36 @@ void main()
 }
 )V0G0N";
 
-constexpr const char *fragment_text_code = "#version 300 es\n"
-                                           "precision highp float;\n"
-                                           "in vec2 v_tex_coord;\n"
-                                           "in vec4 v_color;\n"
-                                           "uniform vec4 u_edge_color = vec4(0., 0.,0., 1.);\n"
-                                           "uniform float u_smoothness = 0.01;\n"
-                                           "uniform float u_outline_min0 = 0.38;\n"
-                                           "uniform float u_outline_min1 = 0.41;\n"
-                                           "uniform float u_outline_max0 = 0.50;\n"
-                                           "uniform float u_outline_max1 = 0.52;\n"
-                                           "uniform float u_thick = 0.49;\n"
-                                           "out vec4 FragColor;\n"
-                                           "uniform sampler2D u_texture;\n"
-                                           "void main()\n"
-                                           "{\n"
-                                           "    float dist_mask = texture(u_texture, v_tex_coord).a;\n"
-                                           "    vec4 color_res = vec4(0.);\n"
-                                           "    float outline_factor = 1.0;\n"
-                                           "    if(dist_mask > u_outline_min0 && dist_mask < u_outline_max1){\n"
-                                           "        if(dist_mask < u_outline_min1)\n"
-                                           "        {\n"
-                                           "            outline_factor = smoothstep(u_outline_min0, u_outline_min1, dist_mask);\n"
-                                           "        }else{\n"
-                                           "            outline_factor = smoothstep(u_outline_max0, u_outline_max1, dist_mask);\n"
-                                           "        }\n"
-                                           "    }\n"
-                                           "    color_res = mix(u_edge_color, v_color, outline_factor);\n"
-                                           "    float glyph_factor = smoothstep(u_thick - u_smoothness, u_thick + u_smoothness, dist_mask);\n"
-                                           "    FragColor = color_res*glyph_factor;\n"
-                                           "}";
+constexpr const char *fragment_text_code = R"V0G0N(#version 300 es
+precision highp float;
+in vec2 v_tex_coord;
+in vec4 v_color;
+uniform vec4 u_edge_color = vec4(0., 0.,0., 1.);
+uniform float u_smoothness = 0.01;
+uniform float u_outline_min0 = 0.38;
+uniform float u_outline_min1 = 0.41;
+uniform float u_outline_max0 = 0.50;
+uniform float u_outline_max1 = 0.52;
+uniform float u_thick = 0.49;
+out vec4 FragColor;
+uniform sampler2D u_texture;
+void main()
+{
+   float dist_mask = texture(u_texture, v_tex_coord).a;
+   vec4 color_res = vec4(0.);
+   float outline_factor = 1.0;
+   if(dist_mask > u_outline_min0 && dist_mask < u_outline_max1){
+       if(dist_mask < u_outline_min1)
+       {
+           outline_factor = smoothstep(u_outline_min0, u_outline_min1, dist_mask);
+       }else{
+           outline_factor = smoothstep(u_outline_max0, u_outline_max1, dist_mask);
+       }
+   }
+   color_res = mix(u_edge_color, v_color, outline_factor);
+   float glyph_factor = smoothstep(u_thick - u_smoothness, u_thick + u_smoothness, dist_mask);
+   FragColor = color_res*glyph_factor;
+})V0G0N";
 
 constexpr const char *fragment_brightness_code = "#version 300 es\n"
                                                  "precision highp float;\n"
@@ -585,12 +582,13 @@ void main(){
   float x = u_filter_radius;
   float y = u_filter_radius;
 
-// Take 9 samples around current texel:
+  vec4 source_color = texture(u_source, vec2(v_tex_coord.x, v_tex_coord.y));
+
+  // Take 9 samples around current texel:
 // a - b - c
 // d - e - f
 // g - h - i
-// === ('e' is the current texel) ===
- vec3 source_color = texture(u_source, vec2(v_tex_coord.x, v_tex_coord.y));
+// === ('e' is the current texel) === 
  vec4 a = texture(u_texture, vec2(v_tex_coord.x - x, v_tex_coord.y + y));
  vec4 b = texture(u_texture, vec2(v_tex_coord.x,     v_tex_coord.y + y));
  vec4 c = texture(u_texture, vec2(v_tex_coord.x + x, v_tex_coord.y + y));
