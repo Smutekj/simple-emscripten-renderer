@@ -47,13 +47,12 @@ Application::Application(int width, int height) : m_window(width, height),
         {
             auto pos_right = shader_filename.find_last_of('.');
             std::string shader_name = shader_filename.substr(0, pos_right);
-            slot.m_canvas.addShader(shader_name, "basicinstanced.vert", shader_filename);
+            slot.m_canvas.addShader(shader_name, "sprite_direct.vert", shader_filename);
         }
-
     }
 
     m_window_renderer.setShadersPath(shaders_path);
-    m_window_renderer.addShader("Text", "basicinstanced.vert", "textBorder.frag");
+    m_window_renderer.addShader("Text", "sprite_direct.vert", "textBorder.frag");
     glCheckErrorMsg("Error in Shaders creation!");
 
     auto texture_filenames = extractNamesInDirectory(textures_path, ".png");
@@ -67,7 +66,7 @@ Application::Application(int width, int height) : m_window(width, height),
 
     for (size_t slot_id = 0; slot_id < m_slots.size(); ++slot_id)
     {
-        m_textures.add("Slot: " + std::to_string(slot_id), m_slots.at(slot_id).m_pixels.getTexture());
+        // m_textures.add("Slot: " + std::to_string(slot_id), m_slots.at(slot_id).m_pixels.getTexture());
     }
 
     //! set view and add it to renderers
@@ -188,7 +187,7 @@ void moveView(utils::Vector2f dr, Renderer &target)
 
 void Application::update(float dt)
 {
-    m_window.clear({1,1,1,1});
+    m_window.clear({0,0,0,1});
 
     if (m_wheel_is_held)
     {
@@ -209,25 +208,22 @@ void Application::update(float dt)
     {
         auto slot_size = shader_slot.getSize();
 
-        Sprite test_sprite(shader_slot.m_pixels.getTexture());
-        test_sprite.setScale(slot_size.x / 2.f, slot_size.y / 2.f);
-        test_sprite.setPosition(slot_size.x / 2.f, slot_size.y / 2.f);
         if (!shader_slot.m_selected_shader.empty())
         {
+            TextureArray textures;
+            textures.fill(0);
             auto &shader = shader_slot.m_canvas.getShader(shader_slot.m_selected_shader);
             for (auto &[texture_name, texture_data] : shader.getVariables().textures)
             {
-                test_sprite.m_texture_handles.at(texture_data.slot) = texture_data.handle;
+                textures.at(texture_data.slot) = texture_data.handle;
             }
-            shader_slot.m_canvas.m_view.setCenter(test_sprite.getPosition().x, test_sprite.getPosition().y);
-            shader_slot.m_canvas.m_view.setSize(slot_size.x, slot_size.y);
-            shader_slot.draw(test_sprite);
+            shader_slot.m_pixels.clear({0,0,0,0});
+            m_screen_sprite.draw(shader_slot.m_pixels, shader, textures);
         }
         slot_ind++;
     }
 
     m_window_renderer.getShaders().refresh();
-    glCheckError();
 
     int row = 0;
     int col = 0;

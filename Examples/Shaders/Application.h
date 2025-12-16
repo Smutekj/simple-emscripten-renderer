@@ -2,6 +2,7 @@
 
 
 #include "ShaderUI.h"
+#include "Rectangle.h"
 
 #include <chrono>
 #include <vector>
@@ -50,6 +51,8 @@ private:
     TextureHolder m_textures;
     
     float m_time = 0.f;
+
+    ScreenSprite m_screen_sprite;
 
     std::unique_ptr<UI> m_ui;
     std::vector<ShaderSlot> m_slots;
