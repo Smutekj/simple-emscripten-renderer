@@ -84,10 +84,12 @@ enum class ShaderType
 {
     Vertex,
     Fragment,
+#ifndef __EMSCRIPTEN__
     Geometry,
     TessControl,
     TessEvaluation,
     Compute,
+#endif
 };
 
 GLenum getGLCode(ShaderType type);
