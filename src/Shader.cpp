@@ -198,17 +198,17 @@ void extractUniformNames(VariablesData &shader_data, const std::string &filename
     }
 }
 //! utility uniform functions
-void setBool(GLuint id, const std::string &name, bool value) 
+void setBool(GLuint id, const std::string &name, bool value)
 {
     glUniform1i(glGetUniformLocation(id, name.c_str()), (int)value);
 }
 // ------------------------------------------------------------------------
-void setInt(GLuint id, const std::string &name, int value) 
+void setInt(GLuint id, const std::string &name, int value)
 {
     glUniform1i(glGetUniformLocation(id, name.c_str()), value);
 };
 // ------------------------------------------------------------------------
-void setFloat(GLuint id, const std::string &name, float value) 
+void setFloat(GLuint id, const std::string &name, float value)
 {
     glUniform1f(glGetUniformLocation(id, name.c_str()), value);
 };
@@ -596,8 +596,6 @@ GLuint Shader::getId() const
     return m_id;
 }
 
-
-
 void Shader::setReloadOnChange(bool new_flag_value)
 {
     m_reload_on_file_change = new_flag_value;
@@ -765,6 +763,27 @@ bool Shader2::isCompiled() const
     return m_compiled;
 }
 
+std::string getShaderTypeName(ShaderType type)
+{
+    using st = ShaderType;
+    switch (type)
+    {
+    case st::Vertex:
+        return "Vertex";
+    case st::Fragment:
+        return "Fragment";
+    case st::Geometry:
+        return "Geometry";
+    case st::TessControl:
+        return "Tesselation Control";
+    case st::TessEvaluation:
+        return "Tesselation Evaluation";
+    case st::Compute:
+        return "Compute";
+    };
+    return "";
+}
+
 bool Shader2::compile(const std::string &source_code)
 {
     const char *shader_code = "";
@@ -858,7 +877,6 @@ void ShaderProgram::setUniform(const std::string &uniform_name, UniformType valu
 
     m_uniforms.uniforms.at(uniform_name) = {value, true};
 }
-
 
 //! \param name     name of the uniform
 //! \param value    value of the uniform (the gl call is determined by the value type)

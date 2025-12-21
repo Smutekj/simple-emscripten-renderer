@@ -3,6 +3,7 @@
 #include <array>
 using GLuint = unsigned int;
 using GLint = int;
+using GLenum = unsigned int;
 
 constexpr int N_MAX_TEXTURES_IN_SHADER = 2; //! maximum number of texture slots
 using TextureArray = std::array<GLuint, N_MAX_TEXTURES_IN_SHADER>;
@@ -78,3 +79,15 @@ enum class TexWrapParam
     ClampEdge //!< uses fixed value boundary condition in texture space, if the
 };
 GLint getGLCode(TexWrapParam p);
+
+enum class ShaderType
+{
+    Vertex,
+    Fragment,
+    Geometry,
+    TessControl,
+    TessEvaluation,
+    Compute,
+};
+
+GLenum getGLCode(ShaderType type);
