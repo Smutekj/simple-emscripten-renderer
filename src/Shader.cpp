@@ -772,6 +772,7 @@ std::string getShaderTypeName(ShaderType type)
         return "Vertex";
     case st::Fragment:
         return "Fragment";
+#ifndef __EMSCRIPTEN__
     case st::Geometry:
         return "Geometry";
     case st::TessControl:
@@ -780,6 +781,7 @@ std::string getShaderTypeName(ShaderType type)
         return "Tesselation Evaluation";
     case st::Compute:
         return "Compute";
+#endif
     };
     return "";
 }
