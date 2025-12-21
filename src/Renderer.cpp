@@ -572,7 +572,7 @@ public:
     InstanceDataT i_data;
 };
 
-class Spritex : public InstancedDrawable<Vertex, SpriteInstance>
+/* class Spritex : public InstancedDrawable<Vertex, SpriteInstance>
 {
     void setPosition(utils::Vector2f pos)
     {
@@ -619,4 +619,4 @@ struct Rend
     // void drawdirectly(drawable draw_data, shaderprogram &shader, texturearray textures, view &view);
 
     BatchRegistry m_batches;
-};
+} */;
