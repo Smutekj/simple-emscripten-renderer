@@ -98,7 +98,6 @@ GLint getGLCode(TexWrapParam p)
     return 0;
 }
 
-
 GLenum getGLCode(ShaderType type)
 {
     using st = ShaderType;
@@ -108,6 +107,7 @@ GLenum getGLCode(ShaderType type)
         return GL_VERTEX_SHADER;
     case st::Fragment:
         return GL_FRAGMENT_SHADER;
+#ifndef __EMSCRIPTEN__
     case st::Geometry:
         return GL_GEOMETRY_SHADER;
     case st::TessControl:
@@ -116,6 +116,7 @@ GLenum getGLCode(ShaderType type)
         return GL_TESS_EVALUATION_SHADER;
     case st::Compute:
         return GL_COMPUTE_SHADER;
+#endif
     };
     return 0;
 }
