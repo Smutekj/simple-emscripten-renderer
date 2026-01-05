@@ -243,11 +243,12 @@ namespace utils
 
 
     //! ANGLES AND DIRECTIONS
-    const auto to_radains = std::numbers::pi_v<float> / 180.f;
-    const auto to_degrees = 180.f / std::numbers::pi_v<float>;
+    constexpr float to_radians = std::numbers::pi_v<float> / 180.f;
+    constexpr float to_degrees = 180.f / std::numbers::pi_v<float>;
+    
     inline utils::Vector2f angle2dir(float angle)
     {
-        return {std::cos(angle * to_radains), std::sin(angle * to_radains)};
+        return {std::cos(angle * to_radians), std::sin(angle * to_radians)};
     }
     inline float dir2angle(const utils::Vector2f &dir)
     {
@@ -256,7 +257,7 @@ namespace utils
 
     inline float radians(float degrees)
     {
-        return degrees * to_radains;
+        return degrees * to_radians;
     }
     inline float degrees(float radians)
     {
@@ -279,7 +280,7 @@ namespace utils
 
     inline utils::Vector2f rotate(const utils::Vector2f &input, float angle_deg)
     {
-        float angle_rad = angle_deg * to_radains;
+        float angle_rad = angle_deg * to_radians;
         float c_a = std::cos(angle_rad);
         float s_a = std::sin(angle_rad);
         return {c_a * input.x - s_a * input.y,
