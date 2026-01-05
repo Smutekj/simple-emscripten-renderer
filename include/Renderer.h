@@ -37,6 +37,7 @@ public:
     void drawRectangle(RectangleSimple &r, const std::string &shader_id = "VertexArrayDefault");
     void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color);
     void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 32);
+    void drawPartialCircle(Vec2 center, float radius, float angle_start, float angle_end, Color color, int n_verts = 32);
     void drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f &scale, Color color, int n_verts = 51, std::string shader_id = "VertexArrayDefault");
     void drawVertices(std::vector<Vertex> &verts, const std::string &shader_id = "VertexArrayDefault", std::shared_ptr<Texture> p_texture = nullptr);
 

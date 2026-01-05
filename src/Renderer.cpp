@@ -423,12 +423,45 @@ void Renderer::drawEllipseBatched(Vec2 center, float angle, const utils::Vector2
     float angle_r = glm::radians(angle);
     float d_angle = 2.f * pi / n_verts_circumference;
 
-    utils::Vector2f pos = {std::cos(angle_r), std::sin(angle_r)};
-    Vertex v_prev = {{center.x + pos.x * scale.x, center.y + pos.y * scale.y}, color, {pos.x, pos.y}};
+    utils::Vector2f scale_rotated = utils::rotate(scale, angle);
+    utils::Vector2f pos = {scale.x, 0};
+    pos = utils::rotate(pos, angle);
+    Vertex v_prev = {{center.x + pos.x, center.y + pos.y}, color, {pos.x, pos.y}};
     for (int i = 0; i < n_verts_circumference; ++i)
     {
-        pos = {std::cos((i + 1) * d_angle + angle_r), std::sin((i + 1) * d_angle + angle_r)};
-        Vertex v = {{center.x + pos.x * scale.x, center.y + pos.y * scale.y}, color, {pos.x, pos.y}};
+        pos = {scale.x * std::cos((i + 1) * d_angle), scale.y * std::sin((i + 1) * d_angle)};
+        pos = utils::rotate(pos, angle);
+        // pos = utils::rotate(pos, angle);
+        Vertex v = {{center.x + pos.x, center.y + pos.y}, color, {pos.x, pos.y}};
+
+        verts.push_back({center, color, {0, 0}});
+        verts.push_back(v_prev);
+        verts.push_back(v);
+
+        v_prev = v;
+    }
+
+    m_batches.pushVertices(verts, config);
+}
+
+void Renderer::drawPartialCircle(Vec2 center, float radius, float angle_start, float angle_end, Color color, int n_verts)
+{
+    auto &shader = m_shaders.get("VertexArrayDefault");
+    BatchConfig config({0, 0}, &shader);
+
+    auto n_verts_circumference = n_verts - 1;
+    std::vector<Vertex> verts;
+
+    float angle_init = glm::radians(angle_start);
+    float angle_diff = glm::radians(angle_end - angle_start);
+    float d_angle = angle_diff / n_verts_circumference;
+
+    utils::Vector2f pos = {radius * std::cos(angle_init), radius * std::sin(angle_init)};
+    Vertex v_prev = {{center.x + pos.x, center.y + pos.y}, color, {pos.x, pos.y}};
+    for (int i = 0; i < n_verts_circumference; ++i)
+    {
+        pos = {radius * std::cos((i + 1) * d_angle + angle_init), radius * std::sin((i + 1) * d_angle + angle_init)};
+        Vertex v = {{center.x + pos.x, center.y + pos.y}, color, {pos.x, pos.y}};
 
         verts.push_back({center, color, {0, 0}});
         verts.push_back(v_prev);
@@ -551,7 +584,6 @@ template <class VertexDataT, class InstanceDataT>
 class InstancedDrawable
 {
 
-
 public:
     using VertexData = VertexDataT;
     using InstenceData = InstanceDataT;
@@ -563,7 +595,7 @@ public:
     }
 
 protected:
-    std::function<void(InstancedDrawable&)> m_draw_strategy;
+    std::function<void(InstancedDrawable &)> m_draw_strategy;
 
 public:
     inline static GLuint m_vao = 0;
@@ -586,7 +618,7 @@ public:
     Spritex(){
         m_draw_strategy = [](InstancedDrawable& d)
         {
-            
+
         };
     }
 
@@ -612,11 +644,12 @@ struct Rend
     void drawDirectly(const DrawT &draw_data, ShaderProgram &shader, TextureArray textures, View &view)
     {
         BatchConfig config(shader, textures);
-        
+
     }
 
     // void draw(drawable draw_data, shaderprogram &shader, texturearray textures, view &view);
     // void drawdirectly(drawable draw_data, shaderprogram &shader, texturearray textures, view &view);
 
     BatchRegistry m_batches;
-} */;
+} */
+;
