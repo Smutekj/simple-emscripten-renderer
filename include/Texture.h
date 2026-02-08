@@ -21,6 +21,7 @@ struct TextureOptions
     TexMappingParam min_param = TexMappingParam::LinearMipmapLinear;
     TexWrapParam wrap_x = TexWrapParam::ClampEdge;
     TexWrapParam wrap_y = TexWrapParam::ClampEdge;
+    int mipmap_levels = 4;
 };
 
 //! \class Texture

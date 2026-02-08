@@ -216,7 +216,7 @@ void Texture::initialize(TextureOptions options)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, getGLCode(options.min_param));
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, getGLCode(options.mag_param));
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 4);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, options.mipmap_levels);
     glCheckError();
 }
 
@@ -236,7 +236,11 @@ void Texture::create(int width, int height, TextureOptions options)
                  getGLCode(options.data_type),
                  NULL);
 
-    glGenerateMipmap(GL_TEXTURE_2D);
+                 if(options.mipmap_levels > 0)
+                 {
+                     glGenerateMipmap(GL_TEXTURE_2D);
+
+                 }
     glCheckError();
 }
 
