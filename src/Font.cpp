@@ -84,65 +84,73 @@ bool Font::initializeFromFace(FT_Face &face)
     options.mag_param = TexMappingParam::Linear;
     options.min_param = TexMappingParam::Linear;
 
-    int max_tex_size;
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_tex_size);
-    m_pixels = std::make_unique<FrameBuffer>(2048, 2048, options);
+    FT_Set_Pixel_Sizes(face, 0, m_font_pixel_size);
+    m_line_height = face->size->metrics.height / 64.f;
+
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
+    glCheckError();
+
+    std::size_t font_texture_width = 2048; //! how to set this?
+    std::size_t safety_margin = 2;         //! number of pixels that separate glyphs in texture
+    std::size_t font_texture_height = 0;
+    utils::Vector2<unsigned int> max_char_size = {0};
+
+    //! find how large the font texture needs to be
+    std::size_t line_pos_x = 0;
+    int char_count = 0;
+    FT_UInt gindex;
+    FT_ULong charcode = FT_Get_First_Char(face, &gindex);
+    while (gindex != 0)
+    {
+        FT_Load_Char(face, charcode, FT_LOAD_RENDER);
+
+        FT_Render_Glyph(face->glyph, static_cast<FT_Render_Mode>(m_mode));
+        unsigned int char_width = face->glyph->bitmap.width;
+        unsigned int char_height = face->glyph->bitmap.rows;
+
+        max_char_size = {std::max(char_width, max_char_size.x), std::max(char_height, max_char_size.y)};
+
+        if (line_pos_x + char_width + safety_margin >= font_texture_width)
+        {
+            line_pos_x = 0;
+            font_texture_height += max_char_size.y + safety_margin;
+            max_char_size.y = 0;
+        }
+        line_pos_x += char_width + safety_margin;
+
+        charcode = FT_Get_Next_Char(face, charcode, &gindex);
+        char_count++;
+    }
+    font_texture_height += max_char_size.y;
+    max_char_size.y = {0};
+
+    m_pixels = std::make_unique<FrameBuffer>(font_texture_width, font_texture_height, options);
     m_canvas = std::make_unique<Renderer>(*m_pixels);
     m_canvas->getShaders().loadFromCode("Font",
                                         vertex_sprite_code,
                                         fragment_font_code);
 
-    FT_Set_Pixel_Sizes(face, 0, m_font_pixel_size);
-    m_line_height = face->size->metrics.height / 64.f;
-
-    FT_GlyphSlot slot = face->glyph;
-
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
-    glCheckError();
-
-    unsigned int max_width = 0;
-    unsigned int max_height = 0;
-
-    FT_ULong charcode;
-    FT_UInt gindex;
-
-    int char_count = 0;
-    charcode = FT_Get_First_Char(face, &gindex);
-    while (gindex != 0)
-    {
-        FT_Load_Char(face, charcode, FT_LOAD_BITMAP_METRICS_ONLY);
-
-        max_width = std::max(face->glyph->bitmap.width, max_width);
-        max_height = std::max(face->glyph->bitmap.rows, max_height);
-
-        charcode = FT_Get_Next_Char(face, charcode, &gindex);
-        char_count++;
-    }
-
     std::size_t atlas_w = m_pixels->getSize().x;
     std::size_t atlas_h = m_pixels->getSize().y;
     std::vector<uint8_t> atlas_pixels(atlas_w * atlas_h);
 
-    // unsigned int atlas_texture;
-    // glGenTextures(1, &atlas_texture);
-    // glBindTexture(GL_TEXTURE_2D, atlas_texture);
-    // glTexImage2D(GL_TEXTURE_2D, 0, GL_R8,
-    //     atlas_w, atlas_h,
-    //     0, GL_RED, GL_UNSIGNED_BYTE, nullptr);
-    //     glCheckError();
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    TextureOptions helper_texture_options = {
+        .format = TextureFormat::Red,
+        .internal_format = TextureFormat::R8,
+        .data_type = TextureDataTypes::UByte,
+        .mag_param = TexMappingParam::Linear,
+        .min_param = TexMappingParam::Linear,
+        .mipmap_levels = 0};
 
-    int safety_pixels_x = 3;
-    int safety_pixels_y = 5;
+    Texture atlas_texture;
+    atlas_texture.create(atlas_w, atlas_h, helper_texture_options);
+    atlas_texture.bind();
 
     auto &main_texture = m_pixels->getTexture();
     m_canvas->m_view.setCenter(main_texture.getSize() / 2.f);
     m_canvas->m_view.setSize(main_texture.getSize().x, -main_texture.getSize().y);
     m_canvas->clear({1, 1, 1, 0});
-    m_canvas->m_blend_factors = {BlendFactor::One, BlendFactor::OneMinusSrcAlpha};
+    m_canvas->m_blend_factors = {BlendFactor::One, BlendFactor::One};
 
     //! initialize characters data
     m_characters.clear();
@@ -152,6 +160,7 @@ bool Font::initializeFromFace(FT_Face &face)
     int i = 0;
     while (gindex != 0)
     {
+
         // load character glyph
         if (FT_Load_Char(face, charcode, FT_LOAD_RENDER))
         {
@@ -159,65 +168,67 @@ bool Font::initializeFromFace(FT_Face &face)
             continue;
         }
 
-        FT_Render_Glyph(slot, static_cast<FT_Render_Mode>(m_mode));
+        FT_GlyphSlot &glyph = face->glyph;
+        FT_Bitmap &bitmap = glyph->bitmap;
+        FT_Render_Glyph(glyph, static_cast<FT_Render_Mode>(m_mode));
 
-        auto &bitmap = face->glyph->bitmap;
-        // glTexSubImage2D(GL_TEXTURE_2D, 0,
-        //      glyph_pos.x, 1000-glyph_pos.y - face->glyph->bitmap.rows,
-        //     face->glyph->bitmap.width, face->glyph->bitmap.rows,
-        //     GL_RED, GL_UNSIGNED_BYTE, face->glyph->bitmap.buffer);
+        if (glyph_pos.x + bitmap.width + safety_margin >= main_texture.getSize().x) //! if we reach right side of the main texture
+        {
+            glyph_pos.y += max_char_size.y + safety_margin;
+            glyph_pos.x = 0;
+            max_char_size = {0};
+        }
+        max_char_size = {std::max(bitmap.width, max_char_size.x), std::max(bitmap.rows, max_char_size.y)};
 
-        max_height = std::max(bitmap.rows, max_height);
+        glTexSubImage2D(GL_TEXTURE_2D, 0,
+                        glyph_pos.x, glyph_pos.y,
+                        bitmap.width, bitmap.rows,
+                        GL_RED, GL_UNSIGNED_BYTE, bitmap.buffer);
+        glCheckError(); //! the error here is most likely due to rendering outside of texture
 
         FT_BBox bbox;
-        FT_Outline_Get_CBox(&face->glyph->outline, &bbox);
+        FT_Outline_Get_CBox(&glyph->outline, &bbox);
 
         float width = (bbox.xMax / 64.f - bbox.xMin / 64.f);
         float height = (bbox.yMax / 64.f - bbox.yMin / 64.f);
         Rectf char_bb = {bbox.xMin / 64.f, bbox.yMin / 64.f, width, height};
 
-        for (int y = 0; y < bitmap.rows; ++y)
-        {
-            int dest_y = glyph_pos.y + y;
-            int dest_x = glyph_pos.x;
-            memcpy(&atlas_pixels[dest_y * atlas_w + dest_x],
-                   bitmap.buffer + y * bitmap.pitch,
-                   bitmap.width);
-        }
+        // for (int y = 0; y < bitmap.rows; ++y)
+        // {
+        //     int dest_y = glyph_pos.y + y;
+        //     int dest_x = glyph_pos.x;
+        //     memcpy(&atlas_pixels[dest_y * atlas_w + dest_x],
+        //            bitmap.buffer + y * bitmap.pitch,
+        //            bitmap.width);
+        // }
 
         Character character =
             {
                 main_texture.getHandle(),
                 glyph_pos,
-                {face->glyph->bitmap.width, face->glyph->bitmap.rows},
-                {face->glyph->bitmap_left, face->glyph->bitmap_top},
+                {bitmap.width, bitmap.rows},
+                {glyph->bitmap_left, glyph->bitmap_top},
                 char_bb,
-                (unsigned int)face->glyph->advance.x};
+                (unsigned int)glyph->advance.x};
         m_characters.insert(std::pair<int, Character>(charcode, character));
 
-        glyph_pos.x += face->glyph->bitmap.width + safety_pixels_x;
-        if (glyph_pos.x + max_width >= main_texture.getSize().x) //! if we reach right side of the main texture
-        {
-            glyph_pos.y += max_height + safety_pixels_y;
-            glyph_pos.x = 0;
-            max_height = 0;
-        }
+        glyph_pos.x += bitmap.width + safety_margin; //! move position to next glyph
 
         charcode = FT_Get_Next_Char(face, charcode, &gindex);
         i++;
     }
-    GLuint tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, atlas_w, atlas_h, 0, GL_RED, GL_UNSIGNED_BYTE, atlas_pixels.data());
-    // glGenerateMipmap(GL_TEXTURE_2D);
+    // GLuint tex;
+    // glGenTextures(1, &tex);
+    // glBindTexture(GL_TEXTURE_2D, tex);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, atlas_w, atlas_h, 0, GL_RED, GL_UNSIGNED_BYTE, atlas_pixels.data());
 
     Sprite glyph_sprite(main_texture);
-    glyph_sprite.m_texture_handles[0] = tex;
+    glyph_sprite.m_texture_handles[0] = atlas_texture.getHandle();
     glyph_sprite.setPosition(main_texture.getSize() / 2.f);
     glyph_sprite.setScale(main_texture.getSize() / 2.f);
+    glCheckError();
     m_canvas->drawSprite(glyph_sprite, "Font");
 
     using bf = BlendFactor;
@@ -226,7 +237,7 @@ bool Font::initializeFromFace(FT_Face &face)
     m_canvas->resetBatches();
     // writeTextureToFile("../", "pica.png", *m_pixels);
     //! delete helper texture
-    glDeleteTextures(1, &tex);
+    // glDeleteTextures(1, &tex);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4); //! set back to deafult value
 
     TextureOptions text_options;
