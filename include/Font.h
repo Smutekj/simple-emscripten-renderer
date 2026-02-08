@@ -86,6 +86,6 @@ private:
     GLuint m_charmap_tex_id = 0;
 
     //! FT handles
-    FT_Face *mp_face;
-    FT_Library *mp_ft;
+    std::unique_ptr<FT_Face> mp_face;
+    std::unique_ptr<FT_Library> mp_ft;
 };

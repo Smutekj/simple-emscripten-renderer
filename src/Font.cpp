@@ -17,9 +17,6 @@ Font::~Font()
 {
     FT_Done_Face(*mp_face);
     FT_Done_FreeType(*mp_ft);
-
-    delete mp_ft;
-    delete mp_face;
 }
 
 //! \brief creates a font from a path to a file
@@ -27,8 +24,8 @@ Font::~Font()
 Font::Font(std::filesystem::path font_filename, size_t font_pixel_size, FreetypeMode mode)
     : m_mode(mode), m_font_pixel_size(font_pixel_size)
 {
-    mp_face = new FT_Face();
-    mp_ft = new FT_Library();
+    mp_face = std::make_unique<FT_Face>(FT_Face());
+    mp_ft = std::make_unique<FT_Library>(FT_Library());
 
     if (!loadFromFile(font_filename))
     {
@@ -38,8 +35,8 @@ Font::Font(std::filesystem::path font_filename, size_t font_pixel_size, Freetype
 Font::Font(const unsigned char *bytes, std::size_t num_bytes, size_t font_pixel_size, FreetypeMode mode)
     : m_mode(mode), m_font_pixel_size(font_pixel_size)
 {
-    mp_face = new FT_Face();
-    mp_ft = new FT_Library();
+    mp_face = std::make_unique<FT_Face>(FT_Face());
+    mp_ft = std::make_unique<FT_Library>(FT_Library());
 
     if (!loadFromBytes(bytes, num_bytes))
     {
@@ -224,6 +221,7 @@ bool Font::initializeFromFace(FT_Face &face)
     // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, atlas_w, atlas_h, 0, GL_RED, GL_UNSIGNED_BYTE, atlas_pixels.data());
 
+    
     Sprite glyph_sprite(main_texture);
     glyph_sprite.m_texture_handles[0] = atlas_texture.getHandle();
     glyph_sprite.setPosition(main_texture.getSize() / 2.f);
@@ -240,54 +238,11 @@ bool Font::initializeFromFace(FT_Face &face)
     // glDeleteTextures(1, &tex);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4); //! set back to deafult value
 
-    TextureOptions text_options;
-    text_options.data_type = TextureDataTypes::UByte;
-    text_options.format = TextureFormat::RGBA;
-    text_options.internal_format = TextureFormat::RGBA;
-    text_options.mag_param = TexMappingParam::Linear;
-    text_options.min_param = TexMappingParam::Linear;
-    m_prerendered = std::make_unique<FrameBuffer>(atlas_w, atlas_h, text_options);
-    Renderer canvas(*m_prerendered);
-    glyph_pos = {0.f, m_font_pixel_size};
-    float max_image_height = 0;
-    canvas.clear({0, 0, 0, 0});
-    canvas.m_view = canvas.getDefaultView();
-    Sprite glyph(getTexture());
-    glyph.setColor({255, 255, 255, 255});
-    for (auto &[code, character] : m_characters)
-    {
-        float glyph_width = character.size.x * 2;
-        float glyph_height = character.size.y * 2;
-        float dy = character.size.y - character.bearing.y;
-
-        utils::Vector2f pos = glyph_pos + Vec2{character.bearing.x + glyph_width / 2.f, glyph_height / 2.f - dy};
-        glyph.m_tex_rect = {character.tex_coords.x, character.tex_coords.y,
-                            character.size.x, character.size.y};
-
-        glyph.setPosition(pos);
-        glyph.setScale(glyph_width / 2., glyph_height / 2.);
-        auto image_height = character.bb.height * 2;
-        auto image_width = character.bb.width * 2;
-        max_image_height = std::max(image_height, max_image_height);
-        canvas.drawSprite(glyph, "TextDefault");
-
-        glyph_pos.x += (character.advance >> 6) * 2;
-        if (glyph_pos.x + image_width >= atlas_w)
-        {
-            glyph_pos.x = 0;
-            glyph_pos.y += max_image_height;
-        }
-    }
-    canvas.drawAll();
-    m_prerendered->getTexture().bind();
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    // writeTextureToFile("../", "preRenderedFont.png", m_prerendered->getTexture());
     renderCharMapTexture();
-
     return true;
 }
 
+//! \brief renders glyph information into texture which will be read from gpu by shader
 void Font::renderCharMapTexture()
 {
     int char_count = m_characters.size();
@@ -322,12 +277,12 @@ GLuint Font::getCharmapTexId() const
 //! \return true if font was succesfully loaded
 bool Font::loadFromBytes(const unsigned char *bytes, std::size_t num_bytes)
 {
-    if (FT_Init_FreeType(mp_ft))
+    if (FT_Init_FreeType(mp_ft.get()))
     {
         return false;
     }
 
-    if (FT_New_Memory_Face(*mp_ft, bytes, num_bytes, 0, mp_face))
+    if (FT_New_Memory_Face(*mp_ft, bytes, num_bytes, 0, mp_face.get()))
     {
         return false;
     }
@@ -340,7 +295,7 @@ bool Font::loadFromBytes(const unsigned char *bytes, std::size_t num_bytes)
 //! \return true if font was succesfully loaded
 bool Font::loadFromFile(std::filesystem::path font_file)
 {
-    if (FT_Init_FreeType(mp_ft))
+    if (FT_Init_FreeType(mp_ft.get()))
     {
         // spdlog::error("FREETYPE: Could not init FreeType Library");
         return false;
@@ -365,7 +320,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
         return false;
     }
 #else
-    if (FT_New_Face(*mp_ft, font_file.string().c_str(), 0, mp_face))
+    if (FT_New_Face(*mp_ft, font_file.string().c_str(), 0, mp_face.get()))
     {
         return false;
     }
@@ -480,3 +435,47 @@ bool Font::containsUTF8Code(unsigned int code) const
 {
     return m_characters.contains(code);
 }
+
+//! prerendered font just in case i need it....
+// TextureOptions text_options;
+// text_options.data_type = TextureDataTypes::UByte;
+// text_options.format = TextureFormat::RGBA;
+// text_options.internal_format = TextureFormat::RGBA;
+// text_options.mag_param = TexMappingParam::Linear;
+// text_options.min_param = TexMappingParam::Linear;
+// m_prerendered = std::make_unique<FrameBuffer>(atlas_w, atlas_h, text_options);
+// Renderer canvas(*m_prerendered);
+// glyph_pos = {0.f, m_font_pixel_size};
+// float max_image_height = 0;
+// canvas.clear({0, 0, 0, 0});
+// canvas.m_view = canvas.getDefaultView();
+// Sprite glyph(getTexture());
+// glyph.setColor({255, 255, 255, 255});
+// for (auto &[code, character] : m_characters)
+// {
+//     float glyph_width = character.size.x * 2;
+//     float glyph_height = character.size.y * 2;
+//     float dy = character.size.y - character.bearing.y;
+
+//     utils::Vector2f pos = glyph_pos + Vec2{character.bearing.x + glyph_width / 2.f, glyph_height / 2.f - dy};
+//     glyph.m_tex_rect = {character.tex_coords.x, character.tex_coords.y,
+//                         character.size.x, character.size.y};
+
+//     glyph.setPosition(pos);
+//     glyph.setScale(glyph_width / 2., glyph_height / 2.);
+//     auto image_height = character.bb.height * 2;
+//     auto image_width = character.bb.width * 2;
+//     max_image_height = std::max(image_height, max_image_height);
+//     canvas.drawSprite(glyph, "TextDefault");
+
+//     glyph_pos.x += (character.advance >> 6) * 2;
+//     if (glyph_pos.x + image_width >= atlas_w)
+//     {
+//         glyph_pos.x = 0;
+//         glyph_pos.y += max_image_height;
+//     }
+// }
+// canvas.drawAll();
+// m_prerendered->getTexture().bind();
+// glGenerateMipmap(GL_TEXTURE_2D);
+// writeTextureToFile("../", "preRenderedFont.png", m_prerendered->getTexture())
