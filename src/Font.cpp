@@ -75,37 +75,29 @@ float Font::getLineHeight() const
 
 bool Font::initializeFromFace(FT_Face &face)
 {
-
+    std::size_t font_texture_width = 2048; //! how to set this?
+    std::size_t font_texture_height = 2048;
+    std::size_t safety_margin = 2;         //! number of pixels that separate glyphs in texture
+    utils::Vector2<unsigned int> max_char_size = {0};
+    
     //! create texture to draw into
     TextureOptions options;
     options.data_type = TextureDataTypes::UByte;
     options.format = TextureFormat::RGBA;
     options.internal_format = TextureFormat::RGBA;
-    options.wrap_x = TexWrapParam::ClampEdge;
-    options.wrap_y = TexWrapParam::ClampEdge;
     options.mag_param = TexMappingParam::Linear;
     options.min_param = TexMappingParam::Linear;
+    m_pixels = std::make_unique<FrameBuffer>(font_texture_width, font_texture_height, options);
+    m_canvas = std::make_unique<Renderer>(*m_pixels);
+    m_canvas->getShaders().loadFromCode("Font",
+                                        vertex_sprite_code,
+                                        fragment_font_code);
 
     FT_Set_Pixel_Sizes(face, 0, m_font_pixel_size);
     m_line_height = face->size->metrics.height / 64.f;
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
     glCheckError();
-
-    std::size_t font_texture_width = 2048; //! how to set this?
-    std::size_t font_texture_height = 2048;
-    std::size_t safety_margin = 2;         //! number of pixels that separate glyphs in texture
-    utils::Vector2<unsigned int> max_char_size = {0};
-
-    //! find how large the font texture needs to be
-    std::size_t line_pos_x = 0;
-    int char_count = 0;
-
-    m_pixels = std::make_unique<FrameBuffer>(font_texture_width, font_texture_height, options);
-    m_canvas = std::make_unique<Renderer>(*m_pixels);
-    m_canvas->getShaders().loadFromCode("Font",
-                                        vertex_sprite_code,
-                                        fragment_font_code);
 
     std::size_t atlas_w = m_pixels->getSize().x;
     std::size_t atlas_h = m_pixels->getSize().y;
