@@ -65,6 +65,7 @@ enum class TextureFormat
 {
     RGBA,
     Red,
+    R8,
     RGBA16F,
     RGBA32F,
 };

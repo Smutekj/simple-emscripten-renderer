@@ -75,6 +75,8 @@ GLint getGLCode(TextureFormat p)
     {
     case (pm::Red):
         return GL_RED;
+    case (pm::R8):
+        return GL_R8;
     case (pm::RGBA):
         return GL_RGBA;
     case (pm::RGBA16F):
