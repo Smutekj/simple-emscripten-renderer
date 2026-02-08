@@ -19,6 +19,8 @@ Font::~Font()
     FT_Done_FreeType(*mp_ft);
 }
 
+#include <chrono>
+
 //! \brief creates a font from a path to a file
 //! \param font_filename path to a font file
 Font::Font(std::filesystem::path font_filename, size_t font_pixel_size, FreetypeMode mode)
@@ -38,10 +40,13 @@ Font::Font(const unsigned char *bytes, std::size_t num_bytes, size_t font_pixel_
     mp_face = std::make_unique<FT_Face>(FT_Face());
     mp_ft = std::make_unique<FT_Library>(FT_Library());
 
+    auto tic = std::chrono::high_resolution_clock::now();
     if (!loadFromBytes(bytes, num_bytes))
     {
         throw std::runtime_error("UNABLE TO LOAD FONT");
     }
+    auto toc = std::chrono::high_resolution_clock::now();
+    std::cout << "PENIS: " << std::chrono::duration_cast<std::chrono::milliseconds>(toc - tic) << std::endl;
 }
 
 //! \brief just for debugging
@@ -88,38 +93,13 @@ bool Font::initializeFromFace(FT_Face &face)
     glCheckError();
 
     std::size_t font_texture_width = 2048; //! how to set this?
+    std::size_t font_texture_height = 2048;
     std::size_t safety_margin = 2;         //! number of pixels that separate glyphs in texture
-    std::size_t font_texture_height = 0;
     utils::Vector2<unsigned int> max_char_size = {0};
 
     //! find how large the font texture needs to be
     std::size_t line_pos_x = 0;
     int char_count = 0;
-    FT_UInt gindex;
-    FT_ULong charcode = FT_Get_First_Char(face, &gindex);
-    while (gindex != 0)
-    {
-        FT_Load_Char(face, charcode, FT_LOAD_RENDER);
-
-        FT_Render_Glyph(face->glyph, static_cast<FT_Render_Mode>(m_mode));
-        unsigned int char_width = face->glyph->bitmap.width;
-        unsigned int char_height = face->glyph->bitmap.rows;
-
-        max_char_size = {std::max(char_width, max_char_size.x), std::max(char_height, max_char_size.y)};
-
-        if (line_pos_x + char_width + safety_margin >= font_texture_width)
-        {
-            line_pos_x = 0;
-            font_texture_height += max_char_size.y + safety_margin;
-            max_char_size.y = 0;
-        }
-        line_pos_x += char_width + safety_margin;
-
-        charcode = FT_Get_Next_Char(face, charcode, &gindex);
-        char_count++;
-    }
-    font_texture_height += max_char_size.y;
-    max_char_size.y = {0};
 
     m_pixels = std::make_unique<FrameBuffer>(font_texture_width, font_texture_height, options);
     m_canvas = std::make_unique<Renderer>(*m_pixels);
@@ -129,7 +109,7 @@ bool Font::initializeFromFace(FT_Face &face)
 
     std::size_t atlas_w = m_pixels->getSize().x;
     std::size_t atlas_h = m_pixels->getSize().y;
-    std::vector<uint8_t> atlas_pixels(atlas_w * atlas_h);
+    // std::vector<uint8_t> atlas_pixels(atlas_w * atlas_h);
 
     TextureOptions helper_texture_options = {
         .format = TextureFormat::Red,
@@ -149,15 +129,16 @@ bool Font::initializeFromFace(FT_Face &face)
     m_canvas->clear({1, 1, 1, 0});
     m_canvas->m_blend_factors = {BlendFactor::One, BlendFactor::One};
 
+    auto tic = std::chrono::high_resolution_clock::now();
+    
     //! initialize characters data
     m_characters.clear();
-
     utils::Vector2i glyph_pos = {0, 0};
-    charcode = FT_Get_First_Char(face, &gindex);
-    int i = 0;
+    
+    FT_UInt gindex;
+    FT_ULong charcode = FT_Get_First_Char(face, &gindex);
     while (gindex != 0)
     {
-
         // load character glyph
         if (FT_Load_Char(face, charcode, FT_LOAD_RENDER))
         {
@@ -177,10 +158,10 @@ bool Font::initializeFromFace(FT_Face &face)
         }
         max_char_size = {std::max(bitmap.width, max_char_size.x), std::max(bitmap.rows, max_char_size.y)};
 
-        glTexSubImage2D(GL_TEXTURE_2D, 0,
+         glTexSubImage2D(GL_TEXTURE_2D, 0,
                         glyph_pos.x, glyph_pos.y,
                         bitmap.width, bitmap.rows,
-                        GL_RED, GL_UNSIGNED_BYTE, bitmap.buffer);
+                        GL_RED, GL_UNSIGNED_BYTE, bitmap.buffer) ;
         glCheckError(); //! the error here is most likely due to rendering outside of texture
 
         FT_BBox bbox;
@@ -212,8 +193,9 @@ bool Font::initializeFromFace(FT_Face &face)
         glyph_pos.x += bitmap.width + safety_margin; //! move position to next glyph
 
         charcode = FT_Get_Next_Char(face, charcode, &gindex);
-        i++;
     }
+    auto toc = std::chrono::high_resolution_clock::now();
+    std::cout << "font render: " << std::chrono::duration_cast<std::chrono::milliseconds>(toc - tic) << std::endl;
     // GLuint tex;
     // glGenTextures(1, &tex);
     // glBindTexture(GL_TEXTURE_2D, tex);
@@ -221,9 +203,8 @@ bool Font::initializeFromFace(FT_Face &face)
     // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, atlas_w, atlas_h, 0, GL_RED, GL_UNSIGNED_BYTE, atlas_pixels.data());
 
-    
     Sprite glyph_sprite(main_texture);
-    glyph_sprite.m_texture_handles[0] = atlas_texture.getHandle();
+    glyph_sprite.m_texture_handles[0] =  atlas_texture.getHandle(); //tex
     glyph_sprite.setPosition(main_texture.getSize() / 2.f);
     glyph_sprite.setScale(main_texture.getSize() / 2.f);
     glCheckError();
