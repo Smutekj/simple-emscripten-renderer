@@ -12,6 +12,5 @@ struct Vertex
     Vec2 pos;
     Color color;
     Vec2 tex_coord;
-    // 
 };
 

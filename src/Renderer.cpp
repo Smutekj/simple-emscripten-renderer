@@ -580,6 +580,8 @@ void renderToTraget(Renderer &target, const Texture &source, const std::string &
     target.m_view = old_view;
 }
 
+
+
 template <class VertexDataT, class InstanceDataT>
 class InstancedDrawable
 {
@@ -600,56 +602,102 @@ protected:
 public:
     inline static GLuint m_vao = 0;
 
-    VertexDataT v_data;
     InstanceDataT i_data;
 };
 
-/* class Spritex : public InstancedDrawable<Vertex, SpriteInstance>
-{
-    void setPosition(utils::Vector2f pos)
-    {
-        i_data.trans = pos;
-    }
-    void setSize(utils::Vector2f size)
-    {
-        i_data.scale = size / 2.f;
-    }
+// class VertexArrayLayoutRegistry
+// {
+// };
 
-    Spritex(){
-        m_draw_strategy = [](InstancedDrawable& d)
-        {
+// class VertexAttributesLayout 
+// {
 
-        };
-    }
+// public:
+//     VertexAttributesLayout();
+//     ~VertexAttributesLayout();
 
-};
+//     void pushFloat();
+//     void pushColor();
+//     void push();
 
-struct Rend
-{
+//     void bind();
 
-    template <class DrawT>
-    void registerDrawable(DrawT t, BatchRegistry::BatchMaker maker)
-    {
-        m_batches.registerBatch<DrawT::VertexData, DrawT::InstanceData>(maker);
-    }
+// private:
+//     GLuint m_gl_id = 0;
+//     std::size_t m_layout_id = 0;
+// };
 
-    template <class DrawT>
-    void drawInstanced(const DrawT &draw_data, ShaderProgram &shader, TextureArray textures, View &view)
-    {
-        BatchConfig config(shader, textures);
-        m_batches.pushInstance(draw_data.i_data, config);
-    }
+// class Spritex : public InstancedDrawable<Vertex, SpriteInstance>
+// {
 
-    template <class DrawT>
-    void drawDirectly(const DrawT &draw_data, ShaderProgram &shader, TextureArray textures, View &view)
-    {
-        BatchConfig config(shader, textures);
+//     void setPosition(utils::Vector2f pos)
+//     {
+//         i_data.trans = pos;
+//     }
+//     void setSize(utils::Vector2f size)
+//     {
+//         i_data.scale = size / 2.f;
+//     }
 
-    }
+//     Spritex()
+//     {
+//         m_draw_strategy = [](InstancedDrawable &d) {
 
-    // void draw(drawable draw_data, shaderprogram &shader, texturearray textures, view &view);
-    // void drawdirectly(drawable draw_data, shaderprogram &shader, texturearray textures, view &view);
+//         };
+//     }
 
-    BatchRegistry m_batches;
-} */
-;
+//     void initialize()
+//     {
+//         glBindVertexArray(m_vao);
+//         glBindBuffer(GL_ARRAY_BUFFER, 1);
+//         glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_array), vertex_array.data(), GL_STATIC_DRAW);
+//         glBindVertexArray(0);
+//     }
+
+//     void draw(RenderTarget &target, ShaderProgram &shader, TextureArray textures, View &view)
+//     {
+//         target.bind();
+
+//         shader.setUniform("u_view", view.getMatrix());
+//         shader.use();
+
+//         glBindVertexArray(m_vao);
+//         glBindBuffer(GL_ARRAY_BUFFER, 1);
+//         glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_array), vertex_array.data(), GL_STATIC_DRAW);
+
+//         glDrawArrays(GL_TRIANGLES, 0, vertex_array.size());
+//     }
+
+//     std::array<Vertex, 6> vertex_array = {
+//         Vertex{{-1., -1.}, {1., 1., 1., 1.}, {0, 0}},
+//         Vertex{{+1, -1}, {1, 1, 1, 1}, {1, 0}},
+//         Vertex{{+1, +1}, {1, 1, 1, 1}, {1, 1}},
+//         Vertex{{+1, -1}, {1, 1, 1, 1}, {1, 0}},
+//         Vertex{{+1, +1}, {1, 1, 1, 1}, {1, 1}},
+//         Vertex{{-1, +1}, {1, 1, 1, 1}, {0, 1}}};
+// };
+
+// struct Rend
+// {
+
+//     template <class DrawT>
+//     void registerDrawable(DrawT t, BatchRegistry::BatchMaker maker)
+//     {
+//         m_batches.registerBatch<DrawT::VertexData, DrawT::InstanceData>(maker);
+//     }
+
+//     template <class DrawT>
+//     void drawInstanced(const DrawT &draw_data, ShaderProgram &shader, TextureArray textures)
+//     {
+//         BatchConfig config(shader, textures);
+//         m_batches.pushInstance(draw_data.i_data, config);
+//     }
+
+//     template <class DrawT>
+//     void drawDirectly(const DrawT &draw_data, ShaderProgram &shader, TextureArray textures, View &view)
+//     {
+//     }
+
+
+//     BatchRegistry m_batches;
+// };
