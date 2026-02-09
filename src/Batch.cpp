@@ -2,6 +2,7 @@
 
 #include "IncludesGl.h"
 
+
 BatchI::~BatchI()
 {
     glDeleteBuffers(1, &m_instance_buffer);
@@ -9,104 +10,6 @@ BatchI::~BatchI()
     glDeleteVertexArrays(1, &m_vao);
 }
 
-template <class T>
-AttributeId makeAttribute(T var)
-{
-    if constexpr (std::is_same_v<T, utils::Vector2f>)
-    {
-        return {.type_id = GL_FLOAT, .count = 2, .size = sizeof(T), .is_normalized = false};
-    }
-    else if constexpr (std::is_same_v<T, int>)
-    {
-        return {.type_id = GL_INT, .count = 1, .size = sizeof(T), .is_normalized = false};
-    }
-    else if constexpr (std::is_same_v<T, ColorByte>)
-    {
-        return {.type_id = GL_UNSIGNED_BYTE, .count = 4, .size = sizeof(T), .is_normalized = true};
-    }
-    else if constexpr (std::is_same_v<T, Color>)
-    {
-        return {.type_id = GL_FLOAT, .count = 4, .size = sizeof(T), .is_normalized = false};
-    }
-    else if constexpr (std::is_same_v<T, float>)
-    {
-        return {.type_id = GL_FLOAT, .count = 1, .size = sizeof(T), .is_normalized = false};
-    }
-    else if constexpr (std::is_same_v<T, Rectf>)
-    {
-        return {.type_id = GL_FLOAT, .count = 4, .size = sizeof(T), .is_normalized = false};
-    }
-    return {};
-};
-VAOId makeVertexArrayVAO()
-{
-    VAOId layout;
-
-    Vertex i;
-    layout.vertex_attirbutes = {
-        makeAttribute(i.pos),
-        makeAttribute(i.color),
-        makeAttribute(i.tex_coord)};
-
-    layout.vertices_size = sizeof(Vertex);
-    layout.instance_size = 0;
-    layout.max_vertex_buffer_count = BATCH_VERTEX_CAPACITY; //! vertices are just a square
-    layout.max_instance_count = 1;
-
-    return layout;
-}
-
-VAOId makeSpriteVAO()
-{
-    VAOId layout;
-
-    SpriteInstance i;
-    layout.instanced_attributes = {
-        makeAttribute(i.trans),
-        makeAttribute(i.scale),
-        makeAttribute(i.angle),
-        makeAttribute(i.tex_coords),
-        makeAttribute(i.tex_size),
-        makeAttribute(i.color)};
-
-    layout.vertex_attirbutes = {
-        makeAttribute(utils::Vector2f{}),
-        makeAttribute(utils::Vector2f{})};
-
-    layout.vertices_size = 2 * sizeof(utils::Vector2f);
-    layout.instance_size = sizeof(SpriteInstance);
-    layout.max_vertex_buffer_count = 6; //! vertices are just a square
-    layout.max_instance_count = BATCH_VERTEX_CAPACITY;
-
-    return layout;
-}
-
-VAOId makeTextVAO()
-{
-    VAOId layout;
-
-    TextInstance i;
-    layout.instanced_attributes = {
-        makeAttribute(i.pos),
-        makeAttribute(i.scale),
-        makeAttribute(i.angle),
-        makeAttribute(i.edge_color),
-        makeAttribute(i.fill_color),
-        makeAttribute(i.glow_color),
-        makeAttribute(i.char_code),
-        makeAttribute(i.start_time)};
-
-    layout.vertex_attirbutes = {
-        makeAttribute(utils::Vector2f{}),
-        makeAttribute(utils::Vector2f{})};
-
-    layout.vertices_size = 2 * sizeof(utils::Vector2f);
-    layout.instance_size = sizeof(TextInstance);
-    layout.max_vertex_buffer_count = 6; //! vertices are just a square
-    layout.max_instance_count = BATCH_VERTEX_CAPACITY;
-
-    return layout;
-}
 std::shared_ptr<BatchI> makeSpriteBatch()
 {
     static constexpr float VERTEX_RECT[6 * 4] = {
