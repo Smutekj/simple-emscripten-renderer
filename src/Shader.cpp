@@ -847,11 +847,12 @@ void ShaderProgram::linkShaders()
     }
 }
 
-void ShaderProgram::use() const
+void ShaderProgram::use() 
 {
     if (m_linked)
     {
         glUseProgram(m_id);
+        updateUniforms();
     }
     else
     {

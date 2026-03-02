@@ -80,7 +80,6 @@ void Application::initializeResources()
 
     m_scene_canvas.setShadersPath(shaders_path);
     m_window_renderer.setShadersPath(shaders_path);
-    m_window_renderer.addShader("LastPass", "basicinstanced.vert", "lastPass.frag");
     glCheckErrorMsg("Error in Shaders creation!");
 }
 

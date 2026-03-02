@@ -11,10 +11,10 @@ set(CMAKE_CXX_STANDARD 20)
 
 include(cmake/CompilerFlags.cmake)
 include(cmake/CompilerWarnings.cmake)
+include(cmake/External.cmake)
 
 add_subdirectory(external/glad)
 add_subdirectory(external/freetype)
-include(cmake/External.cmake)
 
 file(GLOB HDR
 "include/*.h"
@@ -29,6 +29,7 @@ file(GLOB SRC
 "src/Gui/backends/*.cpp"
 )
 
+
 set(TARGET_LIBRARY_NAME ${PROJECT_NAME})
 add_library(${TARGET_LIBRARY_NAME} STATIC)
 target_sources(${TARGET_LIBRARY_NAME} PRIVATE ${SRC})
@@ -36,6 +37,8 @@ target_link_libraries(${TARGET_LIBRARY_NAME} PUBLIC SDL2 SDL2_mixer glm freetype
 set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES CXX_STANDARD 20)
 set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
+target_compile_definitions(${TARGET_LIBRARY_NAME} PRIVATE GLES)
 
 set_target_compiler_flags(${TARGET_LIBRARY_NAME})
 set_project_warnings(${TARGET_LIBRARY_NAME})

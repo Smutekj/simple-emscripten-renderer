@@ -7,7 +7,6 @@
 #include <ostream>
 #include <numbers>
 
-
 namespace utils
 {
 
@@ -116,7 +115,7 @@ namespace utils
         // template <class X>
         // friend std::ostream &operator<<(std::ostream &os, const Vector2<X> &vec);
     };
-    
+
     // template <class T>
     // std::ostream &operator<<(std::ostream &os, const Vector2<T> &vec)
     // {
@@ -127,8 +126,13 @@ namespace utils
     template <class T, class Scalar>
     constexpr Vector2<T> inline operator*(Scalar i, const Vector2<T> &v)
     {
-        return v * i;
+        return {v.x * i, v.y * i};
     }
+    // template <class T, class Scalar>
+    // constexpr Vector2<T> inline operator*(const Vector2<T> &v, Scalar i)
+    // {
+    //     return {v.x * i, v.y * i};
+    // }
     template <class T>
     constexpr Vector2<T> inline operator-(const Vector2<T> &v)
     {
@@ -241,11 +245,10 @@ namespace utils
         return false;
     }
 
-
     //! ANGLES AND DIRECTIONS
     constexpr float to_radians = std::numbers::pi_v<float> / 180.f;
     constexpr float to_degrees = 180.f / std::numbers::pi_v<float>;
-    
+
     inline utils::Vector2f angle2dir(float angle)
     {
         return {std::cos(angle * to_radians), std::sin(angle * to_radians)};

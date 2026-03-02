@@ -288,7 +288,7 @@ bool Font::loadFromFile(std::filesystem::path font_file)
     std::vector<unsigned char> buffer(size);
     SDL_RWread(rw, buffer.data(), 1, size);
     SDL_RWclose(rw);
-    if (FT_New_Memory_Face(m_ft, buffer.data(), buffer.size(), 0, &m_face))
+    if (FT_New_Memory_Face(*mp_ft, buffer.data(), buffer.size(), 0, mp_face.get()))
     {
         return false;
     }
