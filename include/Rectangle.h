@@ -71,6 +71,7 @@ public:
     template <class... Textures>
     void draw(RenderTarget &target, Shader &shader, const Textures &...sources);
 
+    Rectf tex_rect;
 private:
     DrawSprite m_screen_sprite;
 };

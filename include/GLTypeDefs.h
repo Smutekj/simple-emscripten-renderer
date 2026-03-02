@@ -53,6 +53,7 @@ GLint getGLCode(TexMappingParam p);
 enum class TextureDataTypes
 {
     Float,
+    HalfFloat,
     UByte,
 };
 GLint getGLCode(TextureDataTypes p);
@@ -64,8 +65,10 @@ GLint getGLCode(TextureDataTypes p);
 enum class TextureFormat
 {
     RGBA,
+    RGB,
     Red,
     R8,
+    R11G11B10F,
     RGBA16F,
     RGBA32F,
 };

@@ -150,7 +150,7 @@ public:
     void pushShader(const std::string &shader_code, ShaderType type);
     void linkShaders();
 
-    void use() const;
+    void use() ;
 
     bool isValid() const;
 

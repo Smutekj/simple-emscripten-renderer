@@ -236,11 +236,10 @@ void Texture::create(int width, int height, TextureOptions options)
                  getGLCode(options.data_type),
                  NULL);
 
-                 if(options.mipmap_levels > 0)
-                 {
-                     glGenerateMipmap(GL_TEXTURE_2D);
-
-                 }
+    if (options.mipmap_levels > 0)
+    {
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
     glCheckError();
 }
 
@@ -255,11 +254,22 @@ void Texture::bind(int slot)
     glCheckError();
 }
 
-//! \brief bind the texture to a GL slot specified by: \p slot
-//! \param slot
+//! \returns dimensions of the texture 
 Vec2 Texture::getSize() const
 {
     return {static_cast<float>(m_width), static_cast<float>(m_height)};
+}
+//! \returns dimensions of the texture 
+utils::Vector2i Texture::getSizeI() const
+{
+    return {m_width, m_height};
+}
+
+//! \brief gives \b y/x aspect ratio of the texture 
+//! \returns 
+float Texture::getAspect() const
+{
+    return static_cast<float>(m_height) / static_cast<float>(m_width);
 }
 
 GLuint Texture::getHandle() const
@@ -354,4 +364,3 @@ void TextureHolder::erase(const std::string &texture_id)
 {
     m_textures.erase(texture_id);
 }
-

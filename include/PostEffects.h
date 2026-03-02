@@ -50,7 +50,7 @@ class BloomPhysical : public PostEffect
 {
 
 public:
-    BloomPhysical(int width, int height, int mip_count = 3, int gauss_pass_count = 3, TextureOptions options = {}, std::string final_shader = "combineLightBloom");
+    BloomPhysical(int width, int height, int mip_count = 3, TextureOptions options = {}, float source_weight = 1.f);
 
     virtual void process(Texture &source, Renderer &target) override;
     virtual ~BloomPhysical() {};
@@ -83,6 +83,7 @@ private:
 
     Shader m_brightness_pass;
     Shader m_downsample_pass;
+    Shader m_downsample_cheap_pass;
     Shader m_upsample_pass;
     Shader m_mixer_pass;
 };
@@ -122,6 +123,20 @@ private:
     FrameBuffer m_multiply_texture;
     ScreenSprite m_screen_sprite;
 };
+
+class MapFromHDR : public PostEffect
+{
+public:
+    MapFromHDR(int width, int height);
+
+    virtual void process(Texture &source, Renderer &target) override;
+    ~MapFromHDR() override = default;
+
+private:
+    Shader m_map_pass;
+    ScreenSprite m_screen_sprite;
+};
+
 
 
 class BloomFinal : public PostEffect

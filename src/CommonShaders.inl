@@ -1,7 +1,7 @@
 #pragma once
 
 constexpr const char *vertex_text_code = R"V0G0N(#version 300 es
-precision highp float;
+precision mediump float;
 
 layout(location = 0) in vec2 a_position;
 layout(location = 1) in vec2 a_tex_coord;
@@ -42,7 +42,7 @@ void main()
 )V0G0N";
 
 constexpr const char *vertex_sprite_code_old = R"V0G0N(#version 300 es
-                                               precision highp float;
+                                               precision mediump float;
                                                layout(location = 0) in vec2 a_position;
                                                layout(location = 1) in vec2 a_translation;
                                                layout(location = 2) in vec2 a_scale;
@@ -71,7 +71,7 @@ constexpr const char *vertex_sprite_code_old = R"V0G0N(#version 300 es
 )V0G0N";
 
 constexpr const char *vertex_sprite_code = R"V0G0N(#version 300 es
-precision highp float;
+precision mediump float;
 layout(location = 0) in vec2 a_position;
 layout(location = 1) in vec2 a_tex_pos;
 layout(location = 2) in vec2 a_translation;
@@ -96,7 +96,7 @@ void main()
 )V0G0N";
 
 constexpr const char *vertex_sprite_code_direct = R"V0G0N(#version 300 es
-precision highp float;
+precision mediump float;
 layout(location = 0) in vec2 a_position;
 layout(location = 1) in vec2 a_tex_pos;
 out vec2 v_tex_coord;
@@ -110,7 +110,7 @@ void main()
 )V0G0N";
 
 constexpr const char *vertex_vertexarray_code = R"V0G0N(#version 300 es
-precision highp float;
+precision mediump float;
 in vec2 a_position;
 in vec4 a_color;
 in vec2 a_tex_coord;
@@ -127,7 +127,7 @@ void main()
 )V0G0N";
 
 constexpr const char *fragment_font_code = R"V0G0N(#version 300 es
-precision highp float;
+precision mediump float;
 in vec2 v_tex_coord;
 in vec4 v_color;
 out vec4 FragColor;
@@ -141,7 +141,7 @@ void main()
 )V0G0N";
 
 constexpr const char *fragment_fullpass_code = R"V0G0N(#version 300 es
-precision highp float;
+precision mediump float;
 in vec2 v_tex_coord;
 in vec4 v_color;
 out vec4 FragColor;
@@ -152,7 +152,7 @@ void main()
 )V0G0N";
 
 constexpr const char *fragment_fullpass_texture_code = R"V0G0N(#version 300 es
-precision highp float;
+precision mediump float;
 uniform sampler2D u_texture;
 in vec2 v_tex_coord;
 in vec4 v_color;
@@ -169,7 +169,7 @@ void main()
 }
 )V0G0N";
 constexpr const char *fragment_fullpass_texture_code_no_alpha = R"V0G0N(#version 300 es
-                                                                precision highp float;
+                                                                precision mediump float;
                                                                 uniform sampler2D u_texture;
                                                                 in vec2 v_tex_coord;
                                                                 in vec4 v_color;
@@ -183,7 +183,7 @@ constexpr const char *fragment_fullpass_texture_code_no_alpha = R"V0G0N(#version
                                                             )V0G0N";
 
 constexpr const char *fragment_text2_code = R"V0G0N(#version 300 es
-precision highp float;
+precision mediump float;
 in vec2 v_tex_coord;
 in vec4 v_edge_color;
 in vec4 v_fill_color;
@@ -238,7 +238,7 @@ void main()
 )V0G0N";
 
 constexpr const char *fragment_text_code = R"V0G0N(#version 300 es
-precision highp float;
+precision mediump float;
 in vec2 v_tex_coord;
 in vec4 v_color;
 uniform vec4 u_edge_color = vec4(0., 0.,0., 1.);
@@ -269,7 +269,7 @@ void main()
 })V0G0N";
 
 constexpr const char *fragment_brightness_code = "#version 300 es\n"
-                                                 "precision highp float;\n"
+                                                 "precision mediump float;\n"
                                                  "in vec2 v_tex_coord;\n"
                                                  "in vec4 v_color;\n"
                                                  "out vec4 FragColor;\n"
@@ -286,7 +286,7 @@ constexpr const char *fragment_brightness_code = "#version 300 es\n"
                                                  "}\n";
 
 constexpr const char *fragment_downsample_code = "#version 300 es\n"
-                                                 "precision highp float;\n"
+                                                 "precision mediump float;\n"
                                                  "uniform sampler2D u_image;\n"
                                                  "in vec2 v_tex_coord;\n"
                                                  "in vec4 v_color;\n"
@@ -305,7 +305,7 @@ constexpr const char *fragment_downsample_code = "#version 300 es\n"
                                                  "}\n";
 
 constexpr const char *fragment_gauss_vert_code = "#version 300 es\n"
-                                                 "precision highp float;\n"
+                                                 "precision mediump float;\n"
                                                  "uniform sampler2D u_image;\n"
                                                  "in vec2 v_tex_coord;\n"
                                                  "in vec4 v_color;\n"
@@ -327,7 +327,7 @@ constexpr const char *fragment_gauss_vert_code = "#version 300 es\n"
                                                  "	FragColor = result;\n"
                                                  "}\n";
 constexpr const char *fragment_gauss3x3_code = "#version 300 es\n"
-                                               "precision highp float;\n"
+                                               "precision mediump float;\n"
                                                "uniform sampler2D u_image;\n"
                                                "in vec2 v_tex_coord;\n"
                                                "in vec4 v_color;\n"
@@ -350,7 +350,7 @@ constexpr const char *fragment_gauss3x3_code = "#version 300 es\n"
                                                "}\n";
 
 constexpr const char *fragment_gauss_horiz_code = "#version 300 es\n"
-                                                  "precision highp float;\n"
+                                                  "precision mediump float;\n"
                                                   "uniform sampler2D u_image;\n"
                                                   "in vec2 v_tex_coord;\n"
                                                   "in vec4 v_color;\n"
@@ -384,7 +384,7 @@ constexpr const char *fragment_gauss_horiz_code = "#version 300 es\n"
 // g - h - i
 // === ('e' is the current texel) ===
 constexpr const char *fragment_downsample13_code = "#version 300 es\n"
-                                                   "precision highp float;\n"
+                                                   "precision mediump float;\n"
                                                    "uniform sampler2D u_texture;\n"
                                                    "uniform vec2 u_src_resolution;\n"
                                                    "in vec2 v_tex_coord;\n"
@@ -420,7 +420,7 @@ constexpr const char *fragment_downsample13_code = "#version 300 es\n"
                                                    "}";
 
 constexpr const char *fragment_combine_bloom_code = "#version 300 es\n"
-                                                    "precision highp float;\n"
+                                                    "precision mediump float;\n"
                                                     "uniform sampler2D u_source;\n"
                                                     "uniform sampler2D u_bloom;\n"
                                                     "uniform float exposure = 1.5;\n"
@@ -444,34 +444,11 @@ constexpr const char *fragment_combine_bloom_code = "#version 300 es\n"
                                                     "    float result_alpha = 1.0 - exp(-(bloom_alpha + source_alpha) *exposure);    // tone mapping\n"
                                                     "    result = pow(result, vec3(1.0 / gamma));                // gamma correction\n"
                                                     "    float alpha = min(source_alpha+bloom_alpha, 1.);\n"
-                                                    "    FragColor = vec4(result, alpha);\n"
+                                                    "    FragColor = vec4(result*alpha, alpha);\n"
                                                     "}\n";
 
-// constexpr const char *fragment_combine_bloom_code = "#version 300 es\n"
-//                                                     "precision highp float;\n"
-//                                                     "uniform sampler2D u_source;\n"
-//                                                     "uniform sampler2D u_bloom;\n"
-//                                                     "uniform float exposure = 1.5;\n"
-//                                                     "in vec2 v_tex_coord;\n"
-//                                                     "in vec4 v_color;\n"
-//                                                     "out vec4 FragColor;\n"
-//                                                     "void main(void)\n"
-//                                                     "{\n"
-//                                                     "    const float gamma = 2.2;\n"
-//                                                     "    vec3 source_color = texture(u_source, v_tex_coord).rgb;\n"
-//                                                     "    vec3 bloom_color = texture(u_bloom, v_tex_coord).rgb;\n"
-//                                                     "    float source_alpha = texture(u_source, v_tex_coord).a;\n"
-//                                                     "    float bloom_alpha = texture(u_bloom, v_tex_coord).a;\n"
-//                                                     "    vec3 hdr_color = source_color + bloom_color;             // additive blending\n"
-//                                                     "    vec3 result = vec3(1.0) - exp(-hdr_color * exposure);    // tone mapping\n"
-//                                                     "    result = pow(result, vec3(1.0 / gamma));                // gamma correction\n"
-//                                                     "    // result = clamp(bloom_color*5. + source_color, 0., 1.);\n"
-//                                                     "    float alpha = min(source_alpha + bloom_alpha, 1.);\n"
-//                                                     "    FragColor = vec4(result, alpha);\n"
-//                                                     "}\n";
-
 constexpr const char *fragment_edge_detect_code = "#version 300 es\n"
-                                                  "precision highp float;\n"
+                                                  "precision mediump float;\n"
                                                   "in vec2 v_tex_coord;\n"
                                                   "out vec4 FragColor;\n"
                                                   "uniform sampler2D u_input;\n"
@@ -505,7 +482,7 @@ constexpr const char *fragment_edge_detect_code = "#version 300 es\n"
                                                   "    FragColor = vec4(vec3(magnitude), min(magnitude, 1.0));\n"
                                                   "}\n";
 constexpr const char *fragment_edge_combine_code = "#version 300 es\n"
-                                                   "precision highp float;    \n"
+                                                   "precision mediump float;    \n"
                                                    "uniform sampler2D u_source;\n"
                                                    "uniform sampler2D u_edge;\n"
                                                    "uniform vec3 edge_color = vec3(0., 0.5, 5.);\n"
@@ -520,6 +497,40 @@ constexpr const char *fragment_edge_combine_code = "#version 300 es\n"
                                                    "    FragColor = vec4(edge_color * edge_alpha + source_color*(1.-edge_alpha), source_alpha + edge_alpha);\n"
                                                    "}\n";
 
+constexpr const char *fragment_downsample_cheap_code = R"V0G0N(
+#version 300 es
+precision mediump float;
+
+uniform sampler2D u_texture;
+uniform vec2 u_src_resolution;
+uniform float u_threshold = 0.;
+in vec2 v_tex_coord;
+out vec4 FragColor;
+
+void main(){
+    vec2 halfTexel = vec2(0.5 / u_src_resolution.x, 0.5 / u_src_resolution.y);
+
+    // sample at 4 points offset by half a texel
+    // hardware bilinear does a 2x2 average for free at each tap
+    // so this is effectively a 4x4 = 16 pixel average with only 4 taps
+    vec4 a = texture(u_texture, v_tex_coord + vec2(-halfTexel.x,  halfTexel.y));
+    vec4 b = texture(u_texture, v_tex_coord + vec2( halfTexel.x,  halfTexel.y));
+    vec4 c = texture(u_texture, v_tex_coord + vec2(-halfTexel.x, -halfTexel.y));
+    vec4 d = texture(u_texture, v_tex_coord + vec2( halfTexel.x, -halfTexel.y));
+
+    vec4 avg = (a + b + c + d) * 0.25;
+
+    // brightness threshold
+    float brightness = dot(avg.rgb, vec3(0.2126, 0.7152, 0.0722));
+    float soft = brightness - u_threshold;
+    soft = clamp(soft, 0.0, 1.0);
+    soft = (soft * soft) / (2.0 * u_threshold + 0.0001);
+    float contribution = max(soft, brightness - u_threshold) / max(brightness, 0.0001);
+    FragColor = vec4(avg.rgb , avg.a);
+}
+
+)V0G0N";
+
 // This shader performs upsampling on a texture,
 // as taken from Call Of Duty method, presented at ACM Siggraph 2014.
 
@@ -527,7 +538,7 @@ constexpr const char *fragment_edge_combine_code = "#version 300 es\n"
 // Remember to use a floating-point texture format (for HDR)!
 // Remember to use edge clamping for this texture!
 constexpr const char *fragment_upsample_blur_code = R"V0G0N(#version 300 es
-precision highp float;    
+precision mediump float;
 uniform sampler2D u_texture;
 uniform float u_filter_radius;
 uniform float u_aspect_ratio;
@@ -571,10 +582,14 @@ void main(){
 )V0G0N";
 
 constexpr const char *fragment_upsample_mix_code = R"V0G0N(#version 300 es
-precision highp float;    
+precision mediump float;
+
 uniform sampler2D u_source;
 uniform sampler2D u_texture;
+
 uniform float u_filter_radius;
+uniform float u_source_weight = 1.;
+
 in vec2 v_tex_coord;
 in vec4 v_color;
 out vec4 FragColor;
@@ -609,17 +624,18 @@ vec4 upsample = e*4.0;
      upsample += (b+d+f+h)*2.0;
      upsample += (a+c+g+i);
      upsample *= 1.0 / 16.0;
-     vec4 tone_mapped = vec4(1.0) - exp(-(upsample + source_color)*1.5);
-     FragColor =  tone_mapped;
+     vec4 tone_mapped = vec4(1.0) - exp(-(upsample + u_source_weight * source_color)*1.5);
+     float alpha = min(max(tone_mapped.a, source_color.a), 1.);
+//     FragColor =  vec4(tone_mapped.rgb, alpha);
+     FragColor =  vec4(tone_mapped.rgb, alpha);
  }
 )V0G0N";
 
 constexpr const char *fragment_combine_light = R"V0G0N(#version 300 es 
-precision highp float;    
+precision mediump float;
 
 uniform sampler2D u_source;
 uniform float u_exposure = 2.0;
-uniform float radius = 0.2;
 
 in vec2 v_tex_coord;                          
 in vec4 v_color;       
@@ -633,5 +649,27 @@ void main(void)
 
     vec3 result = vec3(1.) - exp(-source_color*u_exposure);
     FragColor = vec4(result, source_alpha);
+}
+)V0G0N";
+
+
+constexpr const char *fragment_map_from_hdr= R"V0G0N(#version 300 es 
+precision mediump float;
+
+uniform sampler2D u_source;
+uniform float u_exposure = 2.0;
+
+in vec2 v_tex_coord;                          
+in vec4 v_color;       
+
+out vec4 FragColor;
+
+void main(void)
+{
+    vec3 source_color = texture(u_source, v_tex_coord).rgb;      
+    float source_alpha = texture(u_source, v_tex_coord).a;
+
+    vec3 result = vec3(1.) - exp(-source_color*u_exposure);
+    FragColor = vec4(result*source_alpha, source_alpha);
 }
 )V0G0N";

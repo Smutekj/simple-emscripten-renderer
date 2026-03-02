@@ -23,6 +23,7 @@ Renderer::Renderer(RenderTarget &target)
 {
     //! load default shaders
     m_shaders.loadFromCode("VertexArrayDefault", vertex_vertexarray_code, fragment_fullpass_code);
+    m_shaders.loadFromCode("VertexArrayTexture", vertex_vertexarray_code, fragment_fullpass_texture_code);
     m_shaders.loadFromCode("SpriteDefault", vertex_sprite_code, fragment_fullpass_texture_code);
     m_shaders.loadFromCode("SpritePass", vertex_sprite_code, fragment_fullpass_texture_code_no_alpha);
     m_shaders.loadFromCode("TextDefault", vertex_sprite_code, fragment_text_code);
@@ -491,13 +492,6 @@ void Renderer::drawVertices(std::vector<Vertex> &verts, const std::string &shade
 
     BatchConfig config({texture_id, 0}, &shader);
     m_batches.pushVertices(verts, config);
-
-    // auto &batch = findBatch(texture_id, shader, static_cast<int>(verts.size()));
-    // auto n_verts = verts.size();
-    // for (size_t i = 0; i < n_verts; ++i)
-    // {
-    //     batch.pushVertex(verts[i]);
-    // }
 }
 
 //! \brief sets base directory used for finding shader files
@@ -579,77 +573,3 @@ void renderToTraget(Renderer &target, const Texture &source, const std::string &
 
     target.m_view = old_view;
 }
-
-template <class VertexDataT, class InstanceDataT>
-class InstancedDrawable
-{
-
-public:
-    using VertexData = VertexDataT;
-    using InstenceData = InstanceDataT;
-
-public:
-    void draw()
-    {
-        m_draw_strategy(*this);
-    }
-
-protected:
-    std::function<void(InstancedDrawable &)> m_draw_strategy;
-
-public:
-    inline static GLuint m_vao = 0;
-
-    VertexDataT v_data;
-    InstanceDataT i_data;
-};
-
-/* class Spritex : public InstancedDrawable<Vertex, SpriteInstance>
-{
-    void setPosition(utils::Vector2f pos)
-    {
-        i_data.trans = pos;
-    }
-    void setSize(utils::Vector2f size)
-    {
-        i_data.scale = size / 2.f;
-    }
-
-    Spritex(){
-        m_draw_strategy = [](InstancedDrawable& d)
-        {
-
-        };
-    }
-
-};
-
-struct Rend
-{
-
-    template <class DrawT>
-    void registerDrawable(DrawT t, BatchRegistry::BatchMaker maker)
-    {
-        m_batches.registerBatch<DrawT::VertexData, DrawT::InstanceData>(maker);
-    }
-
-    template <class DrawT>
-    void drawInstanced(const DrawT &draw_data, ShaderProgram &shader, TextureArray textures, View &view)
-    {
-        BatchConfig config(shader, textures);
-        m_batches.pushInstance(draw_data.i_data, config);
-    }
-
-    template <class DrawT>
-    void drawDirectly(const DrawT &draw_data, ShaderProgram &shader, TextureArray textures, View &view)
-    {
-        BatchConfig config(shader, textures);
-
-    }
-
-    // void draw(drawable draw_data, shaderprogram &shader, texturearray textures, view &view);
-    // void drawdirectly(drawable draw_data, shaderprogram &shader, texturearray textures, view &view);
-
-    BatchRegistry m_batches;
-} */
-;

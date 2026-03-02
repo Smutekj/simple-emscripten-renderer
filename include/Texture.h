@@ -16,12 +16,12 @@ struct TextureOptions
 {
     TextureFormat format = TextureFormat::RGBA;
     TextureFormat internal_format = TextureFormat::RGBA16F;
-    TextureDataTypes data_type = TextureDataTypes::Float;
+    TextureDataTypes data_type = TextureDataTypes::HalfFloat;
     TexMappingParam mag_param = TexMappingParam::Linear;
     TexMappingParam min_param = TexMappingParam::LinearMipmapLinear;
     TexWrapParam wrap_x = TexWrapParam::ClampEdge;
     TexWrapParam wrap_y = TexWrapParam::ClampEdge;
-    int mipmap_levels = 4;
+    int mipmap_levels = 3;
 };
 
 //! \class Texture
@@ -59,6 +59,8 @@ public:
 
     void bind(int slot = 0);
     Vec2 getSize() const;
+    utils::Vector2i getSizeI() const;
+    float getAspect()const;
     TextureHandle getHandle() const;
 
     const TextureOptions &getOptions() const;

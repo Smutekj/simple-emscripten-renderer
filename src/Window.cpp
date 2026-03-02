@@ -16,39 +16,42 @@ Window::Window(int width, int height)
 {
     SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
-// Create OpenGL context on SDL window
-#if defined(__EMSCRIPTEN__) || defined(__ANDROID__) //! emscripten does it on its own
+#if defined(ANDROID)
+    // Create OpenGL context on SDL window
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-#else //! on desktop, we don't use GLES because I could not get it running on windows :(
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+#else
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
 #endif
 
-    auto check = SDL_GL_SetSwapInterval(0);
+    SDL_GL_SetSwapInterval(1);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     // Create SDL window
+    Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
+#if defined(ANDROID)
+    window_flags |= SDL_WINDOW_FULLSCREEN;
+#else
+    window_flags |= SDL_WINDOW_RESIZABLE;
+#endif
     m_handle =
-        SDL_CreateWindow("Hello Triangle Minimal",
+        SDL_CreateWindow("Space Race",
                          SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
                          width, height,
-                         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
+                         window_flags);
 
     m_gl_context = SDL_GL_CreateContext(m_handle);
 
-//! load gl functions on desktops (emscripten does it on it's own)
-#ifndef __EMSCRIPTEN__
-#ifdef __ANDROID__
-    gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
+#if defined(ANDROID)
+    gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress);
 #else
-    gladLoadGL();
+    gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
 #endif
-#endif
-
+    
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     // glEnable(GL_DEPTH_TEST);

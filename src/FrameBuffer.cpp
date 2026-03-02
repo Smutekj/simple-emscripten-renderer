@@ -153,7 +153,7 @@ Image<PixelType>::Image(Texture &tex_image)
     : Image(tex_image.getSize().x, tex_image.getSize().y)
 {
 //! GLES3 does not have direct option of loading textures
-#if defined(__EMSCRIPTEN__) || defined(__ANDROID__)
+#if defined(GLES)
     FrameBuffer texture_buffer(tex_image.getSize().x,
                                tex_image.getSize().y,
                                tex_image.getOptions());

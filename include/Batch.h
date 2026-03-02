@@ -5,71 +5,16 @@
 #include "View.h"
 #include "VertexArray.h"
 #include "GLTypeDefs.h"
+#include "BatchConfig.h"
+#include "VertexArrayObject.h"
 
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
 #include <memory>
 
-#include "BatchConfig.h"
 constexpr static int BATCH_VERTEX_CAPACITY = 65000; //! maximum number of vertices per batch
 
-//! \struct SpriteInstance 
-//! \brief contains data that gets into sprite shaders as attributes
-struct SpriteInstance
-{
-    Vec2 trans = {0, 0};
-    Vec2 scale = {1, 1};
-    float angle = 0;
-    Vec2 tex_coords = {0, 0};
-    Vec2 tex_size = {0, 0};
-    ColorByte color = {255, 255, 255, 255};
-};
-//! \struct TextInstance
-//! \brief data that get sent into text shaders
-struct TextInstance
-{
-    utils::Vector2f pos = {0, 0};
-    utils::Vector2f scale = {1, 1};
-    float angle = 0.f;
-    ColorByte edge_color = {0, 0, 0, 0};
-    ColorByte fill_color = {1, 1, 1, 1};
-    ColorByte glow_color = {0, 0, 0, 0};
-    int char_code;
-    float start_time = 0.f;
-};
-
-struct AttributeId
-{
-    GLuint type_id = GL_FLOAT;
-    std::size_t count = 1; //!< size on CPU in bytes
-    std::size_t size = 1;  //!< size on CPU in bytes
-    bool is_normalized = false;
-
-    bool operator==(const AttributeId &other) const noexcept
-    {
-        return type_id == other.type_id &&
-               size == other.size;
-    }
-};
-
-struct VAOId
-{
-    std::vector<AttributeId> instanced_attributes;
-    std::vector<AttributeId> vertex_attirbutes;
-
-    std::size_t instance_size;
-    std::size_t vertices_size;
-
-    std::size_t max_vertex_buffer_count;
-    std::size_t max_instance_count;
-
-    bool operator==(const VAOId &other) const noexcept
-    {
-        return instanced_attributes == other.instanced_attributes &&
-               vertex_attirbutes == other.vertex_attirbutes;
-    }
-};
 
 class BatchI
 {
@@ -192,6 +137,7 @@ struct BatchRegistry
         m_batch_makers.push_back(maker);
     }
 
+    
     std::unordered_map<std::type_index, std::size_t> m_type2batch_id;
 
     std::vector<BatchHolder> m_batches;

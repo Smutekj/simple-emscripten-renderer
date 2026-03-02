@@ -7,7 +7,7 @@
 #include <GLES3/gl3platform.h>
 #include <GLES3/gl3.h>
 #elif  defined(__ANDROID__)
-#include <glad/gles2.h>
+#include <glad/glad.h>
 #include <SDL2/SDL.h>
 #else
 #include <glad/glad.h>
