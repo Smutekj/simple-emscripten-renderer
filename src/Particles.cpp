@@ -38,24 +38,15 @@ int Particles::getPeriod() const
 void Particles::update(float dt)
 {
 
-    m_spawn_timer += dt;;
-    if (m_spawn_timer >= m_spawn_period)
+    m_spawn_timer += dt;
+    int particles_to_spawn = std::floor((m_spawn_timer + dt) / m_spawn_period) - std::floor(m_spawn_timer / m_spawn_period);
+    //! take into account non-repeating systems
+    particles_to_spawn *= (m_repeats || n_spawned < m_particle_pool.capacity());
+    for (int i = 0; i < particles_to_spawn; ++i)
     {
-        m_spawn_timer = 0;
-
-        if (!m_repeats && n_spawned < m_particle_pool.capacity())
-        {
-            createParticle();
-        }
-        else if (m_repeats)
-        {
-            createParticle();
-        }
-        else
-        {
-            //! ???
-        }
+        createParticle();
     }
+    m_spawn_timer -= std::floor(m_spawn_timer / m_spawn_period)*m_spawn_period;
 
     if (!m_updater_full) //! use deafult method if we haven't provided it ourselves
     {
@@ -126,16 +117,18 @@ void Particles::draw(Renderer &canvas)
                                    { return p1.time < p2.time; });
     //! we draw from the youngest to the oldest
     int youngest_particle_ind = min_it - particles.begin();
-    RectangleSimple rect;
+    // RectangleSimple rect;
+    BlurredRect rect;
     for (size_t i = 0; i < n_particles; ++i)
     {
         int p_ind = (youngest_particle_ind + i) % n_particles;
         auto &particle = particles.at(p_ind);
-        rect.setPosition(particle.pos.x, particle.pos.y);
-        rect.setRotation(particle.angle);
-        rect.setScale(particle.scale.x, particle.scale.y);
-        rect.m_color = particle.color;
-        canvas.drawRectangle(rect, m_shader_id);
+        rect.pos = particle.pos;
+        rect.angle = particle.angle;
+        rect.corner_radius = 0.2;
+        rect.scale = particle.scale;
+        rect.fill_color = ColorByte{particle.color};
+        canvas.drawBatched(rect, m_shader_id);
     }
 }
 
@@ -188,7 +181,7 @@ TexturedParticles::TexturedParticles(int n_parts)
 }
 
 TexturedParticles::TexturedParticles(Texture &texture, int n_parts)
-    : Particles(n_parts), m_texture(&texture) 
+    : Particles(n_parts), m_texture(&texture)
 {
 }
 
