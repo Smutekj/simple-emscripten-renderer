@@ -3,10 +3,14 @@
 #include <iostream>
 
 #include <SDL.h>
-#include <SDL_mixer.h>
+#include <GLES/gl.h>
+
 #include "IncludesGl.h"
 
-SDL_GLContext m_gl_context;
+#define LOG_CATEGORY SDL_LogCategory::SDL_LOG_CATEGORY_RENDER
+#include "Utils/Logging.h"
+
+static SDL_GLContext m_gl_context;
 
 //! \brief constructs SDL window using it's \p width and \p height
 //! \param width
@@ -14,30 +18,43 @@ SDL_GLContext m_gl_context;
 Window::Window(int width, int height)
     : RenderTarget(width, height)
 {
-    SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
-
 #if defined(ANDROID)
+    SDL_SetHint(SDL_HINT_ORIENTATIONS,
+                "Portrait PortraitUpsideDown LandscapeLeft LandscapeRight");
+    SDL_InitSubSystem(SDL_INIT_VIDEO);
+#endif
+    
+#if defined(ANDROID) || defined(EMSCRIPTEN)
     // Create OpenGL context on SDL window
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+    SDL_GL_SetSwapInterval(1);
 #else
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
+//    SDL_GL_SetSwapInterval(0);
 #endif
 
-    SDL_GL_SetSwapInterval(1);
+#if defined(DEBUG)
+    // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+    SDL_LogSetPriority(SDL_LogCategory::SDL_LOG_CATEGORY_RENDER, SDL_LogPriority::SDL_LOG_PRIORITY_DEBUG);
+#else
+    SDL_LogSetPriority(SDL_LogCategory::SDL_LOG_CATEGORY_RENDER, SDL_LogPriority::SDL_LOG_PRIORITY_INFO);
+#endif
+
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    // SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
     // Create SDL window
     Uint32 window_flags = SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN;
 #if defined(ANDROID)
-    window_flags |= SDL_WINDOW_FULLSCREEN;
+    window_flags |= SDL_WINDOW_FULLSCREEN_DESKTOP | SDL_WINDOW_RESIZABLE;
 #else
     window_flags |= SDL_WINDOW_RESIZABLE;
 #endif
+
     m_handle =
         SDL_CreateWindow("Space Race",
                          SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -48,16 +65,23 @@ Window::Window(int width, int height)
 
 #if defined(ANDROID)
     gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress);
+#elif defined(EMSCRIPTEN)
+    //! emscripten does it on it's own (I hope)
 #else
+    // gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress);
     gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
 #endif
-    
+
+    // bool multisampling_on;
+    // glGetBooleanv(GL_MULTISAMPLE, &multisampling_on);
+    // LOGI("Multisampling: %d", multisampling_on);
+    glDisable(GL_MULTISAMPLE);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     // glEnable(GL_DEPTH_TEST);
     // glDepthFunc(GL_LESS);
     glCheckError();
-    printf("INFO: GL version: %s\n", glGetString(GL_VERSION));
 
     // Get actual GL window size in pixels, in case of high dpi scaling
     utils::Vector2i size_check;
@@ -66,12 +90,6 @@ Window::Window(int width, int height)
     printf("INFO: Desired Window size = %dx%d\n", width, height);
 
     glViewport(0, 0, size_check.x, size_check.y);
-
-    // Initialize SDL_mixer
-    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 4096) < 0)
-    {
-        printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
-    }
 }
 
 Window::~Window()
@@ -103,6 +121,7 @@ void Window::setSize(int width, int height)
     SDL_SetWindowSize(m_handle, width, height);
     onResize();
 }
+
 void Window::onResize()
 {
     SDL_GetWindowSize(m_handle, &m_target_size.x, &m_target_size.y);

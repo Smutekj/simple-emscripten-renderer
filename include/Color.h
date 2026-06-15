@@ -5,11 +5,6 @@ struct ColorByte;
 //! \brief  each channel is a 32-bit float
 struct Color
 {
-    float r = 0.;
-    float g = 0.;
-    float b = 0.;
-    float a = 0.;
-
     Color() = default;
     explicit Color(const ColorByte &col);
     Color(float r, float g, float b, float a = 1.);
@@ -19,7 +14,15 @@ struct Color
     Color operator*(const Color &other) const;
     Color operator*(float scalar) const;
     Color operator/(float scalar) const;
+
+    float r = 0.f;
+    float g = 0.f;
+    float b = 0.f;
+    float a = 0.f;
 };
+
+Color operator*(float scalar, const Color &other);
+Color operator/(float scalar, const Color &other);
 
 //! \struct ColorByte,
 //! \brief  each channel is a 8-bit unsigned number (0-255)

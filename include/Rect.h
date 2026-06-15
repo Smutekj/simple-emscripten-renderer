@@ -9,14 +9,15 @@
 template <class T>
 struct Rect
 {
-    T pos_x;
-    T pos_y;
-    T width;
-    T height;
 
     Rect() = default;
     Rect(T x, T y, T w, T h)
         : pos_x(x), pos_y(y), width(w), height(h)
+    {
+    }
+    template <class T2>
+    Rect(const Rect<T2>& other)
+        : pos_x(other.pos_x), pos_y(other.pos_y), width(other.width), height(other.height)
     {
     }
 
@@ -43,6 +44,11 @@ struct Rect
         return query.x >= pos_x && query.x <= pos_x + width &&
                query.y >= pos_y && query.y <= pos_y + height;
     }
+    
+    T pos_x;
+    T pos_y;
+    T width;
+    T height;
 };
 
 using Rectf = Rect<float>;

@@ -41,8 +41,8 @@ namespace
     }
 
     constexpr static const char *fragment_fullpass_codetest = "#version 300 es\n"
-                                                              "precision mediump float;\n"
-                                                              "in vec2 v_tex_coord;\n"
+                                                              "precision highp float;\n"
+                                                              "in highp vec2 v_tex_coord;\n"
                                                               "in vec4 v_color;\n"
                                                               "out vec4 FragColor;\n"
                                                               "void main()\n"
@@ -97,14 +97,14 @@ namespace
     }
 
     constexpr static const char *fragment_with_uniforms = "#version 300 es\n"
-                                                          "precision mediump float;\n"
+                                                          "precision highp float;\n"
                                                           "uniform float u_test_uniform_float;\n"
                                                           "uniform int u_test_uniform_int = 1;\n"
                                                           "uniform vec2 u_test_uniform_vec2 = vec2(1.,2.); \n"
                                                           "uniform vec3 u_test_uniform_vec3 = vec3(1.,2., 3.); \n"
                                                           "uniform vec4 u_test_uniform_vec4 = vec4(1.,2., 3., 4.);\n"
                                                           "uniform sampler2D u_test_texture;\n"
-                                                          "in vec2 v_tex_coord;\n"
+                                                          "in highp vec2 v_tex_coord;\n"
                                                           "in vec4 v_color;\n"
                                                           "out vec4 FragColor;\n"
                                                           "void main()\n"

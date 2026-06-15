@@ -1,15 +1,16 @@
 #pragma once
 
 #include "Vertex.h"
-#include "Shader.h"
 #include "Texture.h"
+#include "GLTypeDefs.h"
+#include "IncludesGl.h"
 
 #include <vector>
 #include <memory>
 
-#include "GLTypeDefs.h"
 
 class View;
+class Shader;
 
 //! \class VertexArray
 //! \brief holds vertices for drawing and does all the OpenGL stuff
@@ -41,7 +42,7 @@ private:
     void initialize();
 
 public:
-    GLenum m_primitives = GL_TRIANGLES; //!
+    GLenum m_primitives;
 
     std::vector<Vertex> m_vertices;
 private:
@@ -83,7 +84,7 @@ private:
     void initialize();
 
 public:
-    GLenum m_primitives = GL_TRIANGLES; //!
+    GLenum m_primitives; //!
 
     std::vector<Vertex> m_vertices;
     std::vector<int> m_indices;

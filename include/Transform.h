@@ -1,8 +1,5 @@
 #pragma once
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/mat4x4.hpp>
-
 #include "Utils/Vector2.h"
 
 //! \class Transform
@@ -36,11 +33,8 @@ public:
     template <class VecType>
     void scale(VecType new_pos);
 
-    glm::mat4 &getMatrix();
-
     void transform(utils::Vector2f& pos);
 private:
-    glm::mat4 m_matrix;
 
     float m_translation_x = 0.f;
     float m_translation_y = 0.f;

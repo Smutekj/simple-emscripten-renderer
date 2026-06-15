@@ -1,12 +1,74 @@
 #include "Shader.h"
 
-#include "ShaderLoader.h"
-
 #include <SDL2/SDL.h>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtc/matrix_transform.hpp>
 
-std::string loadFileToString(std::string path)
+#include "ShaderLoader.h"
+
+static bool replace(std::string &str, const std::string &from, const std::string &to);
+static std::string trim(const std::string &input);
+static UniformType extractValue(const std::string& type_string, const std::string& initial_value);
+
+
+//! \param location location in the shader (returned by glGetUniformLocation)
+//! \param value    value of the uniform (the gl call is determined by the value type)
+template <class ValueType>
+void updateUniform(GLint location, const ValueType &value)
+{
+    if constexpr (std::is_same_v<ValueType, float>)
+    {
+        glUniform1f(location, value);
+    }
+    else if constexpr (std::is_same_v<ValueType, bool>)
+    {
+        glUniform1i(location, value);
+    }
+    else if constexpr (std::is_same_v<ValueType, int>)
+    {
+        glUniform1i(location, value);
+    }
+    else if constexpr (std::is_same_v<ValueType, glm::vec2>)
+    {
+        glUniform2f(location, value.x, value.y);
+    }
+    else if constexpr (std::is_same_v<ValueType, glm::vec3>)
+    {
+        glUniform3f(location, value.x, value.y, value.z);
+    }
+    else if constexpr (std::is_same_v<ValueType, glm::vec4>)
+    {
+        glUniform4f(location, value.x, value.y, value.z, value.w);
+    }
+    else if constexpr (std::is_same_v<ValueType, glm::mat2>)
+    {
+        glUniformMatrix2fv(location, 1, GL_FALSE, &value[0][0]);
+    }
+    else if constexpr (std::is_same_v<ValueType, glm::mat3>)
+    {
+        glUniformMatrix3fv(location, 1, GL_FALSE, &value[0][0]);
+    }
+    else if constexpr (std::is_same_v<ValueType, glm::mat4>)
+    {
+        glUniformMatrix4fv(location, 1, GL_FALSE, &value[0][0]);
+    }
+    else
+    {
+    }
+}
+//! \param name     name of the uniform
+//! \param value    value of the uniform (the gl call is determined by the value type)
+template <class ValueType>
+void updateUniform(GLuint m_id, const std::string &name, const ValueType &value)
+{
+    GLint location = glGetUniformLocation(m_id, name.c_str());
+    if (location != -1)
+    {
+        updateUniform(location, value);
+    }
+}
+
+static std::string loadFileToString(const std::string &path)
 {
     SDL_RWops *rw = SDL_RWFromFile(path.c_str(), "rb");
     if (!rw)
@@ -23,7 +85,7 @@ std::string loadFileToString(std::string path)
     return buffer;
 }
 
-std::istringstream loadFileToStream(std::string path)
+static std::istringstream loadFileToStream(const std::string &path)
 {
     return std::istringstream{loadFileToString(path)};
 }
@@ -61,7 +123,7 @@ void static extractUniformNamesFromCode(VariablesData &shader_data, const std::s
             {
                 uniform_name.pop_back();
             }
-            shader_data.uniforms[uniform_name] = {value, true};
+            shader_data.uniforms[uniform_name] = {-1, value, true};
         }
     }
 }
@@ -156,7 +218,7 @@ void extractUniformNames(VariablesData &shader_data, const std::string &filename
             {
                 uniform_name.pop_back();
             }
-            shader_data.uniforms[uniform_name] = {value, true};
+            shader_data.uniforms[uniform_name] = {-1, value, true};
         }
     }
 }
@@ -197,66 +259,7 @@ void extractUniformNames(VariablesData &shader_data, const std::string &filename
         }
     }
 }
-//! utility uniform functions
-void setBool(GLuint id, const std::string &name, bool value)
-{
-    glUniform1i(glGetUniformLocation(id, name.c_str()), (int)value);
-}
-// ------------------------------------------------------------------------
-void setInt(GLuint id, const std::string &name, int value)
-{
-    glUniform1i(glGetUniformLocation(id, name.c_str()), value);
-};
-// ------------------------------------------------------------------------
-void setFloat(GLuint id, const std::string &name, float value)
-{
-    glUniform1f(glGetUniformLocation(id, name.c_str()), value);
-};
-// ------------------------------------------------------------------------
-void setVec2(GLuint id, const std::string &name, const glm::vec2 &value)
-{
-    glUniform2fv(glGetUniformLocation(id, name.c_str()), 1, &value[0]);
-}
-// ------------------------------------------------------------------------
-void setVec2(GLuint id, const std::string &name, float x, float y)
-{
-    glUniform2f(glGetUniformLocation(id, name.c_str()), x, y);
-}
-// ------------------------------------------------------------------------
-void setVec3(GLuint id, const std::string &name, const glm::vec3 &value)
-{
-    glUniform3fv(glGetUniformLocation(id, name.c_str()), 1, &value[0]);
-}
-// ------------------------------------------------------------------------
-void setVec3(GLuint id, const std::string &name, float x, float y, float z)
-{
-    glUniform3f(glGetUniformLocation(id, name.c_str()), x, y, z);
-}
-// ------------------------------------------------------------------------
-void setVec4(GLuint id, const std::string &name, const glm::vec4 &value)
-{
-    glUniform4fv(glGetUniformLocation(id, name.c_str()), 1, &value[0]);
-}
-// ------------------------------------------------------------------------
-void setVec4(GLuint id, const std::string &name, float x, float y, float z, float w)
-{
-    glUniform4f(glGetUniformLocation(id, name.c_str()), x, y, z, w);
-}
-// ------------------------------------------------------------------------
-void setMat2(GLuint id, const std::string &name, const glm::mat2 &mat)
-{
-    glUniformMatrix2fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
-}
-// ------------------------------------------------------------------------
-void setMat3(GLuint id, const std::string &name, const glm::mat3 &mat)
-{
-    glUniformMatrix3fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
-}
-// ------------------------------------------------------------------------
-void setMat4(GLuint id, const std::string &name, const glm::mat4 &mat)
-{
-    glUniformMatrix4fv(glGetUniformLocation(id, name.c_str()), 1, GL_FALSE, &mat[0][0]);
-}
+
 //! \brief connects a slot in shader with GL handle of the texture
 //! \param slot   the slot where the texture will be bound
 //! \param handle the GL handle of the texture
@@ -272,55 +275,6 @@ std::string VariablesData::setTexture(int slot, GLuint handle)
         return name_it->first;
     }
     return "";
-}
-
-//! \param name     name of the uniform
-//! \param value    value of the uniform (the gl call is determined by the value type)
-template <class ValueType>
-constexpr void Shader::updateUniform(const std::string &name, const ValueType &value)
-{
-    if constexpr (std::is_same_v<ValueType, UniformType>)
-    {
-    }
-    else if constexpr (std::is_same_v<ValueType, float>)
-    {
-        setFloat(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, bool>)
-    {
-        setBool(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, int>)
-    {
-        setInt(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, glm::vec2>)
-    {
-        setVec2(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, glm::vec3>)
-    {
-        setVec3(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, glm::vec4>)
-    {
-        setVec4(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, glm::mat2>)
-    {
-        setMat2(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, glm::mat3>)
-    {
-        setMat3(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, glm::mat4>)
-    {
-        setMat4(m_id, name, value);
-    }
-    else
-    {
-    }
 }
 
 const std::string &Shader::getName() const
@@ -354,7 +308,11 @@ void Shader::setTexture(TextureArray handles)
 
 void Shader::setUniform(const std::string &uniform_name, UniformType uniform_value)
 {
-    m_variables.uniforms[uniform_name] = {uniform_value, true};
+    if (m_variables.uniforms.contains(uniform_name))
+    {
+        m_variables.uniforms[uniform_name].value = uniform_value;
+        m_variables.uniforms[uniform_name].needs_update = true;
+    }
 }
 
 void Shader::retrieveCode(const char *code_path, std::string &code)
@@ -394,13 +352,11 @@ void Shader::retrieveCode(const char *code_path, std::string &code)
 
 Shader::Shader(const std::string &vertex_shader_code, const std::string &frament_shader_code)
 {
+    m_shader_name = frament_shader_code;
     if (!loadFromCode(vertex_shader_code, frament_shader_code))
     {
         return; //! shouldn't I use maybe some flag to test that the shader is ok?
     }
-    extractUniformNamesFromCode(m_variables, frament_shader_code);
-    extractTextureNamesFromCode(m_variables, frament_shader_code);
-    m_shader_name = frament_shader_code;
 }
 
 //! \brief construct from paths to vertex and fragment shaders
@@ -429,6 +385,7 @@ Shader::~Shader()
     }
 }
 
+//! \brief creates shaders from source codes, links them, extracts uniforms and finds their locations
 bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fragment_code)
 {
     m_successfully_built = false;
@@ -437,14 +394,14 @@ bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fra
     {
         extractTextureNamesFromCode(m_variables, fragment_code);
         extractUniformNamesFromCode(m_variables, fragment_code);
+        extractUniformNamesFromCode(m_variables, vertex_code);
     }
     catch (std::exception &e)
     {
         std::cout << "failed to extract variales from code!" << std::endl;
         return false;
     }
-
-    auto cleaned_fragment_code = removeInitialValues(fragment_code);
+    std::string cleaned_fragment_code = removeInitialValues(fragment_code);
 
     const char *vShaderCode = vertex_code.c_str();
     const char *fShaderCode = cleaned_fragment_code.c_str();
@@ -465,7 +422,7 @@ bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fra
         std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n"
                   << infoLog << std::endl;
         return false;
-    };
+    }
 
     // fragment Shader
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
@@ -480,7 +437,7 @@ bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fra
                   << infoLog << "\n"
                   << "PROGRAM: " << m_fragment_path << "\n";
         return false;
-    };
+    }
 
     // shader Program
     m_id = glCreateProgram();
@@ -502,12 +459,22 @@ bool Shader::loadFromCode(const std::string &vertex_code, const std::string &fra
     glDeleteShader(fragment);
     glCheckError();
 
+    //! get texture slots to uniforms
+    for (auto &[key, texture_data] : m_variables.textures)
+    {
+        m_variables.uniforms[key] = {-1, texture_data.slot, true};
+    }
+    //! get uniform locations
+    for (auto &[key, uniform] : m_variables.uniforms)
+    {
+        uniform.location = glGetUniformLocation(m_id, key.c_str());
+    }
+
     m_successfully_built = true;
     return true;
 }
 
-//! \brief extracts uniforms and textures then
-//! \brief does all the GL calls to load the shader on the GPU
+//! \brief loads shader from source files and compiles them
 void Shader::recompile()
 {
 #if !defined(__ANDROID__)
@@ -520,8 +487,6 @@ void Shader::recompile()
     std::string fragment_code = loadFileToString(m_fragment_path);
 #endif
     loadFromCode(vertex_code, fragment_code);
-
-    extractUniformNames(m_variables, getFragmentPath());
 }
 
 //! \brief calls glUseProgram(id)
@@ -529,7 +494,6 @@ void Shader::recompile()
 //! \brief  has been changed since the last time
 void Shader::use()
 {
-
     if (m_reload_on_file_change)
     {
 
@@ -558,35 +522,28 @@ void Shader::use()
 
 void Shader::updateUniforms()
 {
-    for (auto &[key, uniform] : m_variables.uniforms)
-    {
-        if (uniform.needs_update)
-        {
-            auto update_value = [&key, this](auto &&v)
-            {
-                using T = std::decay_t<decltype(v)>;
-                updateUniform<T>(key, v);
-            };
-            glCheckErrorMsg((key + " does not exist in the shader").c_str());
-            std::visit(update_value, uniform.value);
-
-            uniform.needs_update = false;
-        }
-    }
-
-    //! This is retarded, I should just have start-time attribute as part of vertex attributes or something...
+    //!  update global shader time
     if (m_variables.uniforms.contains("u_time"))
     {
-        m_variables.uniforms.at("u_time") = {Shader::m_time, true};
-        updateUniform("u_time", Shader::m_time);
+        setUniform("u_time", Shader::m_time);
     }
 
-    for (auto &[key, uniform_tex] : m_variables.textures)
+    for (auto & it : m_variables.uniforms)
     {
-        if (uniform_tex.needs_update)
+        const std::string &key = it.first;
+        auto &uniform = it.second;
+//        assert(glGetUniformLocation(m_id, key.c_str()) == uniform.location);
+        if (uniform.needs_update && uniform.location != -1)
         {
-            setUniform(key, uniform_tex.slot);
-            uniform_tex.needs_update = false;
+            auto update_value = [location = uniform.location](auto &&v)
+            {
+                using T = std::decay_t<decltype(v)>;
+                updateUniform<T>(location, v);
+            };
+            std::visit(update_value, uniform.value);
+            glCheckErrorMsg((key + std::string{" does not exist in the shader "} + m_shader_name).c_str());
+
+            uniform.needs_update = false;
         }
     }
 }
@@ -673,7 +630,7 @@ bool replace(std::string &str, const std::string &from, const std::string &to)
 //! \brief extracts the value from the string obtained by reading a framgent shader
 //! \param type_string  should contain part of the GLSL uniform definition with type and variable name
 //! \param initial_value should contain part behind the equal sign containing the initial value
-UniformType extractValue(std::string type_string, std::string initial_value)
+UniformType extractValue(const std::string& type_string, const std::string& initial_value)
 {
     UniformType value;
 
@@ -694,6 +651,14 @@ UniformType extractValue(std::string type_string, std::string initial_value)
         else if (type_string == "vec4")
         {
             value = glm::vec4(0, 0, 0, 0);
+        }
+        else if (type_string == "mat3")
+        {
+            value = glm::mat3(1.f);
+        }
+        else if (type_string == "mat4")
+        {
+            value = glm::mat4(1.f);
         }
     }
     else
@@ -847,7 +812,7 @@ void ShaderProgram::linkShaders()
     }
 }
 
-void ShaderProgram::use() 
+void ShaderProgram::use()
 {
     if (m_linked)
     {
@@ -878,86 +843,36 @@ void ShaderProgram::setUniform(const std::string &uniform_name, UniformType valu
         return;
     }
 
-    m_uniforms.uniforms.at(uniform_name) = {value, true};
-}
-
-//! \param name     name of the uniform
-//! \param value    value of the uniform (the gl call is determined by the value type)
-template <class ValueType>
-void updateUniform(GLuint m_id, const std::string &name, const ValueType &value)
-{
-    if constexpr (std::is_same_v<ValueType, UniformType>)
-    {
-    }
-    else if constexpr (std::is_same_v<ValueType, float>)
-    {
-        setFloat(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, bool>)
-    {
-        setBool(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, int>)
-    {
-        setInt(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, glm::vec2>)
-    {
-        setVec2(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, glm::vec3>)
-    {
-        setVec3(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, glm::vec4>)
-    {
-        setVec4(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, glm::mat2>)
-    {
-        setMat2(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, glm::mat3>)
-    {
-        setMat3(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, glm::mat4>)
-    {
-        setMat4(m_id, name, value);
-    }
-    else if constexpr (std::is_same_v<ValueType, Color>)
-    {
-        setVec4(m_id, name, glm::vec4(value.r, value.g, value.b, value.a));
-    }
-    else
-    {
-    }
+    m_uniforms.uniforms.at(uniform_name).value = value;
+    m_uniforms.uniforms.at(uniform_name).needs_update = true;
 }
 
 void ShaderProgram::updateUniforms()
 {
 
-    for (auto &[key, uniform] : m_uniforms.uniforms)
+    for (auto it = m_uniforms.uniforms.begin(); it != m_uniforms.uniforms.end(); it++)
     {
+        const std::string &key = it->first;
+        auto &uniform = it->second;
         if (uniform.needs_update)
         {
-            auto update_value = [&key, this](auto &&v)
-            {
-                using T = std::decay_t<decltype(v)>;
-                updateUniform<T>(m_id, key, v);
-            };
             glCheckErrorMsg((key + " does not exist in the shader").c_str());
-            std::visit(update_value, uniform.value);
+            std::visit(
+                [this, &key](auto &&v)
+                {
+                    using T = std::decay_t<decltype(v)>;
+                    updateUniform<T>(m_id, key, v);
+                },
+                uniform.value);
 
             uniform.needs_update = false;
         }
     }
 
-    //! This is retarded, I should just have start-time attribute as part of vertex attributes or something...
+    //! update global shader time
     if (m_uniforms.uniforms.contains("u_time"))
     {
-        m_uniforms.uniforms.at("u_time") = {Shader::m_time, true};
-        updateUniform(m_id, "u_time", Shader::m_time);
+        setUniform("u_time", Shader::m_time);
     }
 
     for (auto &[key, uniform_tex] : m_uniforms.textures)

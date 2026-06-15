@@ -3,10 +3,8 @@
 #include "GLTypeDefs.h"
 #include "Vertex.h"
 
-#include <filesystem>
 #include <string>
 #include <memory>
-#include <unordered_map>
 
 //! \struct TextureOptions
 //! \brief aggregates different OpenGL texture configurations
@@ -15,13 +13,13 @@
 struct TextureOptions
 {
     TextureFormat format = TextureFormat::RGBA;
-    TextureFormat internal_format = TextureFormat::RGBA16F;
-    TextureDataTypes data_type = TextureDataTypes::HalfFloat;
+    TextureFormat internal_format = TextureFormat::RGBA;
+    TextureDataTypes data_type = TextureDataTypes::UByte;
     TexMappingParam mag_param = TexMappingParam::Linear;
     TexMappingParam min_param = TexMappingParam::LinearMipmapLinear;
     TexWrapParam wrap_x = TexWrapParam::ClampEdge;
     TexWrapParam wrap_y = TexWrapParam::ClampEdge;
-    int mipmap_levels = 3;
+    int mipmap_levels = 1000;
 };
 
 //! \class Texture
@@ -38,7 +36,7 @@ class Texture
 
 public:
     Texture() = default;
-    Texture(std::filesystem::path image_file, TextureOptions options = {});
+    Texture(std::string image_file, TextureOptions options = {});
     Texture(int width, int height, TextureOptions options = {});
     Texture(const unsigned char *buffer, std::size_t size, TextureOptions options = {});
 
@@ -57,7 +55,7 @@ public:
     void setMappingMinify(TexMappingParam map_min);
     void setMappingMagnify(TexMappingParam map_mag);
 
-    void bind(int slot = 0);
+    void bind(int slot = 0) const;
     Vec2 getSize() const;
     utils::Vector2i getSizeI() const;
     float getAspect()const;
@@ -77,25 +75,3 @@ private:
     int m_height = 0;
 };
 
-//! \class TextureHolder
-//! \brief holds textures based on id given by string
-class TextureHolder
-{
-
-public:
-    bool add(std::string texture_name, Texture &texture);
-    bool add(std::string texture_name, std::string filename, TextureOptions opt = {});
-    bool add(std::string texture_name, std::filesystem::path texture_file_path, TextureOptions opt = {});
-    bool add(std::string texture_name, const unsigned char *buffer, std::size_t size, TextureOptions opt = {});
-
-    void erase(const std::string &texture_id);
-
-    std::shared_ptr<Texture> get(std::string name) const;
-    std::unordered_map<std::string, std::shared_ptr<Texture>> &getTextures();
-
-    bool setBaseDirectory(std::filesystem::path directory);
-
-private:
-    std::unordered_map<std::string, std::shared_ptr<Texture>> m_textures;
-    std::filesystem::path m_resources_path;
-};

@@ -1,6 +1,8 @@
 #include "DrawLayer.h"
 
 #include "Sprite.h"
+#include "PostEffects.h"
+#include "CommonShaders.inl"
 
 DrawLayer::DrawLayer(int width, int height) : m_pixels(width, height),
                                               m_canvas(m_pixels),
@@ -75,18 +77,23 @@ void DrawLayer::draw(Renderer &window_rend)
 
 void DrawLayer::drawDirectly(Renderer &target)
 {
-    auto old_view = target.m_view;
-    auto target_size = target.getTargetSize();
-    Sprite screen_sprite(m_pixels.getTexture());
-    screen_sprite.setPosition(target_size / 2.f);
-    screen_sprite.setScale(target_size / 2.f);
+    // auto old_view = target.m_view;
+    // auto target_size = target.getTargetSize();
+    // Sprite screen_sprite(m_pixels.getTexture());
+    // screen_sprite.setPosition(target_size / 2.f);
+    // screen_sprite.setScale(target_size / 2.f);
 
-    target.m_view.setCenter(screen_sprite.getPosition());
-    target.m_view.setSize(target_size);
+    // target.m_view.setCenter(screen_sprite.getPosition());
+    // target.m_view.setSize(target_size);
 
-    target.drawSprite(screen_sprite, "SpriteDefault");
-    target.drawAll();
-    target.m_view = old_view;
+    // target.drawSprite(screen_sprite, "SpriteDefault");
+    // target.drawAll();
+    // target.m_view = old_view;
+
+    static Shader s_full_pass(
+        std::string{vertex_sprite_code_direct},
+        std::string{fragment_fullpass_texture_code});
+    m_screen_sprite.draw(target.getTarget(), s_full_pass, m_pixels.getTexture());
 }
 
 void DrawLayer::addEffect(std::unique_ptr<PostEffect> effect)

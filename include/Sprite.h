@@ -13,14 +13,15 @@ class Texture;
 //! \brief a transform with width and height, which represents a rectangle
 struct RectangleSimple : public Transform
 {
-    RectangleSimple(Color color = {1,1,1,1});
+    RectangleSimple(Color color = {1, 1, 1, 1});
 
     Color m_color;
+    float depth = {0.f};
 };
 
 //! \struct Sprite
 //! \brief holds data regarding Transform world-size and knows, what textures the Sprite uses
-struct Sprite : public Transform 
+struct Sprite : public Transform
 {
     Sprite() = default;
     explicit Sprite(const Texture &texture);
@@ -31,8 +32,11 @@ struct Sprite : public Transform
     void setTexture(GLuint id, int slot = 0);
     void setTexture(int slot, const Texture &texture);
 
+    float getAspect() const;
+
     ColorByte m_color = {255, 255, 255, 255};
-    TextureArray m_texture_handles = {}; //!< GL handles of the bound textures
-    utils::Vector2i m_tex_size = {1, 1};        //!< ???
-    Rect<int> m_tex_rect = {0,0,1,1};          //!< defines part of the texture that will be drawn
+    TextureArray m_texture_handles = {};   //!< GL handles of the bound textures
+    utils::Vector2i m_tex_size = {1, 1};   //!< size of the texture
+    Rect<float> m_tex_rect = {0, 0, 1, 1}; //!< defines part of the texture that will be drawn
+    float depth = {0.f};
 };

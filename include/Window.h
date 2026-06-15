@@ -2,7 +2,6 @@
 
 #include "RenderTarget.h"
 
-
 struct SDL_Window;
 
 //! \class Window

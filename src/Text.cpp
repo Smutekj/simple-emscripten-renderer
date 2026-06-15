@@ -8,6 +8,11 @@ Text::Text(std::string text)
     std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
     m_text = conv.from_bytes(text);
 }
+Text::Text(Font* p_font)
+    :
+    m_font(p_font)
+{}
+
 const std::wstring &Text::getTextW() const
 {
     return m_text;
@@ -37,6 +42,15 @@ std::string Text::getText() const
 void Text::setColor(ColorByte new_color)
 {
     m_color = new_color;
+    m_edge_color = new_color;
+}
+void Text::setAlpha(float alpha)
+{
+    int alpha_b = alpha * 255;
+    alpha_b = std::min(std::max(alpha_b, 0), 255);
+    m_color.a = alpha_b;
+    m_edge_color.a = alpha_b;
+    m_glow_color.a = alpha_b;
 }
 
 const ColorByte &Text::getColor() const
@@ -193,7 +207,7 @@ void MultiLineText::drawInto2(Renderer &canvas)
     std::size_t next_pos = m_text.find_first_of(' ');
     Text t_word = Text{m_text.substr(start_pos, next_pos - start_pos + 1)};
     t_word.setFont(p_font);
-    t_word.setScale(m_text_scale, m_text_scale); //! fuck the flipping, fuck OpenGL coordinates, and fuck me
+    t_word.setScale(m_text_scale, m_text_scale);
 
     while (next_pos != std::string::npos)
     {
@@ -209,7 +223,7 @@ void MultiLineText::drawInto2(Renderer &canvas)
     t_word.setText(m_text.substr(start_pos));
     drawWordAndMoveCursor(t_word);
 
-    m_page_height = m_page_padding.y + m_line_size + m_line_spacing - (word_pos.y - m_page_position.y);
+    m_page_height = m_page_padding.y + m_line_spacing - (word_pos.y - m_page_position.y);
 }
 
 void MultiLineText::drawInto(Renderer &canvas)
@@ -300,9 +314,19 @@ MultiLineText::MultiLineText()
 {
 }
 
-void MultiLineText::setText(std::string text)
+void MultiLineText::setText(const std::string& text)
 {
     m_text = text;
+}
+
+void MultiLineText::appendText(const std::string& text)
+{
+    m_text += text;
+}
+
+std::string& MultiLineText::getText()
+{
+    return m_text;
 }
 
 void MultiLineText::setPosition(utils::Vector2f position)

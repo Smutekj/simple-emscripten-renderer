@@ -18,6 +18,7 @@
 #include <SDL_timer.h>
 
 
+
 void gameLoop(void *mainLoopArg);
 
 class Application

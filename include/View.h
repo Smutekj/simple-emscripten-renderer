@@ -1,8 +1,5 @@
 #pragma once
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/mat4x4.hpp>
-
 #include "Vector2.h"
 #include "Rect.h"
 
@@ -27,23 +24,26 @@ public:
     void setCenter(VecType new_center);
     utils::Vector2f getCenter() const;
 
-    void zoom(float factor);
+    void setAngle(float angle_deg);
+    float getAngle() const;
 
-    glm::mat4 &getMatrix();
+    void zoom(float factor);
 
     bool contains(const utils::Vector2f &query) const;
     bool intersects(const Rectf &query) const;
+
+    utils::Vector2f transformToScreen(const utils::Vector2f &world_pos, const utils::Vector2f &screen_size) const;
+    utils::Vector2f transformToWorld(const utils::Vector2f &screen_pos, const utils::Vector2f &screen_size) const;
 
 private:
     void recomputeMatrix();
 
 private:
-    glm::mat4 m_view_matrix; //! initialized as the identity matrix
-
     float m_center_x = 0;
     float m_center_y = 0;
     float m_width = 2;
     float m_height = 2;
+    float m_angle = 0.f;
 
     bool m_needs_recompute = true;
 };

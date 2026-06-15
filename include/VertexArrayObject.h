@@ -2,8 +2,8 @@
 
 #include "GLTypeDefs.h"
 #include "Vertex.h"
-#include "glad/glad.h"
 #include "Rect.h"
+#include "IncludesGl.h"
 
 #include <vector>
 
@@ -18,6 +18,7 @@ struct SpriteInstance
     Vec2 tex_size = {0, 0};
     ColorByte color = {255, 255, 255, 255};
 };
+
 //! \struct TextInstance
 //! \brief data that get sent into text shaders
 struct TextInstance
@@ -30,19 +31,6 @@ struct TextInstance
     ColorByte glow_color = {0, 0, 0, 0};
     int char_code;
     float start_time = 0.f;
-};
-
-//! \struct SpriteInstance 
-//! \brief contains data that gets into sprite shaders as attributes
-struct BlurredRectInstance
-{
-    Vec2 trans = {0, 0};
-    Vec2 scale = {1, 1};
-    float angle = 0;
-    float blur_radius = 1.f;
-    float border_width = 0.f;
-    ColorByte color = {255, 255, 255, 255};
-    ColorByte border_color = {255, 255, 255, 255};
 };
 
 struct AttributeId
@@ -108,6 +96,7 @@ inline AttributeId makeAttribute()
     }
     return {};
 };
+
 
 template <class T>
 inline AttributeId makeAttribute(T var)

@@ -26,7 +26,6 @@ void drawProgramToTexture(Sprite &rect, Renderer &target, std::string program)
 Application::Application(int width, int height) : m_window(width, height),
                                                   m_window_renderer(m_window)
 {
-
     std::filesystem::path resources_path = {"../Resources/Fonts/arial.ttf"};
     m_font = std::make_shared<Font>(resources_path);
 

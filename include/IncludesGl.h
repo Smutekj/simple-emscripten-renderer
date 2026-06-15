@@ -19,7 +19,6 @@
 #include <iostream>
 
 
-using IndexType = unsigned short;
 
 GLenum inline glCheckError_(const char *file, int line, const char *message = "")
 {
@@ -56,7 +55,7 @@ GLenum inline glCheckError_(const char *file, int line, const char *message = ""
 //!  WebGL is super slow  with glCheckErrors
 //! https://emscripten.org/docs/optimizing/Optimizing-WebGL.html
 
-#ifdef __EMSCRIPTEN__
+#if defined(EMSCRIPTEN) || !defined(DEBUG)
 #define glCheckErrorMsg(x)
 #define glCheckError() []() {}
 #else

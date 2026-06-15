@@ -14,6 +14,7 @@ class Text : public Transform
 
 public:
     explicit Text(std::string text = "");
+    explicit Text(Font* p_font);
 
     void setFont(Font *font);
     Font *getFont() const;
@@ -23,6 +24,7 @@ public:
     const std::wstring &getTextW() const;
     
     void setColor(ColorByte new_color);
+    void setAlpha(float alpha);
     const ColorByte &getColor() const;
 
     Rect<float> getBoundingBox() const;
@@ -57,7 +59,9 @@ public:
     void drawInto(Renderer &canvas);
     void drawInto2(Renderer &canvas);
 
-    void setText(std::string text);
+    void setText(const std::string& text);
+    std::string& getText();
+    void appendText(const std::string &new_text);
 
     utils::Vector2f getPosition() const;
     void setPosition(utils::Vector2f position);
@@ -82,7 +86,7 @@ private:
     utils::Vector2f m_page_position = {0.f, 0.f};
     float m_line_size = 30; //! should be calculated from font probably
     float m_page_width = 600;
-    float m_page_height; //! is calculated from text
+    float m_page_height = {0.f}; //! is calculated from text
     float m_line_spacing = 2;
     float m_word_spacing = 10;
     float m_text_scale = 1.;

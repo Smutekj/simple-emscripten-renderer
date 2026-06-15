@@ -22,6 +22,7 @@ public:
     void run();
     void update(float dt);
     void handleInput();
+    void close();
 
 private:
     void onKeyPress(SDL_Keycode key);

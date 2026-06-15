@@ -10,7 +10,6 @@ namespace utils
     template <typename Type>
     class VectorMap
     {
-
     public:
         VectorMap() = default;
         explicit VectorMap(int n_max_entities);
@@ -24,7 +23,6 @@ namespace utils
         size_t size();
         size_t capacity();
         void setMaxCount(int n_max_count);
-
 
         Type &getEntity(int index);
         size_t getEntityInd(int data_ind) const;
@@ -98,7 +96,7 @@ namespace utils
         auto data_ind = m_entity2data_ind.at(entity_ind);
         if (data_ind == -1)
         {
-            throw std::runtime_error("Trying to delete non-existent object!");
+            return;
         }
 
         auto moved_entity_ind = m_data2entity_ind.at(n_active - 1);
@@ -129,7 +127,7 @@ namespace utils
             m_freelist_head = m_entity2data_ind[m_freelist_head];
         }
 
-        m_data.emplace_back(datum);
+        m_data.emplace_back(std::forward<T>(datum));
         m_data2entity_ind.at(n_active) = new_ind;
         m_entity2data_ind.at(new_ind) = n_active;
 
@@ -160,5 +158,6 @@ namespace utils
         }
         n_active = 0;
     }
+    
 
 }

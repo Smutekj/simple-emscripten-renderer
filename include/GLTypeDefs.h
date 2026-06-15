@@ -8,6 +8,8 @@ using GLenum = unsigned int;
 constexpr int N_MAX_TEXTURES_IN_SHADER = 2; //! maximum number of texture slots
 using TextureArray = std::array<GLuint, N_MAX_TEXTURES_IN_SHADER>;
 
+using IndexType = unsigned short;
+
 //! \enum DrawType
 //! \brief Corresponds to OpenGL draw buffers needed in glBufferData
 enum class DrawType

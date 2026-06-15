@@ -1,18 +1,19 @@
 #include "Texture.h"
 
-#include "IncludesGl.h"
+#include <cassert>
+#include <filesystem>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "../external/stbimage/stb_image.h"
 
-#include <cassert>
+#include "IncludesGl.h"
 
 //! \brief constructs the texture from an \p image_file
 //! \param image_file
 //! \param options
-Texture::Texture(std::filesystem::path image_file, TextureOptions options)
+Texture::Texture(std::string image_file, TextureOptions options)
 {
-    loadFromFile(image_file.string(), options);
+    loadFromFile(image_file, options);
 }
 //! \brief constructs the texture from an \p image_file
 //! \param image_file
@@ -59,7 +60,7 @@ Texture::Texture(const Texture &other)
         0, 0, m_width, m_height, // src rect
         0, 0, m_width, m_height, // dst rect
         GL_COLOR_BUFFER_BIT,
-        GL_NEAREST // or GL_LINEAR
+        GL_NEAREST // or GL_LINEARj
     );
 
     // Cleanup
@@ -234,7 +235,7 @@ void Texture::create(int width, int height, TextureOptions options)
                  width, height, 0,
                  getGLCode(options.format),
                  getGLCode(options.data_type),
-                 NULL);
+                 nullptr);
 
     if (options.mipmap_levels > 0)
     {
@@ -245,7 +246,7 @@ void Texture::create(int width, int height, TextureOptions options)
 
 //! \brief bind the texture to a GL slot specified by: \p slot
 //! \param slot
-void Texture::bind(int slot)
+void Texture::bind(int slot) const
 {
     assert(m_texture_handle != 0); //! has to be generated first
     glActiveTexture(GL_TEXTURE0 + slot);
@@ -275,92 +276,4 @@ float Texture::getAspect() const
 GLuint Texture::getHandle() const
 {
     return m_texture_handle;
-}
-
-//! \brief adds texture into the holder under id \p texture_name
-//! \param texture_name our id of the texture
-//! \param texture
-//! \returns true if no texture of this name exists othrewise return false;
-bool TextureHolder::add(std::string texture_name, Texture &texture)
-{
-    if (m_textures.count(texture_name) != 0)
-    {
-        return false;
-    }
-
-    m_textures[texture_name] = std::make_shared<Texture>(texture);
-
-    return true;
-}
-
-bool TextureHolder::add(std::string texture_name, std::filesystem::path texture_file_path, TextureOptions opt)
-{
-    if (m_textures.count(texture_name) != 0)
-    {
-        return false;
-    }
-
-    auto tex = std::make_shared<Texture>();
-    tex->loadFromFile(texture_file_path.string(), opt);
-    m_textures[texture_name] = std::move(tex);
-    return true;
-}
-//! \brief reads the texture in \p texture_filename and adds it
-//! \brief into the holder under id \p texture_name
-//! \param texture_name our id of the texture
-//! \param texture_filename     filename of the texture
-//! \returns true if no texture of this name exists othrewise return false;
-bool TextureHolder::add(std::string texture_name, std::string texture_filename, TextureOptions opt)
-{
-    return add(texture_name, m_resources_path / texture_filename, opt);
-}
-
-bool TextureHolder::add(std::string texture_name, const unsigned char *buffer, std::size_t size, TextureOptions opt)
-{
-    if (m_textures.count(texture_name) != 0)
-    {
-        return false;
-    }
-
-    auto tex = std::make_shared<Texture>();
-    tex->loadFromBytes(buffer, size, opt);
-    m_textures[texture_name] = std::move(tex);
-    return true;
-}
-
-std::shared_ptr<Texture> TextureHolder::get(std::string name) const
-{
-    if (m_textures.count(name) > 0)
-        return m_textures.at(name);
-
-    return nullptr;
-}
-
-std::unordered_map<std::string, std::shared_ptr<Texture>> &TextureHolder::getTextures()
-{
-    return m_textures;
-}
-
-//! \brief sets base path for searching shaders when loading
-//! \param directory    path to a directory
-//! \returns true if the \p directory is actually an existing directory, otherwise returns false
-bool TextureHolder::setBaseDirectory(std::filesystem::path directory)
-{
-    // if (!std::filesystem::exists(directory) || !std::filesystem::is_directory(directory))
-    // {
-    //     return false;
-    // }
-
-    m_resources_path = directory;
-    return true;
-}
-
-const TextureOptions &Texture::getOptions() const
-{
-    return m_options;
-}
-
-void TextureHolder::erase(const std::string &texture_id)
-{
-    m_textures.erase(texture_id);
 }

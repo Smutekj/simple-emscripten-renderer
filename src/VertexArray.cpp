@@ -3,8 +3,10 @@
 #include "IncludesGl.h"
 #include "Shader.h"
 #include "View.h"
+#include "ViewMatrix.h"
 
 VertexArray::VertexArray()
+    : m_primitives(GL_TRIANGLES)
 {
     glGenBuffers(1, &m_vbo);
     glGenBuffers(1, &m_ebo);
@@ -27,7 +29,8 @@ void VertexArray::setTexture(int slot, GLuint texture_handle)
 }
 
 VertexArray::VertexArray(DrawType draw_type)
-    : m_draw_type(draw_type)
+    : m_draw_type(draw_type),
+      m_primitives(GL_TRIANGLES)
 {
     glGenBuffers(1, &m_vbo);
     glGenBuffers(1, &m_ebo);
@@ -43,7 +46,6 @@ VertexArray::VertexArray(DrawType draw_type)
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-
 }
 
 VertexArray::VertexArray(DrawType draw_type, int n_verts)
@@ -52,7 +54,7 @@ VertexArray::VertexArray(DrawType draw_type, int n_verts)
     resize(n_verts);
 }
 
-//! \brief resizes internal vetex array 
+//! \brief resizes internal vetex array
 //! \brief in next draw call a glBufferData will be called creating a new buffer
 //! \param n_verts  new maximum number of vertices
 void VertexArray::resize(int n_verts)
@@ -61,34 +63,32 @@ void VertexArray::resize(int n_verts)
     m_needs_new_gl_buffer = true;
 }
 
-
 //! \brief calls gl function to create vertex and element buffer buffers
 void VertexArray::updateBufferData(int max_vertex_ind)
 {
-    
+
     if (!m_is_initialized) //! this way it's called just once for static draws
     {
         int max_ind = max_vertex_ind == -1 ? m_vertices.size() : max_vertex_ind + 1;
-        
+
         glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
         glCheckError();
         glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Vertex) * max_ind, m_vertices.data());
         glCheckError();
     }
-    
+
     if (m_draw_type == DrawType::Static) //! for static draw we assume we do not need to change the data
     {
         m_is_initialized = true;
     }
-
 }
 
-//! \brief calls gl function to create vertex and element buffer buffers 
+//! \brief calls gl function to create vertex and element buffer buffers
 void VertexArray::createBuffers()
 {
     glGenVertexArrays(1, &m_vao);
     glBindVertexArray(m_vao);
-    
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glCheckError();
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(IndexType) * m_vertices.size(), NULL, getGLCode(m_draw_type));
@@ -128,13 +128,13 @@ Vertex &VertexArray::operator[](int i)
 //! \brief draws directly into the associated target
 //! \param view
 //! \param indices      a vector of indices to use in the draw call
-void VertexArray::draw(View view, Shader& shader, const std::vector<IndexType> &indices)
+void VertexArray::draw(View view, Shader &shader, const std::vector<IndexType> &indices)
 {
-    if(indices.empty())
+    if (indices.empty())
     {
         return;
     }
-    shader.setUniform("u_view_projection", view.getMatrix());
+    shader.setUniform("u_view_projection", getMatrix(view));
     shader.use();
 
     for (int slot = 0; slot < N_MAX_TEXTURES_IN_SHADER; ++slot)
@@ -147,20 +147,22 @@ void VertexArray::draw(View view, Shader& shader, const std::vector<IndexType> &
             glCheckError();
         }
     }
-    if(m_needs_new_gl_buffer)
+    if (m_needs_new_gl_buffer)
     {
         createBuffers();
-    }else{
+    }
+    else
+    {
         int max_vertex_ind = *std::max_element(indices.begin(), indices.end());
         updateBufferData(max_vertex_ind);
     }
-    
+
     glBindVertexArray(m_vao);
-    
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ebo);
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, sizeof(IndexType) * indices.size(), indices.data());
     glCheckError();
-    
+
     glDrawElements(m_primitives, indices.size(), GL_UNSIGNED_SHORT, 0);
     glCheckError();
 
@@ -169,12 +171,11 @@ void VertexArray::draw(View view, Shader& shader, const std::vector<IndexType> &
 
 //! \brief draws directly into the associated target
 //! \param view
-void VertexArray::draw(View view, Shader& shader)
+void VertexArray::draw(View view, Shader &shader)
 {
-    shader.setUniform("u_view_projection", view.getMatrix());
+    shader.setUniform("u_view_projection", getMatrix(view));
     shader.setTexture(m_textures);
     shader.use();
-
 
     for (int slot = 0; slot < N_MAX_TEXTURES_IN_SHADER; ++slot)
     {
@@ -201,7 +202,6 @@ void VertexArray::setTexture(Texture &texture)
 {
     m_textures.at(0) = texture.getHandle();
 }
-
 
 std::size_t VertexArray::size() const
 {

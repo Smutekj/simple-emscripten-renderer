@@ -7,12 +7,12 @@
 
 #include <FrameBuffer.h>
 #include <Renderer.h>
+#include <Rectangle.h>
 
-#include "PostEffects.h"
+class PostEffect;
 
 class DrawLayer
 {
-
 public:
     DrawLayer(int width, int height);
     DrawLayer(int width, int height, TextureOptions options, int mult = 1);
@@ -44,6 +44,8 @@ private:
 
     FrameBuffer m_tmp_pixels2; //!< helper pixels to do post effects
     Renderer m_tmp_canvas2;    //!< helper canvas to do post effects
+    
+    ScreenSprite m_screen_sprite;
 
     std::vector<std::unique_ptr<PostEffect>> m_effects;
 
@@ -92,5 +94,4 @@ struct LayersHolder
 public:
     std::unordered_map<std::string, int> m_name2depth;
     std::map<int, std::shared_ptr<DrawLayer>> m_layers;
-private:
 };

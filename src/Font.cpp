@@ -1,17 +1,20 @@
 #include "Font.h"
-#include "IncludesGl.h"
-#include "CommonShaders.inl"
-
-#include "Renderer.h"
-#include "FrameBuffer.h"
-#include "Sprite.h"
 
 #include <fstream>
+#include <cstring>
+#include <unordered_set>
+
 #include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_GLYPH_H   //optional glyph management component (I keep these here because I'll probably need them )
 #include FT_OUTLINE_H //scalable outline management
 // #include FT_STROKER_H //functions to stroke outline paths
+
+#include "IncludesGl.h"
+#include "CommonShaders.inl"
+#include "Renderer.h"
+#include "FrameBuffer.h"
+#include "Sprite.h"
 
 Font::~Font()
 {
@@ -19,12 +22,15 @@ Font::~Font()
     FT_Done_FreeType(*mp_ft);
 }
 
-#include <chrono>
-
 //! \brief creates a font from a path to a file
 //! \param font_filename path to a font file
-Font::Font(std::filesystem::path font_filename, size_t font_pixel_size, FreetypeMode mode)
-    : m_mode(mode), m_font_pixel_size(font_pixel_size)
+Font::Font(std::filesystem::path font_filename,
+           size_t font_pixel_size,
+           FreetypeMode mode,
+           FontParams params)
+    : m_mode(mode),
+      m_font_pixel_size(font_pixel_size),
+      m_params(params)
 {
     mp_face = std::make_unique<FT_Face>(FT_Face());
     mp_ft = std::make_unique<FT_Library>(FT_Library());
@@ -33,9 +39,26 @@ Font::Font(std::filesystem::path font_filename, size_t font_pixel_size, Freetype
     {
         throw std::runtime_error("FONT FILE " + font_filename.string() + " NOT FOUND!");
     }
+
+    if (m_mode == FreetypeMode::SDF)
+    {
+        m_shader.loadFromCode(std::string{vertex_text_code}, std::string{fragment_text_sdf_code});
+        setParams(m_params);
+    }
+    else
+    {
+        m_shader.loadFromCode(std::string{vertex_text_code}, std::string{fragment_text_sprite_code});
+    }
 }
-Font::Font(const unsigned char *bytes, std::size_t num_bytes, size_t font_pixel_size, FreetypeMode mode)
-    : m_mode(mode), m_font_pixel_size(font_pixel_size)
+
+Font::Font(const unsigned char *bytes,
+           std::size_t num_bytes,
+           size_t font_pixel_size,
+           FreetypeMode mode,
+           FontParams params)
+    : m_mode(mode),
+      m_font_pixel_size(font_pixel_size),
+      m_params(params)
 {
     mp_face = std::make_unique<FT_Face>(FT_Face());
     mp_ft = std::make_unique<FT_Library>(FT_Library());
@@ -45,8 +68,67 @@ Font::Font(const unsigned char *bytes, std::size_t num_bytes, size_t font_pixel_
     {
         throw std::runtime_error("UNABLE TO LOAD FONT");
     }
-    auto toc = std::chrono::high_resolution_clock::now();
-    std::cout << "PENIS: " << std::chrono::duration_cast<std::chrono::milliseconds>(toc - tic) << std::endl;
+
+    if (m_mode == FreetypeMode::SDF)
+    {
+        m_shader.loadFromCode(std::string{vertex_text_code}, std::string{fragment_text_sdf_code});
+        setParams(m_params);
+    }
+    else
+    {
+        m_shader.loadFromCode(std::string{vertex_text_code}, std::string{fragment_text_sprite_code});
+    }
+}
+
+Font::Font(const unsigned char *prerendered_font_bytes, std::size_t num_bytes)
+{
+    TextureOptions options;
+    options.data_type = TextureDataTypes::UByte;
+    options.format = TextureFormat::RGBA;
+    options.internal_format = TextureFormat::RGBA;
+    options.mag_param = TexMappingParam::Linear;
+    options.min_param = TexMappingParam::Linear;
+    m_texture = std::make_unique<Texture>(prerendered_font_bytes, num_bytes, options);
+}
+
+Font::Font(const unsigned char *prerendered_font_bytes, const char *charmap_bytes)
+{
+    assert(false);
+    // m_texture = std::make_unique<Texture>(prerendered_font_bytes, TextureOptions{});
+    // deserializeCharacters(charmap_bytes);
+}
+
+Shader &Font::getShader()
+{
+    return m_shader;
+}
+
+void Font::setParams(FontParams params)
+{
+    m_params = params;
+
+    m_shader.setUniform("u_smooth_min", params.smooth_min);
+    m_shader.setUniform("u_smooth_max", params.smooth_max);
+    m_shader.setUniform("u_glow_min", params.glow_min);
+    m_shader.setUniform("u_glow_max", params.glow_max);
+    m_shader.setUniform("u_outline", params.outline);
+    m_shader.setUniform("u_smooth_edges", params.smooth_edges);
+    m_shader.setUniform("u_outer_glow", params.outer_glow);
+    m_shader.setUniform("u_outline_min0", params.outline_min0);
+    m_shader.setUniform("u_outline_min1", params.outline_min1);
+    m_shader.setUniform("u_outline_max0", params.outline_max0);
+    m_shader.setUniform("u_outline_max1", params.outline_max1);
+    m_shader.setUniform("u_thick", params.thick);
+}
+FontParams Font::getParams() const
+{
+    return m_params;
+}
+
+bool Font::loadCharMapFromBytes(const unsigned char *charmap_bytes, std::size_t num_bytes)
+{
+    deserializeCharacters(charmap_bytes, num_bytes);
+    return true;
 }
 
 //! \brief just for debugging
@@ -75,23 +157,22 @@ float Font::getLineHeight() const
 
 bool Font::initializeFromFace(FT_Face &face)
 {
-    std::size_t font_texture_width = 2048; //! how to set this?
-    std::size_t font_texture_height = 2048;
-    std::size_t safety_margin = 2;         //! number of pixels that separate glyphs in texture
-    utils::Vector2<unsigned int> max_char_size = {0};
-    
-    //! create texture to draw into
-    TextureOptions options;
-    options.data_type = TextureDataTypes::UByte;
-    options.format = TextureFormat::RGBA;
-    options.internal_format = TextureFormat::RGBA;
-    options.mag_param = TexMappingParam::Linear;
-    options.min_param = TexMappingParam::Linear;
-    m_pixels = std::make_unique<FrameBuffer>(font_texture_width, font_texture_height, options);
-    m_canvas = std::make_unique<Renderer>(*m_pixels);
-    m_canvas->getShaders().loadFromCode("Font",
-                                        vertex_sprite_code,
-                                        fragment_font_code);
+    std::size_t atlas_w = 2048; //! how to set this?
+    std::size_t atlas_h = 2048;
+    std::size_t safety_margin = 4; //! number of pixels that separate glyphs in texture
+    utils::Vector2<unsigned int> max_char_size = {0, 0};
+
+    //! create texture to draw glyphs into
+    TextureOptions atlas_texture_options = {
+        .format = TextureFormat::Red,
+        .internal_format = TextureFormat::R8,
+        .data_type = TextureDataTypes::UByte,
+        .mag_param = TexMappingParam::Nearest,
+        .min_param = TexMappingParam::Nearest,
+        .wrap_x = TexWrapParam::ClampEdge,
+        .wrap_y = TexWrapParam::ClampEdge,
+        .mipmap_levels = 0};
+    m_texture = std::make_shared<Texture>(atlas_w, atlas_h, atlas_texture_options);
 
     FT_Set_Pixel_Sizes(face, 0, m_font_pixel_size);
     m_line_height = face->size->metrics.height / 64.f;
@@ -99,39 +180,42 @@ bool Font::initializeFromFace(FT_Face &face)
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1); // disable byte-alignment restriction
     glCheckError();
 
-    std::size_t atlas_w = m_pixels->getSize().x;
-    std::size_t atlas_h = m_pixels->getSize().y;
-    // std::vector<uint8_t> atlas_pixels(atlas_w * atlas_h);
+    m_texture->bind();
+    //! zero the texture
+    std::vector<uint8_t> zeros(atlas_h * atlas_w, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0,
+                 getGLCode(atlas_texture_options.internal_format),
+                 atlas_w, atlas_h,
+                 0,
+                 getGLCode(atlas_texture_options.format),
+                 getGLCode(atlas_texture_options.data_type),
+                 zeros.data());
+    glCheckError();
 
-    TextureOptions helper_texture_options = {
-        .format = TextureFormat::Red,
-        .internal_format = TextureFormat::R8,
-        .data_type = TextureDataTypes::UByte,
-        .mag_param = TexMappingParam::Linear,
-        .min_param = TexMappingParam::Linear,
-        .mipmap_levels = 0};
-
-    Texture atlas_texture;
-    atlas_texture.create(atlas_w, atlas_h, helper_texture_options);
-    atlas_texture.bind();
-
-    auto &main_texture = m_pixels->getTexture();
-    m_canvas->m_view.setCenter(main_texture.getSize() / 2.f);
-    m_canvas->m_view.setSize(main_texture.getSize().x, -main_texture.getSize().y);
-    m_canvas->clear({1, 1, 1, 0});
-    m_canvas->m_blend_factors = {BlendFactor::One, BlendFactor::One};
-
-    auto tic = std::chrono::high_resolution_clock::now();
-    
     //! initialize characters data
     m_characters.clear();
-    utils::Vector2i glyph_pos = {0, 0};
-    
+    utils::Vector2i glyph_pos = {safety_margin, safety_margin};
+
+    std::unordered_set<int> charset = {'$', '%', '@', ':', ',', '(', ')', '=', '-', '+', '*', '/',
+                                       'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', ' ',
+                                       'i', 'j', 'k', 'l',
+                                       'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x',
+                                       'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+                                       'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
+                                       'W', 'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7',
+                                       '8', '9', '!', '.', '?'};
+
     FT_UInt gindex;
     FT_ULong charcode = FT_Get_First_Char(face, &gindex);
     while (gindex != 0)
     {
         // load character glyph
+        if (!charset.contains(charcode))
+        {
+            charcode = FT_Get_Next_Char(face, charcode, &gindex);
+            continue;
+        }
+
         if (FT_Load_Char(face, charcode, FT_LOAD_RENDER))
         {
             std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
@@ -142,26 +226,28 @@ bool Font::initializeFromFace(FT_Face &face)
         FT_Bitmap &bitmap = glyph->bitmap;
         FT_Render_Glyph(glyph, static_cast<FT_Render_Mode>(m_mode));
 
-        if (glyph_pos.x + bitmap.width + safety_margin >= main_texture.getSize().x) //! if we reach right side of the main texture
+        if (glyph_pos.x + bitmap.width + safety_margin >= atlas_w)
         {
+            //! if we reach right side of the main texture
             glyph_pos.y += max_char_size.y + safety_margin;
             glyph_pos.x = 0;
-            max_char_size = {0};
+            max_char_size = {0, 0};
         }
-        max_char_size = {std::max(bitmap.width, max_char_size.x), std::max(bitmap.rows, max_char_size.y)};
+        max_char_size = {std::max(bitmap.width, max_char_size.x),
+                         std::max(bitmap.rows, max_char_size.y)};
 
-         glTexSubImage2D(GL_TEXTURE_2D, 0,
+        glTexSubImage2D(GL_TEXTURE_2D, 0,
                         glyph_pos.x, glyph_pos.y,
                         bitmap.width, bitmap.rows,
-                        GL_RED, GL_UNSIGNED_BYTE, bitmap.buffer) ;
+                        GL_RED, GL_UNSIGNED_BYTE, bitmap.buffer);
         glCheckError(); //! the error here is most likely due to rendering outside of texture
 
         FT_BBox bbox;
         FT_Outline_Get_CBox(&glyph->outline, &bbox);
 
-        float width = (bbox.xMax / 64.f - bbox.xMin / 64.f);
-        float height = (bbox.yMax / 64.f - bbox.yMin / 64.f);
-        Rectf char_bb = {bbox.xMin / 64.f, bbox.yMin / 64.f, width, height};
+        float width = (float)(bbox.xMax / 64 - bbox.xMin / 64);
+        float height = (float)(bbox.yMax / 64 - bbox.yMin / 64);
+        Rectf char_bb = {(float)(bbox.xMin / 64), (float)(bbox.yMin / 64), width, height};
 
         // for (int y = 0; y < bitmap.rows; ++y)
         // {
@@ -174,7 +260,8 @@ bool Font::initializeFromFace(FT_Face &face)
 
         Character character =
             {
-                main_texture.getHandle(),
+                // main_texture.getHandle(),
+                m_texture->getHandle(),
                 glyph_pos,
                 {bitmap.width, bitmap.rows},
                 {glyph->bitmap_left, glyph->bitmap_top},
@@ -186,29 +273,10 @@ bool Font::initializeFromFace(FT_Face &face)
 
         charcode = FT_Get_Next_Char(face, charcode, &gindex);
     }
-    auto toc = std::chrono::high_resolution_clock::now();
-    std::cout << "font render: " << std::chrono::duration_cast<std::chrono::milliseconds>(toc - tic) << std::endl;
-    // GLuint tex;
-    // glGenTextures(1, &tex);
-    // glBindTexture(GL_TEXTURE_2D, tex);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, atlas_w, atlas_h, 0, GL_RED, GL_UNSIGNED_BYTE, atlas_pixels.data());
 
-    Sprite glyph_sprite(main_texture);
-    glyph_sprite.m_texture_handles[0] =  atlas_texture.getHandle(); //tex
-    glyph_sprite.setPosition(main_texture.getSize() / 2.f);
-    glyph_sprite.setScale(main_texture.getSize() / 2.f);
-    glCheckError();
-    m_canvas->drawSprite(glyph_sprite, "Font");
+    m_texture->setMappingMinify(TexMappingParam::Linear);
+    m_texture->setMappingMagnify(TexMappingParam::Linear);
 
-    using bf = BlendFactor;
-    m_canvas->m_blend_factors = {bf::One, bf::Zero, bf::One, bf::Zero};
-    m_canvas->drawAll();
-    m_canvas->resetBatches();
-    // writeTextureToFile("../", "pica.png", *m_pixels);
-    //! delete helper texture
-    // glDeleteTextures(1, &tex);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4); //! set back to deafult value
 
     renderCharMapTexture();
@@ -221,14 +289,17 @@ void Font::renderCharMapTexture()
     int char_count = m_characters.size();
     std::vector<Rectf> glyph_tex_rects(char_count);
 
-    utils::Vector2f atlas_size = m_pixels->getSize();
+    utils::Vector2f atlas_size = Vec2{m_texture->getSize()};
     int tex_code = 0;
     for (auto &[code, character] : m_characters)
     {
         m_charcode2texcode[code] = tex_code;
-        utils::Vector2f texrect_coords = {character.tex_coords.x / atlas_size.x, 1.f - character.tex_coords.y / atlas_size.y};
-        utils::Vector2f texrect_size = {character.size.x / atlas_size.x, character.size.y / atlas_size.y};
-        glyph_tex_rects.at(tex_code) = {texrect_coords.x, texrect_coords.y, texrect_size.x, texrect_size.y};
+        utils::Vector2f texrect_coords = {character.tex_coords.x / atlas_size.x,
+                                          character.tex_coords.y / atlas_size.y};
+        utils::Vector2f texrect_size = {character.size.x / atlas_size.x,
+                                        character.size.y / atlas_size.y};
+        glyph_tex_rects.at(tex_code) = {texrect_coords.x, texrect_coords.y, texrect_size.x,
+                                        texrect_size.y};
         tex_code++;
     }
 
@@ -236,9 +307,12 @@ void Font::renderCharMapTexture()
     glBindTexture(GL_TEXTURE_2D, m_charmap_tex_id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, char_count, 1, 0, GL_RGBA, GL_FLOAT, glyph_tex_rects.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, char_count, 1, 0, GL_RGBA, GL_FLOAT,
+                 glyph_tex_rects.data());
     glBindTexture(GL_TEXTURE_2D, 0);
     glCheckError();
+
+    //    writeToFile("../Resources/Fonts/");
 }
 
 GLuint Font::getCharmapTexId() const
@@ -307,13 +381,14 @@ bool Font::loadFromFile(std::filesystem::path font_file)
 //! \return a texture containing character SDFs
 Texture &Font::getTexture()
 {
-    return m_pixels->getTexture();
+    return *m_texture;
 }
 
 std::size_t Font::getFontPixelSize() const
 {
     return m_font_pixel_size;
 }
+
 FreetypeMode Font::getMode() const
 {
     return m_mode;
@@ -324,16 +399,19 @@ void Font::setFontPixelSize(std::size_t font_pixel_size)
     m_font_pixel_size = font_pixel_size;
     initializeFromFace(*mp_face);
 }
+
 template <class T>
 std::istream &operator>>(std::istream &data, utils::Vector2<T> &vec)
 {
     return data >> vec.x >> vec.y;
 }
+
 template <class T>
 std::istream &operator>>(std::istream &data, Rect<T> &rect)
 {
     return data >> rect.pos_x >> rect.pos_y >> rect.width >> rect.height;
 }
+
 std::istream &operator>>(std::istream &data, Character &c)
 {
     return data >> c.advance >> c.bb >> c.bearing >> c.size >> c.tex_coords;
@@ -356,51 +434,64 @@ std::ostream &operator<<(std::ostream &data, const Character &c)
     return data << c.advance << c.bb << c.bearing << c.size << c.tex_coords;
 }
 
-std::unordered_map<char, Character> deserializeCharacters(const std::filesystem::path &file_path)
+void Font::deserializeCharacters(const unsigned char *charmap_bytes, std::size_t num_bytes)
 {
-    if (!std::filesystem::exists(file_path))
+    const unsigned char *ptr = charmap_bytes;
+
+    std::memcpy(&m_font_pixel_size, ptr, sizeof(m_font_pixel_size));
+    ptr += sizeof(m_font_pixel_size);
+
+    std::memcpy(&m_line_height, ptr, sizeof(m_line_height));
+    ptr += sizeof(m_line_height);
+
+    std::size_t char_count;
+    std::memcpy(&char_count, ptr, sizeof(char_count));
+    ptr += sizeof(char_count);
+
+    for (std::size_t i = 0; i < char_count; ++i)
     {
-        std::cout << "Warning file: " << file_path << "does not exist!" << std::endl;
-        return {};
+        int code;
+        Character character;
+
+        std::memcpy(&code, ptr, sizeof(code));
+        ptr += sizeof(code);
+
+        std::memcpy(&character, ptr, sizeof(character));
+        ptr += sizeof(character);
+
+        m_characters.insert({code, character});
     }
 
-    std::ifstream data_file(file_path);
-    std::unordered_map<char, Character> characters;
+    renderCharMapTexture();
+}
 
-    int char_count = 0;
-    data_file >> char_count;
-    char code;
-    Character character;
-    while (data_file)
+void Font::writeToFile(const std::filesystem::path &path)
+{
+    std::ofstream data_file(path.string() + "test.dat", std::ios::binary);
+    data_file.write(reinterpret_cast<const char *>(&m_font_pixel_size), sizeof(m_font_pixel_size));
+    data_file.write(reinterpret_cast<const char *>(&m_line_height), sizeof(m_line_height));
+    // data_file.write(reinterpret_cast<const char *>(m_mode), sizeof(m_mode));
+    std::size_t char_count = m_characters.size();
+    data_file.write(reinterpret_cast<const char *>(&char_count), sizeof(m_characters.size()));
+    for (auto [code, data] : m_characters)
     {
-        data_file >> code;
-        data_file >> character;
-        characters.insert({code, character});
+        data_file.write(reinterpret_cast<const char *>(&code), sizeof(code));
+        data_file.write(reinterpret_cast<const char *>(&data), sizeof(data));
+        // data_file << data;
+        // // data_file.write(reinterpret_cast<const char *>(data), sizeof(data));
+        // data_file << code << data;
     }
+    data_file.close();
 
-    return characters;
-}
-void serializeCharacters(std::ostream &data_file,
-                         const std::unordered_map<int, Character> &characters)
-{
-
-    data_file << characters.size();
-    for (auto [code, data] : characters)
-    {
-        data_file << code << data;
-    }
+    writeTextureToFile(path, "-font.png", *m_texture);
 }
 
-void writeToFIle(const Font &font, const std::filesystem::path &path)
+bool Font::loadFromImage(const std::filesystem::path &pre_rendered_font_path,
+                         const std::filesystem::path &metadata_path)
 {
-    std::ofstream data_file(path);
-    data_file << font.getFontPixelSize() << static_cast<int>(font.getMode());
-    serializeCharacters(data_file, font.m_characters);
-}
-
-bool Font::loadFromImage(const std::filesystem::path &image_path, const std::filesystem::path &metadata_path)
-{
-    deserializeCharacters(metadata_path);
+    auto tex = std::make_shared<Texture>(pre_rendered_font_path.string(), TextureOptions{});
+    // m_characters = deserializeCharacters(metadata_path);
+    renderCharMapTexture();
     return false;
 }
 

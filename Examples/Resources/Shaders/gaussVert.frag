@@ -1,11 +1,11 @@
 #version 300 es 
 
-precision mediump float;    
+precision highp float;    
 
 uniform sampler2D u_image;
 
 
-in vec2 v_tex_coord;                          
+in highp vec2 v_tex_coord;                          
 in vec4 v_color;       
 
 out vec4 FragColor;

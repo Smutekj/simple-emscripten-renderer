@@ -1,6 +1,6 @@
 #version 300 es 
 
-precision mediump float;    
+precision highp float;    
 
 #include "lygia/generative/voronoise.glsl"
 #include "lygia/math/mod289.glsl"
@@ -8,7 +8,7 @@ precision mediump float;
 #include "lygia/math/quintic.glsl"
 #include "cracks.glsl"
                  
-in vec2 v_tex_coord;                          
+in highp vec2 v_tex_coord;                          
 in vec4 v_color;       
 
 out vec4 FragColor;

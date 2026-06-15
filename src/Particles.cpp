@@ -1,6 +1,5 @@
 #include "Particles.h"
 
-#include "Utils/RandomTools.h"
 #include "Renderer.h"
 
 Particle::Particle(utils::Vector2f init_pos, utils::Vector2f init_vel, utils::Vector2f acc, utils::Vector2f scale,
@@ -46,7 +45,7 @@ void Particles::update(float dt)
     {
         createParticle();
     }
-    m_spawn_timer -= std::floor(m_spawn_timer / m_spawn_period)*m_spawn_period;
+    m_spawn_timer -= std::floor(m_spawn_timer / m_spawn_period) * m_spawn_period;
 
     if (!m_updater_full) //! use deafult method if we haven't provided it ourselves
     {
@@ -123,12 +122,17 @@ void Particles::draw(Renderer &canvas)
     {
         int p_ind = (youngest_particle_ind + i) % n_particles;
         auto &particle = particles.at(p_ind);
-        rect.pos = particle.pos;
+        // rect.setPosition(particle.pos);
+        // rect.setScale(particle.scale);
+        // rect.setRotation(utils::radians(particle.angle));
+        // rect.m_color = particle.color;
         rect.angle = particle.angle;
         rect.corner_radius = 0.2;
         rect.scale = particle.scale;
-        rect.fill_color = ColorByte{particle.color};
+        rect.pos = particle.pos;
+        rect.fill_color = particle.color;
         canvas.drawBatched(rect, m_shader_id);
+        // canvas.drawRectangle(rect);
     }
 }
 
@@ -154,10 +158,6 @@ void Particles::setInitColor(Color color)
 void Particles::setFinalColor(Color color)
 {
     m_final_color = color;
-}
-void Particles::setLifetime(float life_time)
-{
-    m_lifetime = life_time;
 }
 
 utils::Vector2f Particles::getSpawnPos() const
@@ -214,4 +214,95 @@ void Particles::setRepeat(bool repeats)
 void TexturedParticles::setTexture(Texture &texture)
 {
     m_texture = &texture;
+}
+
+SpriteParticles::SpriteParticles(Sprite sprite, int n_parts)
+    : m_prototype(sprite),
+      m_particle_pool(n_parts)
+{
+}
+
+//! \brief creates particle/s if needed then does one integration of updater
+//! \brief afterwards destroys particles that are dead
+//! \param dt time step
+void SpriteParticles::update(float dt)
+{
+    spawn(dt);
+    integrate(dt);
+    destroyDead();
+}
+
+void SpriteParticles::spawn(float dt)
+{
+    m_spawn_timer += dt;
+    int particles_to_spawn = std::floor((m_spawn_timer + dt) / spawn_period) - std::floor(m_spawn_timer / spawn_period);
+    //! take into account non-repeating systems
+    particles_to_spawn *= (repeats || m_live_count < m_particle_pool.capacity());
+    for (int i = 0; i < particles_to_spawn; ++i)
+    {
+        createParticle();
+    }
+    m_spawn_timer -= std::floor(m_spawn_timer / spawn_period) * spawn_period;
+}
+
+//! \brief creates new particle if there is space in particle pool
+void SpriteParticles::createParticle()
+{
+    auto new_particle = emitter(spawn_pos);
+    m_particle_pool.insert(new_particle);
+    m_live_count++;
+}
+
+//! \brief destroys all particles with time larger than lifetime
+//! \brief and frees space in particle pool
+void SpriteParticles::destroyDead()
+{
+    auto &particles = m_particle_pool.getData();
+    std::vector<std::pair<int, ParticleData>> to_destroy;
+    for (size_t p_ind = 0; p_ind < m_particle_pool.size(); ++p_ind)
+    {
+        auto &particle = particles[p_ind];
+        if (particle.time > particle.life_time)
+        {
+            to_destroy.emplace_back(m_particle_pool.getEntityInd(p_ind), particle);
+        }
+    }
+    for (auto& [part_ind, particle] : to_destroy)
+    {
+        on_particle_death(particle);
+        m_particle_pool.removeByEntityInd(part_ind);
+    }
+}
+
+//! \brief one step of integration algorithm (euler i guess...)
+//! \param dt time step
+void SpriteParticles::integrate(float dt)
+{
+    auto &particles = m_particle_pool.getData();
+    for (size_t p_ind = 0; p_ind < m_particle_pool.size(); ++p_ind)
+    {
+        auto &particle = particles[p_ind];
+        particle.time += dt;
+        updater(particle, dt);
+    }
+}
+
+//! \brief Draws particles into \p canvas
+//! \brief \param canvas target to draw into
+void SpriteParticles::draw(Renderer &canvas)
+{
+    auto &particles = m_particle_pool.getData();
+    auto n_particles = m_particle_pool.size();
+
+    auto min_it = std::min_element(particles.begin(), particles.begin() + n_particles, [](auto &p1, auto &p2)
+                                   { return p1.time < p2.time; });
+    //! we draw from the youngest to the oldest
+    int youngest_particle_ind = min_it - particles.begin();
+    // RectangleSimple rect;
+    for (size_t i = 0; i < n_particles; ++i)
+    {
+        int p_ind = (youngest_particle_ind + i) % n_particles;
+        auto &particle = particles.at(p_ind);
+        canvas.drawSprite(particle.image, m_shader_id);
+    }
 }

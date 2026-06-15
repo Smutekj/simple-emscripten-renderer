@@ -5,19 +5,16 @@
 #include "BatchConfig.h"
 #include "ShaderHolder.h"
 #include "View.h"
-
-#include <memory>
-#include <set>
-
 #include "Batch.h"
 #include "BlendParams.h"
 #include "Sprite.h"
+
+#include <memory>
 
 class Text;
 class Texture;
 class Font;
 class RectangleSimple;
-
 
 //! \class Renderer
 //! \brief acts as a canvas, with draw functions for:
@@ -26,34 +23,36 @@ class RectangleSimple;
 //! drawAll() method should be used to do the actual GL calls and to do the actual screen drawing
 class Renderer
 {
-    
+
 public:
     explicit Renderer(RenderTarget &target);
 
     void drawSprite(Sprite &sprite, const std::string &shader_id = "SpriteDefault");
     void drawText(const Text &text, const std::string &shader_id = "TextDefault");
-    void drawText2(const Text &text, const std::string &shader_id = "TextDefault2");
-    void drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color);
+    void drawText2(const Text &text, const std::string &shader_id = "TextDefaultSDF");
     void drawRectangle(RectangleSimple &r, const std::string &shader_id = "VertexArrayDefault");
     void drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color);
     void drawCricleBatched(Vec2 center, float radius, Color color, int n_verts = 32);
     void drawPartialCircle(Vec2 center, float radius, float angle_start, float angle_end, Color color, int n_verts = 32);
     void drawEllipseBatched(Vec2 center, float angle, const utils::Vector2f &scale, Color color, int n_verts = 51, std::string shader_id = "VertexArrayDefault");
-    void drawVertices(std::vector<Vertex> &verts, const std::string &shader_id = "VertexArrayDefault", std::shared_ptr<Texture> p_texture = nullptr);
-    
+    void drawVertices(const std::vector<Vertex> &verts,
+                      const std::string &shader_id = "VertexArrayDefault", std::shared_ptr<Texture> p_texture = nullptr);
+    void drawVertices(const std::vector<Vertex> &verts, Shader &shader, TextureArray texture_ids);
+
     template <class DrawableT>
     void drawBatched(DrawableT &drawable, const std::string &shader_id, TextureArray textures = {0, 0});
 
     template <class DrawableT>
     void registerDrawable();
-
+    template <class DrawableT>
+    void registerDrawable(Shader &default_shader);
 
     void drawAll();
     void drawAllInto(RenderTarget &target);
     void resetBatches();
 
     utils::Vector2i getTargetSize() const;
-    RenderTarget &getTarget() const;
+    RenderTarget &getTarget();
 
     void clear(Color c);
 
@@ -68,10 +67,16 @@ public:
     utils::Vector2i getMouseInScreen();
 
     View getDefaultView() const;
-private:
-    void drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect, Vec2 texture_size,
-                            TextureArray &textures, const std::string &shader_id);
 
+private:
+    void drawSpriteUnpacked(Vec2 center,
+                            Vec2 scale,
+                            float angle,
+                            ColorByte color,
+                            Rect<float> tex_rect,
+                            Vec2 texture_size,
+                            float depth,
+                            TextureArray &textures, const std::string &shader_id);
 
     bool checkShader(const std::string &shader_id);
 
@@ -85,17 +90,16 @@ private:
     bool m_blend_factors_changed = true;
     bool m_viewport_changed = true;
 
-    ShaderHolder m_shaders; //!< stores shaders that we can use in this canvas (will probably just use singleton later on...)
+    ShaderHolder m_shaders; //!< stores shaders that we can use in this canvas
 
     BatchRegistry m_batches;
 
     RenderTarget &m_target; //!< the actual draw target
 };
 
-
 //! \brief utility function to pass a texture into a buffer via a shader
 void renderToTraget(Renderer &target, const Texture &source, const std::string &shader_id);
-void renderToTarget(RenderTarget &target, const Texture &source, Shader& shader);
+void renderToTarget(RenderTarget &target, const Texture &source, Shader &shader);
 
 template <class DrawableT>
 void Renderer::drawBatched(DrawableT &drawable, const std::string &shader_id, TextureArray textures)
@@ -106,6 +110,23 @@ void Renderer::drawBatched(DrawableT &drawable, const std::string &shader_id, Te
     m_batches.pushInstance(drawable.getInstance(), config);
 }
 
+template <class Derived>
+struct Drawable
+{
+
+    static BatchRegistry::BatchMaker makeBatch()
+    {
+        return Derived::makeBatchImpl();
+    }
+
+    const Derived &getInstance() const
+    {
+        return static_cast<const Derived &>(*this);
+    }
+
+    inline static Shader *p_default_shader = nullptr;
+};
+
 template <class DrawableT>
 void Renderer::registerDrawable()
 {
@@ -114,30 +135,18 @@ void Renderer::registerDrawable()
         DrawableT::makeBatch());
 }
 
-template <class Derived>
-struct Drawable
+template <class DrawableT>
+void Renderer::registerDrawable(Shader &default_shader)
 {
-    // Get the instance data from derived class
-    // typename Derived::InstanceType &getInstanceData()
-    // {
-    //     return static_cast<Derived *>(this)->getInstanceData();
-    // }
+    m_batches.registerBatch<typename DrawableT::VertexType,
+                            typename DrawableT::InstanceType>(
+        DrawableT::makeBatch());
 
-    // const typename Derived::InstanceType &getInstanceData() const
-    // {
-    //     return static_cast<const Derived *>(this)->getInstanceData();
-    // }
-
-    // Static polymorphism for batch creation
-    static BatchRegistry::BatchMaker makeBatch()
-    {
-        return Derived::makeBatchImpl();
-    }
-};
+    Drawable<DrawableT>::p_default_shader = &default_shader;
+}
 
 struct SpriteVertexLayout
 {
-
     static constexpr std::size_t size = 2 * sizeof(utils::Vector2f);
 
     static constexpr float QUAD_VERTICES[6 * 4] = {
@@ -166,10 +175,8 @@ struct SpriteVertexLayout
     }
 };
 
-
 struct RoundedRectVertexLayout
 {
-
     static constexpr std::size_t size = 2 * sizeof(utils::Vector2f);
 
     static constexpr float QUAD_VERTICES[6 * 4] = {
@@ -211,8 +218,8 @@ struct BlurredRect : public Drawable<BlurredRect>
             makeAttribute<utils::Vector2f>(),
             makeAttribute<utils::Vector2f>(),
             makeAttribute<float>(),
-            makeAttribute<ColorByte>(),
-            makeAttribute<ColorByte>(),
+            makeAttribute<Color>(),
+            makeAttribute<Color>(),
             makeAttribute<float>(),
             makeAttribute<float>(),
             makeAttribute<float>(),
@@ -238,9 +245,100 @@ struct BlurredRect : public Drawable<BlurredRect>
     utils::Vector2f pos;
     utils::Vector2f scale = {1.f, 1.f};
     float angle = 0.f;
-    ColorByte fill_color;
-    ColorByte outline_color;
-    float corner_radius = 0.f;
+    Color fill_color;
+    Color outline_color;
+    float corner_radius = 0.2f;
     float outline_width = 0.f;
     float blur = 0.f;
+};
+
+struct AnimatedSpritex : public Drawable<AnimatedSpritex>
+{
+    using VertexType = SpriteVertexLayout;
+    using InstanceType = AnimatedSpritex;
+
+    static BatchRegistry::BatchMaker makeBatchImpl()
+    {
+        VAOId layout;
+
+        layout.instanced_attributes = {
+            makeAttribute<utils::Vector2f>(), //! pos
+            makeAttribute<utils::Vector2f>(), //! scale
+            makeAttribute<float>(),           //! angle
+            makeAttribute<utils::Vector2f>(), //! tex_pos
+            makeAttribute<utils::Vector2f>(), //! tex_size
+            makeAttribute<ColorByte>(),
+            makeAttribute<float>(), //! time
+            makeAttribute<float>(), //! lifetime
+            makeAttribute<float>(), //! brightness
+        };
+
+        layout.vertex_attirbutes = SpriteVertexLayout::getVertexAttributes();
+        layout.vertices_size = SpriteVertexLayout::size;
+
+        layout.instance_size = sizeof(AnimatedSpritex);
+        layout.max_vertex_buffer_count = 6; //! vertices are just a square
+        layout.max_instance_count = 40000;
+
+        auto vertex_data = SpriteVertexLayout::getVertexData();
+        return [=]()
+        { return std::make_unique<InstancedBatch>(vertex_data, layout); };
+    }
+
+    const AnimatedSpritex &getInstance() const
+    {
+        return *this;
+    }
+
+    utils::Vector2f pos = {0.f, 0.f};
+    utils::Vector2f scale = {1.f, 1.f};
+    float angle = 0.f;
+    utils::Vector2f tex_coord = {0.f, 0.f};
+    utils::Vector2f tex_size = {1.f, 1.f};
+    ColorByte color;
+    float time = 0.f;
+    float duration = 1.f;
+    float brightness = 1.f;
+};
+
+struct SpriteDrawable : public Drawable<SpriteDrawable>
+{
+    using VertexType = SpriteVertexLayout;
+    using InstanceType = SpriteDrawable;
+
+    static BatchRegistry::BatchMaker makeBatchImpl()
+    {
+        VAOId layout;
+
+        SpriteInstance i;
+        layout.instanced_attributes = {
+            makeAttribute(i.trans),
+            makeAttribute(i.scale),
+            makeAttribute(i.angle),
+            makeAttribute(i.tex_coords),
+            makeAttribute(i.tex_size),
+            makeAttribute(i.color)};
+
+        layout.vertex_attirbutes = {
+            makeAttribute(utils::Vector2f{}),
+            makeAttribute(utils::Vector2f{})};
+
+        layout.max_instance_count = 30000;
+
+        layout.max_vertex_buffer_count = 6; //! vertices are just a square
+        layout.instance_size = sizeof(SpriteInstance);
+        layout.vertex_attirbutes = SpriteVertexLayout::getVertexAttributes();
+        layout.vertices_size = SpriteVertexLayout::size;
+
+        auto vertex_data = SpriteVertexLayout::getVertexData();
+        return [=]()
+        { return std::make_unique<InstancedBatch>(vertex_data, layout); };
+    }
+
+    Vec2 trans = {0, 0};
+    Vec2 scale = {1, 1};
+    float angle = 0;
+    Vec2 tex_coords = {0, 0};
+    Vec2 tex_size = {0, 0};
+    ColorByte color = {255, 255, 255, 255};
 };

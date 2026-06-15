@@ -1,7 +1,16 @@
 #include "Batch.h"
 
+#include "Shader.h"
+#include "ViewMatrix.h"
 #include "IncludesGl.h"
 
+BatchI::BatchI(VAOId layout)
+    : m_layout(layout)
+{
+    glGenBuffers(1, &m_instance_buffer);
+    glGenBuffers(1, &m_vertex_buffer);
+    glGenVertexArrays(1, &m_vao);
+}
 
 BatchI::~BatchI()
 {
@@ -53,20 +62,21 @@ void InstancedBatch::flush(View &view, Shader &shader, TextureArray textures)
     {
         return;
     }
-    shader.setUniform("u_view_projection", view.getMatrix());
+    shader.setUniform("u_view_projection", getMatrix(view));
     shader.use();
+    glCheckError();
 
     for (int tex_id = 0; tex_id < textures.size(); ++tex_id)
     {
         if (textures[tex_id] != 0)
         {
-            glActiveTexture(GL_TEXTURE0 + tex_id); 
+            glActiveTexture(GL_TEXTURE0 + tex_id);
             glBindTexture(GL_TEXTURE_2D, textures[tex_id]);
             glCheckError();
         }
     }
 
-    //! send data to GPU and do the Draw Call
+    //! send data to GPU
     glBindVertexArray(m_vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_instance_buffer);
     glCheckError();
@@ -88,7 +98,7 @@ void VertexBatch::flush(View &view, Shader &shader, TextureArray textures)
     {
         return;
     }
-    shader.setUniform("u_view_projection", view.getMatrix());
+    shader.setUniform("u_view_projection", getMatrix(view));
     shader.use();
 
     for (int tex_id = 0; tex_id < textures.size(); ++tex_id)
@@ -113,16 +123,12 @@ void VertexBatch::flush(View &view, Shader &shader, TextureArray textures)
     glBindVertexArray(0);
 }
 
-BatchI::BatchI(VAOId layout)
-    : m_layout(layout)
-{
-}
-void BatchI::addVertices(void *vertex_data, std::size_t data_size)
+void BatchI::addVertices(const void *vertex_data, std::size_t data_size)
 {
     m_vertex_count += data_size / m_layout.vertices_size;
     m_vertex_data.insert(m_vertex_data.end(), (std::byte *)vertex_data, (std::byte *)(vertex_data) + data_size);
 }
-void BatchI::addInstance(void *instance_data, std::size_t data_size)
+void BatchI::addInstance(const void *instance_data, std::size_t data_size)
 {
     m_instance_count++;
     m_instance_data.insert(m_instance_data.end(), (std::byte *)instance_data, (std::byte *)(instance_data) + data_size);
@@ -130,12 +136,14 @@ void BatchI::addInstance(void *instance_data, std::size_t data_size)
 
 GLuint BatchI::initVertexArrayObject(VAOId layout)
 {
-    glGenVertexArrays(1, &m_vao);
     glBindVertexArray(m_vao);
 
     GLuint vbo;
     glBindBuffer(GL_ARRAY_BUFFER, m_vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, layout.vertices_size * layout.max_vertex_buffer_count, m_vertex_data.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+                 layout.vertices_size * layout.max_vertex_buffer_count,
+                 m_vertex_data.data(),
+                 GL_STATIC_DRAW);
 
     std::size_t offset = 0;
     std::size_t attrib_id = 0;
@@ -161,7 +169,10 @@ GLuint BatchI::initVertexArrayObject(VAOId layout)
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, m_instance_buffer);
-    glBufferData(GL_ARRAY_BUFFER, layout.instance_size * m_layout.max_instance_count, m_instance_data.data(), GL_STREAM_DRAW);
+    glBufferData(GL_ARRAY_BUFFER,
+                 layout.instance_size * m_layout.max_instance_count,
+                 m_instance_data.data(),
+                 GL_STREAM_DRAW);
 
     for (auto attrib : layout.instanced_attributes)
     {
@@ -191,7 +202,6 @@ GLuint BatchI::initVertexArrayObject(VAOId layout)
 VertexBatch::VertexBatch(VAOId layout)
     : BatchI(layout)
 {
-    glGenBuffers(1, &m_vertex_buffer);
     initVertexArrayObject(layout);
 }
 
@@ -203,8 +213,6 @@ void VertexBatch::addVertices(void *data, std::size_t data_size)
 InstancedBatch::InstancedBatch(std::vector<std::byte> vertex_data, VAOId layout)
     : BatchI(layout)
 {
-    glGenBuffers(1, &m_vertex_buffer);
-    glGenBuffers(1, &m_instance_buffer);
     addVertices(vertex_data.data(), vertex_data.size());
     initVertexArrayObject(layout);
 }

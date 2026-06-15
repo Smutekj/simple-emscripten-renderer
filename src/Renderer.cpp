@@ -8,14 +8,12 @@
 #include "Text.h"
 #include "Sprite.h"
 #include "CommonShaders.inl"
+#include "ViewMatrix.h"
 
-#include <chrono>
 #include <numbers>
 #include <codecvt>
 
 #include <SDL2/SDL_mouse.h>
-
-#include <glm/trigonometric.hpp>
 
 Renderer::Renderer(RenderTarget &target)
     : m_target(target),
@@ -27,12 +25,15 @@ Renderer::Renderer(RenderTarget &target)
     m_shaders.loadFromCode("SpriteDefault", vertex_sprite_code, fragment_fullpass_texture_code);
     m_shaders.loadFromCode("SpritePass", vertex_sprite_code, fragment_fullpass_texture_code_no_alpha);
     m_shaders.loadFromCode("TextDefault", vertex_sprite_code, fragment_text_code);
-    m_shaders.loadFromCode("TextDefault2", vertex_text_code, fragment_text2_code);
+    m_shaders.loadFromCode("TextDefaultSDF", vertex_text_code, fragment_text_sdf_code);
+    m_shaders.loadFromCode("TextDefaultSprite", vertex_text_code, fragment_text_sprite_code);
 
     //! register Default Batch Types
     m_batches.registerBatch<utils::Vector2f, SpriteInstance>(makeSpriteBatch);
     m_batches.registerBatch<utils::Vector2f, TextInstance>(makeTextBatch);
     m_batches.registerBatch<Vertex, float>(makeVertexBatch);
+
+    registerDrawable<SpriteDrawable>(m_shaders.get("SpriteDefault"));
 
     m_view = getDefaultView();
 }
@@ -80,7 +81,7 @@ utils::Vector2f Renderer::getMouseInWorld()
 {
     int mouse_coords[2];
 
-    auto m = glm::inverse(m_view.getMatrix());
+    auto m = glm::inverse(getMatrix(m_view));
     SDL_GetMouseState(&mouse_coords[0], &mouse_coords[1]);
     glm::vec4 world_coords = m * glm::vec4(
                                      2. * mouse_coords[0] / m_target.getSize().x - 1.,
@@ -101,7 +102,7 @@ utils::Vector2i Renderer::getMouseInScreen()
 View Renderer::getDefaultView() const
 {
     View default_view;
-    utils::Vector2f window_size = getTargetSize();
+    utils::Vector2f window_size = utils::Vector2f{getTargetSize()};
     default_view.setCenter(window_size / 2.f);
     default_view.setSize(window_size);
     return default_view;
@@ -134,16 +135,17 @@ bool Renderer::checkShader(const std::string &shader_id)
 //! \param shader_id
 void Renderer::drawSprite(Sprite &sprite, const std::string &shader_id)
 {
-    if (checkShader(shader_id))
+    if (!m_shaders.contains(shader_id))
     {
-        drawSpriteUnpacked(sprite.getPosition(), sprite.getScale(), sprite.getRotation(), sprite.m_color,
-                           sprite.m_tex_rect, sprite.m_tex_size, sprite.m_texture_handles, shader_id);
+        return;
     }
+    drawSpriteUnpacked(sprite.getPosition(), sprite.getScale(), sprite.getRotation(), sprite.m_color,
+                       sprite.m_tex_rect, sprite.m_tex_size, sprite.depth, sprite.m_texture_handles, shader_id);
 }
 
 void Renderer::drawText2(const Text &text, const std::string &shader_id)
 {
-    if (!checkShader(shader_id))
+    if (!m_shaders.contains(shader_id))
     {
         return;
     }
@@ -155,7 +157,9 @@ void Renderer::drawText2(const Text &text, const std::string &shader_id)
         return;
     }
 
-    BatchConfig config({font->getTexture().getHandle(), font->getCharmapTexId()}, &shader);
+    Shader *p_shader = &text.getFont()->getShader();
+    
+    BatchConfig config({font->getTexture().getHandle(), font->getCharmapTexId()}, p_shader);
 
     TextInstance glyph;
     utils::Vector2f text_scale = text.getScale();
@@ -164,7 +168,8 @@ void Renderer::drawText2(const Text &text, const std::string &shader_id)
     utils::Vector2f glyph_pos = center_pos;
     for (std::size_t glyph_ind = 0; glyph_ind < string.size(); ++glyph_ind)
     {
-        auto character = font->m_characters.at(string.at(glyph_ind));
+        int code = string.at(glyph_ind);
+        auto character = font->m_characters.at(code);
         float width = character.size.x * text_scale.x;
         float height = character.size.y * text_scale.y;
         float dy = character.size.y - character.bearing.y;
@@ -180,7 +185,6 @@ void Renderer::drawText2(const Text &text, const std::string &shader_id)
         glyph.char_code = font->m_charcode2texcode.at(string.at(glyph_ind));
 
         m_batches.pushInstance(glyph, config);
-        //! pushTextInstance(glyph);
 
         line_pos.x += (character.advance >> 6) * text_scale.x;
     }
@@ -204,7 +208,7 @@ void Renderer::drawText2(const Text &text, const std::string &shader_id)
 //! \param draw_type
 void Renderer::drawText(const Text &text, const std::string &shader_id)
 {
-    if (!checkShader(shader_id))
+    if (!m_shaders.contains(shader_id))
     {
         return;
     }
@@ -237,8 +241,8 @@ void Renderer::drawText(const Text &text, const std::string &shader_id)
             line_pos.x + character.bearing.x * text_scale.x + width / 2.f,
             line_pos.y + height / 2.f - dy * text_scale.y};
 
-        glyph_sprite.m_tex_rect = {character.tex_coords.x, character.tex_coords.y,
-                                   character.size.x, character.size.y};
+        glyph_sprite.m_tex_rect = {(float)character.tex_coords.x, (float)character.tex_coords.y,
+                                   (float)character.size.x, (float)character.size.y};
 
         //! setPosition sets center of the sprite not the corner position. so we must correct for that
         glyph_sprite.setPosition(glyph_pos);
@@ -275,8 +279,8 @@ void Renderer::drawText(const Text &text, const std::string &shader_id)
 //! \param tex_rect texture rectangle
 //! \param shader_id
 //! \param draw_type
-void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<int> tex_rect,
-                                  Vec2 texture_size, TextureArray &texture_handles,
+void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<float> tex_rect,
+                                  Vec2 texture_size, float depth, TextureArray &texture_handles,
                                   const std::string &shader_id)
 {
     auto &shader = m_shaders.get(shader_id);
@@ -302,26 +306,6 @@ void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByt
 }
 
 //! \brief draws line connecting \p point_a and \p point_b
-//! \brief does not batch the call, but instead draws directly
-//! \param point_a
-//! \param point_b
-//! \param thickness
-//! \param color
-//! TODO: connect with drawLineBatched
-void Renderer::drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color)
-{
-    DrawRectangle r(m_shaders.get("ShapeDefault"));
-    Vec2 dr = {point_b.x - point_a.x, point_b.y - point_a.y};
-    r.setRotation(std::atan2(dr.y, dr.x));
-    r.setScale(thickness, std::sqrt(dr.x * dr.x + dr.y * dr.y) / 2.f);
-    r.setPosition((point_a.x + point_b.x) / 2.f, (point_a.y + point_b.y) / 2.f);
-    r.setColor(color);
-
-    m_target.bind();
-    r.draw(0, m_view);
-}
-
-//! \brief draws line connecting \p point_a and \p point_b
 //! \brief batches the call
 //! \param point_a
 //! \param point_b
@@ -330,7 +314,7 @@ void Renderer::drawLine(Vec2 point_a, Vec2 point_b, float thickness, Color color
 //! TODO: connect with drawLineBatched
 void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color)
 {
-    if (!checkShader("VertexArrayDefault"))
+    if (!m_shaders.contains("VertexArrayDefault"))
     {
         return;
     }
@@ -344,7 +328,7 @@ void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Colo
 
     Vec2 dr = {point_b.x - point_a.x, point_b.y - point_a.y};
     Transform matrix;
-    matrix.setRotation(glm::degrees(std::atan2(dr.y, dr.x)));
+    matrix.setRotation(std::atan2(dr.y, dr.x));
     matrix.setScale(std::sqrt(dr.x * dr.x + dr.y * dr.y) / 2.f, thickness / 2.f);
     matrix.setPosition((point_a.x + point_b.x) / 2.f, (point_a.y + point_b.y) / 2.f);
 
@@ -374,7 +358,7 @@ void Renderer::drawRectangle(RectangleSimple &rect,
 
     BatchConfig config({0, 0}, &shader);
 
-    std::vector<Vertex> verts(6); //! this should be static?
+    std::array<Vertex, 6> verts;
     verts[0] = {{-1.f / 2.f, -1.f / 2.f}, rect.m_color, {0.f, 0.f}};
     verts[1] = {{+1.f / 2.f, -1.f / 2.f}, rect.m_color, {1.f, 0.f}};
     verts[2] = {{+1.f / 2.f, +1.f / 2.f}, rect.m_color, {1.f, 1.f}};
@@ -388,7 +372,7 @@ void Renderer::drawRectangle(RectangleSimple &rect,
         rect.transform(v.pos);
     }
 
-    m_batches.pushVertices(verts, config);
+    m_batches.pushVertices(verts.data(), verts.size(), config);
 }
 
 //! \brief draws a circle centered at: \p center with a radius of \p radius
@@ -421,7 +405,7 @@ void Renderer::drawEllipseBatched(Vec2 center, float angle, const utils::Vector2
     auto n_verts_circumference = n_verts - 1;
     std::vector<Vertex> verts;
 
-    float angle_r = glm::radians(angle);
+    float angle_r = utils::radians(angle);
     float d_angle = 2.f * pi / n_verts_circumference;
 
     utils::Vector2f scale_rotated = utils::rotate(scale, angle);
@@ -453,8 +437,8 @@ void Renderer::drawPartialCircle(Vec2 center, float radius, float angle_start, f
     auto n_verts_circumference = n_verts - 1;
     std::vector<Vertex> verts;
 
-    float angle_init = glm::radians(angle_start);
-    float angle_diff = glm::radians(angle_end - angle_start);
+    float angle_init = utils::radians(angle_start);
+    float angle_diff = utils::radians(angle_end - angle_start);
     float d_angle = angle_diff / n_verts_circumference;
 
     utils::Vector2f pos = {radius * std::cos(angle_init), radius * std::sin(angle_init)};
@@ -479,7 +463,7 @@ void Renderer::drawPartialCircle(Vec2 center, float radius, float angle_start, f
 //! \param draw_type
 //! \param shader_id
 //! \param p_texture    pointer to a used texture
-void Renderer::drawVertices(std::vector<Vertex> &verts, const std::string &shader_id,
+void Renderer::drawVertices(const std::vector<Vertex> &verts, const std::string &shader_id,
                             std::shared_ptr<Texture> p_texture)
 {
     if (!m_shaders.contains(shader_id))
@@ -491,6 +475,12 @@ void Renderer::drawVertices(std::vector<Vertex> &verts, const std::string &shade
     GLuint texture_id = p_texture ? p_texture->getHandle() : 0;
 
     BatchConfig config({texture_id, 0}, &shader);
+    m_batches.pushVertices(verts, config);
+}
+
+void Renderer::drawVertices(const std::vector<Vertex> &verts, Shader &shader, TextureArray texture_ids)
+{
+    BatchConfig config(texture_ids, &shader);
     m_batches.pushVertices(verts, config);
 }
 
@@ -511,16 +501,13 @@ void Renderer::drawAllInto(RenderTarget &target)
 {
     target.bind();
 
-    if (m_blend_factors_changed)
-    {
-        setBlendParams(m_blend_factors);
-    }
+    setBlendParams(m_blend_factors);
 
     //! set proper view
-    glViewport(m_viewport.pos_x * m_target.getSize().x,
-               m_viewport.pos_y * m_target.getSize().y,
-               m_viewport.width * m_target.getSize().x,
-               m_viewport.height * m_target.getSize().y);
+    glViewport(m_viewport.pos_x * target.getSize().x,
+               m_viewport.pos_y * target.getSize().y,
+               m_viewport.width * target.getSize().x,
+               m_viewport.height * target.getSize().y);
 
     m_batches.renderAll(m_view);
 }
@@ -533,7 +520,7 @@ void Renderer::drawAll()
     drawAllInto(m_target);
 }
 
-RenderTarget &Renderer::getTarget() const
+RenderTarget &Renderer::getTarget()
 {
     return m_target;
 }

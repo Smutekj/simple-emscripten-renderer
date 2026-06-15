@@ -29,26 +29,6 @@ FetchContent_Declare(
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DSDL_TEST_LIBRARY=OFF -DSDL2_DISABLE_INSTALL=ON")
 FetchContent_MakeAvailable(SDL2)
   
-
-# include(ExternalProject)
-# Fetch WavPack sources
-# set(WAVPACK_INSTALL_DIR ${CMAKE_BINARY_DIR}/wavpack-install)
-
-# ExternalProject_Add(wavpack
-#   GIT_REPOSITORY https://github.com/dbry/WavPack.git
-#   GIT_TAG 5.7.0
-#   CONFIGURE_COMMAND ./autogen.sh && ./configure --prefix=${WAVPACK_INSTALL_DIR}
-#   BUILD_COMMAND  make 
-#   INSTALL_COMMAND make install
-#   UPDATE_DISCONNECTED 1
-#   BUILD_ALWAYS 1
-# )
-# add_custom_target(build_wavpack ALL  DEPENDS wavpack )
-
-# Tell SDL_mixer where to find WavPack
-# set(wavpack_INCLUDE_PATH ${WAVPACK_INSTALL_DIR}/include/wavpack CACHE PATH "")
-# set(wavpack_LIBRARY ${WAVPACK_INSTALL_DIR}/lib/libwavpack.so CACHE FILEPATH "")
-
 if(NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten") # emscripten has its own SDL2
   ############# SDL_mixer #############
   # -------------------------------
@@ -105,38 +85,14 @@ if(NOT CMAKE_SYSTEM_NAME STREQUAL "Emscripten") # emscripten has its own SDL2
 endif()
 
 
-# ############# glad #############
-# FetchContent_Declare(
-#     glad
-#     GIT_REPOSITORY https://github.com/Dav1dde/glad
-#     GIT_TAG        v2.0.6
-#     GIT_SHALLOW    TRUE
-#     GIT_PROGRESS   TRUE
-# )
-# FetchContent_GetProperties(glad)
-# if(NOT glad_POPULATED)
-#     message("Fetching glad")
-#     FetchContent_MakeAvailable(glad)
-#
-#     add_subdirectory("${glad_SOURCE_DIR}/cmake" glad_cmake)
-#     if( ${CMAKE_SYSTEM_NAME} MATCHES "Android")
-#       glad_add_library(glad STATIC  API gles2:core=3.2 )
-#     else()
-#       set(GLAD_EXTENSIONS "GL_EXT_framebuffer_multisample")
-#       glad_add_library(glad STATIC  API gl:core=4.6)
-#     endif()
-# endif()
-
-
-
 # if(BUILD_TESTS)
   # Google Test
-  FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG        main
-  )
-  FetchContent_MakeAvailable(googletest)
+  # FetchContent_Declare(
+  #   googletest
+  #   GIT_REPOSITORY https://github.com/google/googletest.git
+  #   GIT_TAG        main
+  # )
+  # FetchContent_MakeAvailable(googletest)
   # For Windows: Prevent overriding the parent project's compiler/linker settings
-  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  # set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 # endif()

@@ -15,14 +15,14 @@ protected:
     RenderTarget() = default;
 
 public:
-    utils::Vector2i getSize()const;
+    utils::Vector2i getSize() const;
     void bind();
-    float getAspect()const;
+    float getAspect() const;
 
     //! \brief does not necessarily clear the currently bound RenderTarget!!! DO NOT FORGET!!!
     void clear(Color c);
 
 protected:
     GLuint m_target_handle = 0; //!< gl id of the target (default is the window)
-    utils::Vector2i m_target_size = {0,0}; 
+    utils::Vector2i m_target_size = {0, 0};
 };

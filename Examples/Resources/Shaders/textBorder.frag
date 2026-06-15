@@ -1,7 +1,7 @@
 #version 300 es
 
-precision mediump float;                     
-in vec2 v_tex_coord;
+precision highp float;                     
+in highp vec2 v_tex_coord;
 in vec4 v_color;                          
 
 uniform vec4 u_edge_color = vec4(1., 0.,0.,1.);

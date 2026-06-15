@@ -3,6 +3,7 @@ function(set_target_compiler_flags target_name)
     target_compile_options(${target_name} PRIVATE $<$<CONFIG:Release>:/O2>)
   else()
     target_compile_options(${target_name} PRIVATE $<$<CONFIG:Release>:-O2>)
+    target_compile_definitions(${target_name} PRIVATE $<$<CONFIG:Debug>:DEBUG>)
   endif()
   
   

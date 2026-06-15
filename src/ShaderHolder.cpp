@@ -97,7 +97,6 @@ bool ShaderHolder::load(const std::string &name,
     m_shaders[name] = std::move(new_shader);
     auto &shader = m_shaders.at(name);
     shader->m_shader_name = name;
-    // m_shader_data.insert({name, *shader});
 
     shader->use();
 

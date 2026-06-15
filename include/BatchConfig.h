@@ -21,7 +21,6 @@ struct BatchConfig
     TextureArray texture_ids = {};
     GLuint shader_id = 0;
     DrawType draw_type = DrawType::Dynamic;
-
     Shader* p_shader = nullptr;
 };
 

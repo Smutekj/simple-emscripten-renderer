@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <filesystem>
+#include <fstream>
 
 //! \class FrameBuffer
 //! \brief manages the OpenGL FrameBuffer and it's corresponding bound texture
@@ -16,8 +17,8 @@ class FrameBuffer : public RenderTarget
 
 public:
     FrameBuffer();
-    FrameBuffer(int width, int height);
-    FrameBuffer(int width, int height, TextureOptions options);
+    FrameBuffer(int width, int height, TextureOptions options = {}, int sample_count = 1);
+    explicit FrameBuffer(std::shared_ptr<Texture> p_texture);
 
     ~FrameBuffer();
     FrameBuffer(const FrameBuffer &other) = default;
@@ -28,11 +29,12 @@ public:
     void resize(int w, int h);
 
     Texture &getTexture();
-    void setTexture(Texture &new_texture);
+    void setTexture(std::shared_ptr<Texture> new_texture);
     GLuint getHandle() const;
 
 private:
     std::shared_ptr<Texture> m_texture = nullptr;
+    std::vector<GLuint> m_msaa_textures;
     TextureOptions m_options;
 };
 
@@ -44,42 +46,44 @@ struct Image
 {
 
     Image(int x, int y);
-    Image(Texture &tex_image);
-    Image(FrameBuffer &tex_buffer);
+    explicit Image(Texture& tex_image);
+    explicit Image(FrameBuffer &tex_buffer);
 
     PixelType *data();
-    int stride()const
+    int stride() const
     {
         return x_size * 4;
     }
 
     bool operator==(const Image<PixelType> &other_image) const;
 
-    int getSizeX()const
+    int getSizeX() const
     {
         return x_size;
     }
-    int getSizeY()const
+    int getSizeY() const
     {
         return y_size;
     }
 
-    PixelType& at(std::size_t index)
+    PixelType &at(std::size_t index)
     {
         return pixels.at(index);
-    } 
+    }
 
 private:
     void loadFromBuffer(FrameBuffer &tex_buffer);
     std::vector<PixelType> pixels;
 
 private:
-int x_size = 0;
-int y_size = 0;
+    int x_size = 0;
+    int y_size = 0;
 };
 
 using LDRImage = Image<ColorByte>;
 using HDRImage = Image<Color>;
 
-void writeTextureToFile(std::filesystem::path path, std::string filename, Texture &buffer);
+void writeTextureToFile(std::filesystem::path path, std::string filename, Texture &texture);
 void writeTextureToFile(std::filesystem::path path, std::string filename, FrameBuffer &buffer);
+std::size_t writeTextureToFile(std::ofstream &stream, Texture &texture);
+std::size_t writeTextureToFile(std::ofstream &stream, FrameBuffer &buffer);

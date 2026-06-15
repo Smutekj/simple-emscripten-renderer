@@ -16,28 +16,43 @@ include(cmake/External.cmake)
 add_subdirectory(external/glad)
 add_subdirectory(external/freetype)
 
-file(GLOB HDR
-"include/*.h"
-"include/Utils/*.h"
-"include/Gui/*.h"
-"include/Gui/backends/*.h"
-)
 file(GLOB SRC
-"src/*.cpp"
-"src/Utils/*.cpp"
-"src/Gui/*.cpp"
-"src/Gui/backends/*.cpp"
+        "src/*.cpp"
+        "src/Utils/*.cpp"
+        "src/Gui/*.cpp"
 )
-
+file(GLOB SRC_GUI
+    "src/Gui/backends/imgui_impl_opengl3.cpp"
+    "src/Gui/backends/imgui_impl_sdl2.cpp"
+)
 
 set(TARGET_LIBRARY_NAME ${PROJECT_NAME})
 add_library(${TARGET_LIBRARY_NAME} STATIC)
-target_sources(${TARGET_LIBRARY_NAME} PRIVATE ${SRC})
-target_link_libraries(${TARGET_LIBRARY_NAME} PUBLIC SDL2 SDL2_mixer glm freetype glad )
+target_sources(${TARGET_LIBRARY_NAME} PRIVATE ${SRC} ${SRC_GUI})
+if (${CMAKE_SYSTEM_NAME} MATCHES "Android")
+    target_link_libraries(${TARGET_LIBRARY_NAME} PUBLIC GLESv3 SDL2 SDL2_mixer glm log freetype glad)
+elseif (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    target_link_libraries(${TARGET_LIBRARY_NAME} PUBLIC SDL2 SDL2_mixer glm  freetype )
+else ()
+    target_link_libraries(${TARGET_LIBRARY_NAME} PUBLIC SDL2 SDL2_mixer glm  freetype glad)
+endif ()
 set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES CXX_STANDARD 20)
 set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 set_target_properties(${TARGET_LIBRARY_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 
+target_precompile_headers(${TARGET_LIBRARY_NAME} 
+    PRIVATE 
+    <vector>
+    <filesystem>
+    <algorithm>
+    <memory>
+    <functional>
+    <string>
+    <unordered_map>
+    <map>
+    <cmath>
+    <Utils/Vector2.h>
+)
 target_compile_definitions(${TARGET_LIBRARY_NAME} PRIVATE GLES)
 
 set_target_compiler_flags(${TARGET_LIBRARY_NAME})
@@ -45,33 +60,33 @@ set_project_warnings(${TARGET_LIBRARY_NAME})
 
 
 target_include_directories(${TARGET_LIBRARY_NAME}
-    PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Utils>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui/backends>
-    $<BUILD_INTERFACE:${sdl_mixer_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    SDL2
-    SDL2_mixer
-    PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/backends
+        PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Utils>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/Gui/backends>
+        $<BUILD_INTERFACE:${sdl_mixer_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+        SDL2
+        SDL2_mixer
+        PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/Gui/backends
 )
 
 
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
-     target_link_options(${PROJECT_NAME} PRIVATE
-         "-sUSE_SDL=2"
-         "-sUSE_SDL_MIXER=2"
-     )
-endif()
+if (${CMAKE_SYSTEM_NAME} MATCHES "Emscripten")
+    target_link_options(${PROJECT_NAME} PRIVATE
+            "-sUSE_SDL=2"
+            "-sUSE_SDL_MIXER=2"
+    )
+endif ()
 
-if(BUILD_EXAMPLES STREQUAL ON)
+if (BUILD_EXAMPLES STREQUAL ON)
     message("\n!ADDING EXAMPLES!")
     add_subdirectory(Examples)
-endif()
+endif ()
 
 # if(BUILD_TESTS)
 #     enable_testing()

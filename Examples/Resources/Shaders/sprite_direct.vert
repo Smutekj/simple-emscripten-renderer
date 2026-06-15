@@ -1,11 +1,11 @@
 #version 300 es
 
-precision mediump float;   
+precision highp float;   
 
 in vec2 a_position;                      
 in vec2 a_tex_coord;                      
 
-out vec2 v_tex_coord;
+out highp vec2 v_tex_coord;
 out vec4 v_color;
 
 uniform mat4 u_view_projection;

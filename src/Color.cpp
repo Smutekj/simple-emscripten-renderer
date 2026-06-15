@@ -1,6 +1,6 @@
 #include "Color.h"
 
- Color::Color(float r, float g, float b, float a)
+Color::Color(float r, float g, float b, float a)
     : r(r), g(g), b(b), a(a)
 {
 }
@@ -37,6 +37,14 @@ Color Color::operator/(float scalar) const
     return {r / scalar, g / scalar, b / scalar, a / scalar};
 }
 
+Color operator*(float scalar, const Color &other)
+{
+    return other * scalar;
+}
+Color operator/(float scalar, const Color &other)
+{
+    return other / scalar;
+}
 ColorByte::ColorByte(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
     : r(r), g(g), b(b), a(a)
 {

@@ -3,25 +3,29 @@
 #include <cmath>
 #include <cassert>
 #include <type_traits>
-#include <numeric>
-#include <ostream>
 #include <numbers>
+#include <algorithm>
 
 namespace utils
 {
 
-    bool inline approx_equal(float a, float b, float epsilon = std::numeric_limits<float>::epsilon())
+    constexpr bool approx_equal(float a, float b, float epsilon = std::numeric_limits<float>::epsilon())
     {
         return std::abs(a - b) <= 1000. * std::max(std::abs(a), std::abs(b)) * epsilon;
     }
-    bool inline approx_equal_zero(float a, float epsilon = std::numeric_limits<float>::epsilon())
+    constexpr bool approx_equal_zero(float a, float epsilon = std::numeric_limits<float>::epsilon())
     {
         return std::abs(a) <= 1000. * epsilon;
     }
-    bool inline strictly_less(float a, float b, float epsilon = std::numeric_limits<float>::epsilon())
+    constexpr bool strictly_less(float a, float b, float epsilon = std::numeric_limits<float>::epsilon())
     {
         return (b - a) > std::max(std::abs(a), std::abs(b)) * 10000. * epsilon;
     }
+
+    template <typename T>
+    concept Vec2Concept = requires(T v) { v.x; v.y; } && !std::is_scalar_v<T>;
+    template <typename T>
+    concept ScalarConcept = std::is_scalar_v<T>;
 
     template <class T>
     struct Vector2
@@ -42,10 +46,14 @@ namespace utils
             return {other_vec.x, other_vec.y};
         }
 
+        template <ScalarConcept S> 
+        constexpr Vector2(const S value) : x(value), y(value) {}
+
         template <class T1>
-        constexpr Vector2(const struct Vector2<T1> &coords) : x(coords.x), y(coords.y) {}
-        template <class T1>
-        constexpr Vector2(const T1 &value) : x(value), y(value) {}
+        constexpr Vector2(const Vector2<T1> &coords) : x(coords.x), y(coords.y) {}
+
+        template <Vec2Concept VecType>
+        constexpr Vector2(const VecType &coords) : x(coords.x), y(coords.y) {}
 
         constexpr Vector2 operator+(const Vector2 &v) const
         {
@@ -112,29 +120,16 @@ namespace utils
             }
         }
 
-        // template <class X>
-        // friend std::ostream &operator<<(std::ostream &os, const Vector2<X> &vec);
     };
 
-    // template <class T>
-    // std::ostream &operator<<(std::ostream &os, const Vector2<T> &vec)
-    // {
-    //     os << "[" << vec.x << ", " << vec.y << "] ";
-    //     return os;
-    // }
-
     template <class T, class Scalar>
-    constexpr Vector2<T> inline operator*(Scalar i, const Vector2<T> &v)
+    constexpr Vector2<T>  operator*(Scalar i, const Vector2<T> &v)
     {
         return {v.x * i, v.y * i};
     }
-    // template <class T, class Scalar>
-    // constexpr Vector2<T> inline operator*(const Vector2<T> &v, Scalar i)
-    // {
-    //     return {v.x * i, v.y * i};
-    // }
+    
     template <class T>
-    constexpr Vector2<T> inline operator-(const Vector2<T> &v)
+    constexpr Vector2<T>  operator-(const Vector2<T> &v)
     {
         return {-v.x, -v.y};
     }
@@ -144,19 +139,19 @@ namespace utils
     using Vector2i = Vector2<int>;
 
     template <typename T>
-    constexpr inline float dot(const T &a, const T &b) { return a.x * b.x + a.y * b.y; }
+    constexpr  float dot(const T &a, const T &b) { return a.x * b.x + a.y * b.y; }
     template <typename T>
-    constexpr inline float dot(const T &&a, const T &&b) { return a.x * b.x + a.y * b.y; }
+    constexpr  float dot(const T &&a, const T &&b) { return a.x * b.x + a.y * b.y; }
 
     template <typename T>
-    constexpr inline float norm2(const T &a) { return dot(a, a); }
+    constexpr  float norm2(const T &a) { return dot(a, a); }
     template <typename T>
-    constexpr inline float norm(const T &a) { return std::sqrt(norm2(a)); }
+    constexpr  float norm(const T &a) { return std::sqrt(norm2(a)); }
     template <typename T>
-    constexpr inline float dist(const T &a, const T &b) { return std::sqrt(dot(a - b, a - b)); }
+    constexpr  float dist(const T &a, const T &b) { return std::sqrt(dot(a - b, a - b)); }
 
     template <class T>
-    float inline cross(const utils::Vector2<T> &a, const utils::Vector2<T> &b)
+    constexpr float  cross(const utils::Vector2<T> &a, const utils::Vector2<T> &b)
     {
         if constexpr (std::is_unsigned_v<T>)
         {
@@ -166,21 +161,21 @@ namespace utils
     }
 
     template <class T>
-    float inline orient(const utils::Vector2<T> &a, const utils::Vector2<T> &b, const utils::Vector2<T> &c)
+    constexpr float  orient(const utils::Vector2<T> &a, const utils::Vector2<T> &b, const utils::Vector2<T> &c)
     {
         return cross(b - a, c - a);
     }
 
     template <class VecType>
-    float inline orient2(const VecType &a, const VecType &b, const VecType &c)
+    constexpr float  orient2(const VecType &a, const VecType &b, const VecType &c)
     {
         return -cross(b - a, c - a);
     }
 
     constexpr float TOLERANCE = 0.0001f;
-    inline bool vequal(const utils::Vector2f &a, const utils::Vector2f &b) { return dist(a, b) < TOLERANCE; }
+    constexpr  bool vequal(const utils::Vector2f &a, const utils::Vector2f &b) { return dist(a, b) < TOLERANCE; }
 
-    bool inline segmentsIntersect(utils::Vector2f a, utils::Vector2f b, utils::Vector2f c, utils::Vector2f d, utils::Vector2f &hit_point)
+    constexpr bool  segmentsIntersect(utils::Vector2f a, utils::Vector2f b, utils::Vector2f c, utils::Vector2f d, utils::Vector2f &hit_point)
     {
         float oa = orient(c, d, a),
               ob = orient(c, d, b),
@@ -199,7 +194,7 @@ namespace utils
     }
 
     template <class VecType>
-    bool inline segmentsIntersect(const VecType &a, const VecType &b, const VecType &c, const VecType &d)
+    constexpr bool  segmentsIntersect(const VecType &a, const VecType &b, const VecType &c, const VecType &d)
     {
 
         float oa = orient(c, d, a),
@@ -214,7 +209,7 @@ namespace utils
 
     //! NOTE: THIS IS WRONG PROBABLY DO NOT USE AND FIX IT!!!
     template <class VecType>
-    bool inline segmentsIntersectOrTouch(const VecType &a, const VecType &b, const VecType &c, const VecType &d)
+    constexpr bool  segmentsIntersectOrTouch(const VecType &a, const VecType &b, const VecType &c, const VecType &d)
     {
         float oa = orient(c, d, a),
               ob = orient(c, d, b),
@@ -227,7 +222,7 @@ namespace utils
     }
 
     template <class VecType>
-    bool inline segmentsIntersectOrTouch(const VecType &a, const VecType &b, const VecType &c, const VecType &d, utils::Vector2f &hit_point)
+    constexpr bool  segmentsIntersectOrTouch(const VecType &a, const VecType &b, const VecType &c, const VecType &d, utils::Vector2f &hit_point)
     {
         float oa = orient(c, d, a),
               ob = orient(c, d, b),
@@ -249,30 +244,30 @@ namespace utils
     constexpr float to_radians = std::numbers::pi_v<float> / 180.f;
     constexpr float to_degrees = 180.f / std::numbers::pi_v<float>;
 
-    inline utils::Vector2f angle2dir(float angle)
+    constexpr  utils::Vector2f angle2dir(float angle)
     {
         return {std::cos(angle * to_radians), std::sin(angle * to_radians)};
     }
-    inline float dir2angle(const utils::Vector2f &dir)
+    constexpr  float dir2angle(const utils::Vector2f &dir)
     {
         return to_degrees * std::atan2(dir.y, dir.x);
     }
 
-    inline float radians(float degrees)
+    constexpr  float radians(float degrees)
     {
         return degrees * to_radians;
     }
-    inline float degrees(float radians)
+    constexpr  float degrees(float radians)
     {
         return radians * to_degrees;
     }
 
-    inline float angleBetween(const utils::Vector2f &v1, const utils::Vector2f &v2)
+    constexpr  float angleBetween(const utils::Vector2f &v1, const utils::Vector2f &v2)
     {
         return to_degrees * std::atan2(cross(v1, v2), dot(v1, v2));
     }
 
-    inline void truncate(utils::Vector2f &vec, float max_value)
+    constexpr  void truncate(utils::Vector2f &vec, float max_value)
     {
         auto speed2 = utils::norm2(vec);
         if (speed2 > max_value * max_value)
@@ -281,7 +276,7 @@ namespace utils
         }
     }
 
-    inline utils::Vector2f rotate(const utils::Vector2f &input, float angle_deg)
+    constexpr  utils::Vector2f rotate(const utils::Vector2f &input, float angle_deg)
     {
         float angle_rad = angle_deg * to_radians;
         float c_a = std::cos(angle_rad);

@@ -2,6 +2,7 @@
 
 #include "IncludesGl.h"
 #include "GLTypeDefs.h"
+#include "Color.h"
 
 #include <string>
 #include <fstream>
@@ -11,8 +12,6 @@
 #include <type_traits>
 #include <variant>
 #include <filesystem>
-
-#include "Color.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/mat4x4.hpp>
@@ -40,6 +39,7 @@ struct VariablesData
 {
     struct UniformValue
     {
+        GLint location;
         UniformType value;
         bool needs_update = true;
     };
@@ -91,8 +91,6 @@ public:
     friend ShaderHolder;
 
 private:
-    template <class ValueType>
-    constexpr void updateUniform(const std::string &name, const ValueType &value);
     void updateUniforms();
 
     void retrieveCode(const char *code_path, std::string &code);
@@ -108,19 +106,14 @@ private:
     bool m_successfully_built = false;    //!< is set to true if built process runs successfully, when false the shader is not used
 
     VariablesData m_variables; //!< contains data about uniforms and textures in the fragment shader.
+    
+    std::vector<std::pair<GLint, UniformType>> m_uniforms_to_update;
 
 public:
     inline static float m_time;
 };
 
 std::vector<std::string> inline separateLine(std::string line, char delimiter = ' ');
-
-inline std::string trim(const std::string &input);
-
-inline bool replace(std::string &str, const std::string &from, const std::string &to);
-
-inline UniformType extractValue(std::string type_string, std::string initial_value);
-
 
 class Shader2
 {
