@@ -12,5 +12,6 @@ struct Vertex
     Vec2 pos;
     Color color;
     Vec2 tex_coord;
+    float depth = -std::numeric_limits<float>::infinity();
 };
 

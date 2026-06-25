@@ -13,6 +13,7 @@ layout(location = 6) in vec4 a_fill_color;
 layout(location = 7) in vec4 a_glow_color;
 layout(location = 8) in int a_charcode;
 layout(location = 9) in float a_start_time;
+layout(location = 10) in float a_depth;
 
 out highp vec2 v_tex_coord;
 out vec4 v_edge_color;
@@ -52,6 +53,7 @@ layout(location = 4) in mediump float a_angle;
 layout(location = 5) in vec2 a_tex_coord;
 layout(location = 6) in vec2 a_tex_dim;
 layout(location = 7) in mediump vec4 a_color;
+layout(location = 8) in float a_depth;
 
 out highp vec2 v_tex_coord;
 out mediump vec4 v_color;
@@ -93,6 +95,7 @@ precision highp float;
 in vec2 a_position;
 in vec4 a_color;
 in vec2 a_tex_coord;
+in float a_depth;
 
 out highp vec2 v_tex_coord;
 out vec4 v_color;

@@ -18,30 +18,29 @@ static SDL_GLContext m_gl_context;
 Window::Window(int width, int height)
     : RenderTarget(width, height)
 {
-#if defined(ANDROID)
-    SDL_SetHint(SDL_HINT_ORIENTATIONS,
-                "Portrait PortraitUpsideDown LandscapeLeft LandscapeRight");
-    SDL_InitSubSystem(SDL_INIT_VIDEO);
-#endif
-    
-#if defined(ANDROID) || defined(EMSCRIPTEN)
-    // Create OpenGL context on SDL window
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-    SDL_GL_SetSwapInterval(1);
-#else
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
-//    SDL_GL_SetSwapInterval(0);
-#endif
-
 #if defined(DEBUG)
     // SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
     SDL_LogSetPriority(SDL_LogCategory::SDL_LOG_CATEGORY_RENDER, SDL_LogPriority::SDL_LOG_PRIORITY_DEBUG);
 #else
     SDL_LogSetPriority(SDL_LogCategory::SDL_LOG_CATEGORY_RENDER, SDL_LogPriority::SDL_LOG_PRIORITY_INFO);
+#endif
+
+#if defined(ANDROID)
+    SDL_SetHint(SDL_HINT_ORIENTATIONS,
+                "Portrait PortraitUpsideDown LandscapeLeft LandscapeRight");
+    SDL_InitSubSystem(SDL_INIT_VIDEO);
+#endif
+
+#if defined(ANDROID) || defined(EMSCRIPTEN)
+    // Create OpenGL context on SDL window
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 1);
+#else
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
 #endif
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -62,13 +61,18 @@ Window::Window(int width, int height)
                          window_flags);
 
     m_gl_context = SDL_GL_CreateContext(m_handle);
+#if !defined(ANDROID)
+    if (SDL_GL_SetSwapInterval(1) == -1)
+    {
+        LOGI("VSYNC not supported!");
+    }
+#endif
 
 #if defined(ANDROID)
-    gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress);
+     gladLoadGLES2((GLADloadfunc)SDL_GL_GetProcAddress);
 #elif defined(EMSCRIPTEN)
     //! emscripten does it on it's own (I hope)
 #else
-    // gladLoadGLES2Loader((GLADloadproc)SDL_GL_GetProcAddress);
     gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
 #endif
 
@@ -86,8 +90,16 @@ Window::Window(int width, int height)
     // Get actual GL window size in pixels, in case of high dpi scaling
     utils::Vector2i size_check;
     SDL_GL_GetDrawableSize(m_handle, &size_check.x, &size_check.y);
-    printf("INFO: GL window size = %dx%d\n", size_check.x, size_check.y);
-    printf("INFO: Desired Window size = %dx%d\n", width, height);
+    GLint major, minor, profile;
+    glGetIntegerv(GL_MAJOR_VERSION, &major);
+    glGetIntegerv(GL_MINOR_VERSION, &minor);
+    // glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
+    LOGI("INFO: GL window size = %dx%d\n", size_check.x, size_check.y);
+    LOGI("INFO: Desired Window size = %dx%d\n", width, height);
+    LOGI("GL Context: %d.%d profile=%d\n", major, minor, profile);
+    LOGI("GL_VERSION: %s\n", glGetString(GL_VERSION));
+    LOGI("GL_VENDOR   = %s\n", glGetString(GL_VENDOR));
+    LOGI("GL_RENDERER = %s\n", glGetString(GL_RENDERER));
 
     glViewport(0, 0, size_check.x, size_check.y);
 }

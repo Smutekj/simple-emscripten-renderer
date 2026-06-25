@@ -113,6 +113,8 @@ void Renderer::drawBatched(DrawableT &drawable, const std::string &shader_id, Te
 template <class Derived>
 struct Drawable
 {
+    //! explicitely instantiate the batch
+    using BatchType = DepthBatch<Derived>;
 
     static BatchRegistry::BatchMaker makeBatch()
     {
@@ -215,26 +217,31 @@ struct BlurredRect : public Drawable<BlurredRect>
         VAOId layout;
 
         layout.instanced_attributes = {
-            makeAttribute<utils::Vector2f>(),
-            makeAttribute<utils::Vector2f>(),
-            makeAttribute<float>(),
-            makeAttribute<Color>(),
-            makeAttribute<Color>(),
-            makeAttribute<float>(),
-            makeAttribute<float>(),
-            makeAttribute<float>(),
+            makeAttribute<utils::Vector2f>(), //! translation
+            makeAttribute<utils::Vector2f>(), //! scale
+            makeAttribute<float>(),           //! rotation
+            makeAttribute<Color>(),           //! fill color
+            makeAttribute<Color>(),           //! outline color
+            makeAttribute<float>(),           //! corenr_radius
+            makeAttribute<float>(),           //! outline_width
+            makeAttribute<float>(),           //! blur
+            makeAttribute<float>(),           //! depth
         };
 
         layout.vertex_attirbutes = SpriteVertexLayout::getVertexAttributes();
-        layout.vertices_size = SpriteVertexLayout::size;
+        layout.vertex_size = SpriteVertexLayout::size;
 
         layout.instance_size = sizeof(BlurredRect);
         layout.max_vertex_buffer_count = 6; //! vertices are just a square
         layout.max_instance_count = 40000;
 
         auto vertex_data = SpriteVertexLayout::getVertexData();
-        return [=]()
-        { return std::make_unique<InstancedBatch>(vertex_data, layout); };
+        return [=]() -> std::unique_ptr<BatchI>
+        { 
+            auto p_batch = std::make_unique<DepthBatch<BlurredRect>>(vertex_data, layout);
+            p_batch->m_depth_offset = offsetof(BlurredRect, depth);
+            p_batch->m_instance_size = layout.instance_size ;
+            return  std::move(p_batch); };
     }
 
     const BlurredRect &getInstance() const
@@ -250,6 +257,7 @@ struct BlurredRect : public Drawable<BlurredRect>
     float corner_radius = 0.2f;
     float outline_width = 0.f;
     float blur = 0.f;
+    float depth = -std::numeric_limits<float>::infinity();
 };
 
 struct AnimatedSpritex : public Drawable<AnimatedSpritex>
@@ -267,22 +275,27 @@ struct AnimatedSpritex : public Drawable<AnimatedSpritex>
             makeAttribute<float>(),           //! angle
             makeAttribute<utils::Vector2f>(), //! tex_pos
             makeAttribute<utils::Vector2f>(), //! tex_size
-            makeAttribute<ColorByte>(),
-            makeAttribute<float>(), //! time
-            makeAttribute<float>(), //! lifetime
-            makeAttribute<float>(), //! brightness
+            makeAttribute<ColorByte>(),       //! color
+            makeAttribute<float>(),           //! time
+            makeAttribute<float>(),           //! lifetime
+            makeAttribute<float>(),           //! brightness
+            makeAttribute<float>(),           //! depth
         };
 
         layout.vertex_attirbutes = SpriteVertexLayout::getVertexAttributes();
-        layout.vertices_size = SpriteVertexLayout::size;
+        layout.vertex_size = SpriteVertexLayout::size;
 
         layout.instance_size = sizeof(AnimatedSpritex);
         layout.max_vertex_buffer_count = 6; //! vertices are just a square
-        layout.max_instance_count = 40000;
+        layout.max_instance_count = 40000;  //! wtf???
 
         auto vertex_data = SpriteVertexLayout::getVertexData();
-        return [=]()
-        { return std::make_unique<InstancedBatch>(vertex_data, layout); };
+        return [=]() -> std::unique_ptr<BatchI>
+        { 
+            auto p_batch = std::make_unique<DepthBatch<AnimatedSpritex>>(vertex_data, layout);
+            p_batch->m_depth_offset = offsetof(BlurredRect, depth);
+            p_batch->m_instance_size = layout.instance_size; 
+            return  std::move(p_batch); };
     }
 
     const AnimatedSpritex &getInstance() const
@@ -299,6 +312,7 @@ struct AnimatedSpritex : public Drawable<AnimatedSpritex>
     float time = 0.f;
     float duration = 1.f;
     float brightness = 1.f;
+    float depth = -std::numeric_limits<float>::infinity();
 };
 
 struct SpriteDrawable : public Drawable<SpriteDrawable>
@@ -317,7 +331,8 @@ struct SpriteDrawable : public Drawable<SpriteDrawable>
             makeAttribute(i.angle),
             makeAttribute(i.tex_coords),
             makeAttribute(i.tex_size),
-            makeAttribute(i.color)};
+            makeAttribute(i.color),
+            makeAttribute(i.depth)};
 
         layout.vertex_attirbutes = {
             makeAttribute(utils::Vector2f{}),
@@ -328,11 +343,11 @@ struct SpriteDrawable : public Drawable<SpriteDrawable>
         layout.max_vertex_buffer_count = 6; //! vertices are just a square
         layout.instance_size = sizeof(SpriteInstance);
         layout.vertex_attirbutes = SpriteVertexLayout::getVertexAttributes();
-        layout.vertices_size = SpriteVertexLayout::size;
+        layout.vertex_size = SpriteVertexLayout::size;
 
         auto vertex_data = SpriteVertexLayout::getVertexData();
         return [=]()
-        { return std::make_unique<InstancedBatch>(vertex_data, layout); };
+        { return std::make_unique<DepthBatch<SpriteInstance>>(vertex_data, layout); };
     }
 
     Vec2 trans = {0, 0};
@@ -341,4 +356,5 @@ struct SpriteDrawable : public Drawable<SpriteDrawable>
     Vec2 tex_coords = {0, 0};
     Vec2 tex_size = {0, 0};
     ColorByte color = {255, 255, 255, 255};
+    float depth;
 };

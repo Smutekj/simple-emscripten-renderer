@@ -15,6 +15,7 @@ class Text : public Transform
 public:
     explicit Text(std::string text = "");
     explicit Text(Font* p_font);
+    Text(Font* p_font, const std::string& text);
 
     void setFont(Font *font);
     Font *getFont() const;
@@ -41,6 +42,7 @@ public:
 public:
     bool m_draw_bounding_box = false;
     bool m_is_centered = false;
+    float m_depth;
 
     ColorByte m_edge_color = {0, 0, 0, 0};
     ColorByte m_glow_color = {0, 0, 0, 0};
@@ -69,6 +71,7 @@ public:
     void setPageWidth(float width);
     float getPageWidth() const;
     float getPageHeight() const;
+    float calculatePageHeight() ;
     void setPadding(utils::Vector2f padding);
     void setWordSpacing(float spacing);
     void setLineSpacing(float spacing);
@@ -76,8 +79,9 @@ public:
     void setFont(Font *font);
     float leftTextBorder() const;
     float rightTextBorder() const;
+    
 
-private:
+public:
     std::string m_text;
 
     Font *p_font = nullptr;
@@ -91,4 +95,5 @@ private:
     float m_word_spacing = 10;
     float m_text_scale = 1.;
     bool m_split_words = false;
+    float m_depth = std::numeric_limits<float>::infinity();
 };

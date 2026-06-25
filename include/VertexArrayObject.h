@@ -17,6 +17,7 @@ struct SpriteInstance
     Vec2 tex_coords = {0, 0};
     Vec2 tex_size = {0, 0};
     ColorByte color = {255, 255, 255, 255};
+    float depth = -std::numeric_limits<float>::infinity();
 };
 
 //! \struct TextInstance
@@ -31,6 +32,7 @@ struct TextInstance
     ColorByte glow_color = {0, 0, 0, 0};
     int char_code;
     float start_time = 0.f;
+    float depth = -std::numeric_limits<float>::infinity();
 };
 
 struct AttributeId
@@ -55,7 +57,7 @@ struct VAOId
     AttributeList vertex_attirbutes;
 
     std::size_t instance_size;
-    std::size_t vertices_size;
+    std::size_t vertex_size;
 
     std::size_t max_vertex_buffer_count;
     std::size_t max_instance_count;

@@ -101,7 +101,7 @@ GLenum getGLCode(ShaderType type) {
             return GL_VERTEX_SHADER;
         case st::Fragment:
             return GL_FRAGMENT_SHADER;
-#ifndef __EMSCRIPTEN__
+#ifndef GLES 
         case st::Geometry:
             return GL_GEOMETRY_SHADER;
         case st::TessControl:

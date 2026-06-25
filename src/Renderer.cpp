@@ -139,8 +139,15 @@ void Renderer::drawSprite(Sprite &sprite, const std::string &shader_id)
     {
         return;
     }
-    drawSpriteUnpacked(sprite.getPosition(), sprite.getScale(), sprite.getRotation(), sprite.m_color,
-                       sprite.m_tex_rect, sprite.m_tex_size, sprite.depth, sprite.m_texture_handles, shader_id);
+    drawSpriteUnpacked(sprite.getPosition(),
+                       sprite.getScale(),
+                       sprite.getRotation(),
+                       sprite.m_color,
+                       sprite.m_tex_rect,
+                       sprite.m_tex_size,
+                       sprite.depth,
+                       sprite.m_texture_handles,
+                       shader_id);
 }
 
 void Renderer::drawText2(const Text &text, const std::string &shader_id)
@@ -158,7 +165,7 @@ void Renderer::drawText2(const Text &text, const std::string &shader_id)
     }
 
     Shader *p_shader = &text.getFont()->getShader();
-    
+
     BatchConfig config({font->getTexture().getHandle(), font->getCharmapTexId()}, p_shader);
 
     TextInstance glyph;
@@ -183,6 +190,7 @@ void Renderer::drawText2(const Text &text, const std::string &shader_id)
         glyph.edge_color = text.m_edge_color;
         glyph.glow_color = text.m_glow_color;
         glyph.char_code = font->m_charcode2texcode.at(string.at(glyph_ind));
+        glyph.depth = text.m_depth;
 
         m_batches.pushInstance(glyph, config);
 
@@ -279,8 +287,14 @@ void Renderer::drawText(const Text &text, const std::string &shader_id)
 //! \param tex_rect texture rectangle
 //! \param shader_id
 //! \param draw_type
-void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByte color, Rect<float> tex_rect,
-                                  Vec2 texture_size, float depth, TextureArray &texture_handles,
+void Renderer::drawSpriteUnpacked(Vec2 center,
+                                  Vec2 scale,
+                                  float angle,
+                                  ColorByte color,
+                                  Rect<float> tex_rect,
+                                  Vec2 texture_size,
+                                  float depth,
+                                  TextureArray &texture_handles,
                                   const std::string &shader_id)
 {
     auto &shader = m_shaders.get(shader_id);
@@ -290,6 +304,7 @@ void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByt
     t.trans = center;
     t.scale = scale;
     t.color = color;
+    t.depth = depth;
 
     //! normalize the texture rectangle to be between [0,1] just as OpenGL likes it
     auto tex_size = texture_size;
@@ -312,7 +327,10 @@ void Renderer::drawSpriteUnpacked(Vec2 center, Vec2 scale, float angle, ColorByt
 //! \param thickness
 //! \param color
 //! TODO: connect with drawLineBatched
-void Renderer::drawLineBatched(Vec2 point_a, Vec2 point_b, float thickness, Color color)
+void Renderer::drawLineBatched(Vec2 point_a,
+                               Vec2 point_b,
+                               float thickness,
+                               Color color)
 {
     if (!m_shaders.contains("VertexArrayDefault"))
     {
@@ -359,12 +377,12 @@ void Renderer::drawRectangle(RectangleSimple &rect,
     BatchConfig config({0, 0}, &shader);
 
     std::array<Vertex, 6> verts;
-    verts[0] = {{-1.f / 2.f, -1.f / 2.f}, rect.m_color, {0.f, 0.f}};
-    verts[1] = {{+1.f / 2.f, -1.f / 2.f}, rect.m_color, {1.f, 0.f}};
-    verts[2] = {{+1.f / 2.f, +1.f / 2.f}, rect.m_color, {1.f, 1.f}};
-    verts[3] = {{-1.f / 2.f, +1.f / 2.f}, rect.m_color, {0.f, 1.f}};
-    verts[4] = {{-1.f / 2.f, -1.f / 2.f}, rect.m_color, {0.f, 0.f}};
-    verts[5] = {{+1.f / 2.f, +1.f / 2.f}, rect.m_color, {1.f, 1.f}};
+    verts[0] = {{-1.f / 2.f, -1.f / 2.f}, rect.m_color, {0.f, 0.f}, rect.depth};
+    verts[1] = {{+1.f / 2.f, -1.f / 2.f}, rect.m_color, {1.f, 0.f}, rect.depth};
+    verts[2] = {{+1.f / 2.f, +1.f / 2.f}, rect.m_color, {1.f, 1.f}, rect.depth};
+    verts[3] = {{-1.f / 2.f, +1.f / 2.f}, rect.m_color, {0.f, 1.f}, rect.depth};
+    verts[4] = {{-1.f / 2.f, -1.f / 2.f}, rect.m_color, {0.f, 0.f}, rect.depth};
+    verts[5] = {{+1.f / 2.f, +1.f / 2.f}, rect.m_color, {1.f, 1.f}, rect.depth};
 
     //! set color and transform positions
     for (auto &v : verts)
@@ -463,7 +481,8 @@ void Renderer::drawPartialCircle(Vec2 center, float radius, float angle_start, f
 //! \param draw_type
 //! \param shader_id
 //! \param p_texture    pointer to a used texture
-void Renderer::drawVertices(const std::vector<Vertex> &verts, const std::string &shader_id,
+void Renderer::drawVertices(const std::vector<Vertex> &verts,
+                            const std::string &shader_id,
                             std::shared_ptr<Texture> p_texture)
 {
     if (!m_shaders.contains(shader_id))
@@ -478,7 +497,9 @@ void Renderer::drawVertices(const std::vector<Vertex> &verts, const std::string 
     m_batches.pushVertices(verts, config);
 }
 
-void Renderer::drawVertices(const std::vector<Vertex> &verts, Shader &shader, TextureArray texture_ids)
+void Renderer::drawVertices(const std::vector<Vertex> &verts,
+                            Shader &shader,
+                            TextureArray texture_ids)
 {
     BatchConfig config(texture_ids, &shader);
     m_batches.pushVertices(verts, config);

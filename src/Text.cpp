@@ -8,10 +8,17 @@ Text::Text(std::string text)
     std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
     m_text = conv.from_bytes(text);
 }
-Text::Text(Font* p_font)
-    :
-    m_font(p_font)
-{}
+Text::Text(Font *p_font)
+    : m_font(p_font)
+{
+}
+
+Text::Text(Font *p_font, const std::string &text)
+    : m_font(p_font)
+{
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> conv;
+    m_text = conv.from_bytes(text);
+}
 
 const std::wstring &Text::getTextW() const
 {
@@ -198,7 +205,7 @@ void MultiLineText::drawInto2(Renderer &canvas)
         }
 
         t_word.setPosition(word_pos);
-        canvas.drawText(t_word);
+        canvas.drawText2(t_word);
         word_pos.x += b_box.width + m_word_spacing;
     };
 
@@ -206,6 +213,7 @@ void MultiLineText::drawInto2(Renderer &canvas)
     std::size_t start_pos = 0;
     std::size_t next_pos = m_text.find_first_of(' ');
     Text t_word = Text{m_text.substr(start_pos, next_pos - start_pos + 1)};
+    t_word.m_depth = m_depth;
     t_word.setFont(p_font);
     t_word.setScale(m_text_scale, m_text_scale);
 
@@ -314,17 +322,17 @@ MultiLineText::MultiLineText()
 {
 }
 
-void MultiLineText::setText(const std::string& text)
+void MultiLineText::setText(const std::string &text)
 {
     m_text = text;
 }
 
-void MultiLineText::appendText(const std::string& text)
+void MultiLineText::appendText(const std::string &text)
 {
     m_text += text;
 }
 
-std::string& MultiLineText::getText()
+std::string &MultiLineText::getText()
 {
     return m_text;
 }
@@ -351,6 +359,47 @@ float MultiLineText::getPageWidth() const
 float MultiLineText::getPageHeight() const
 {
     return m_page_height;
+}
+float MultiLineText::calculatePageHeight() 
+{
+    m_line_size = m_text_scale * p_font->getLineHeight();
+
+    utils::Vector2f word_pos = m_page_position + Vec2{m_page_padding.x, -m_page_padding.y} - utils::Vector2f{0.f, m_line_size};
+    auto drawWordAndMoveCursor = [&, this](Text &t_word)
+    {
+        auto b_box = t_word.getBoundingBox();
+        if (word_pos.x + b_box.width > rightTextBorder()) //! line overflow -> newline
+        {
+            word_pos.x = leftTextBorder();
+            word_pos.y -= m_line_size + m_line_spacing;
+        }
+
+        t_word.setPosition(word_pos);
+        word_pos.x += b_box.width + m_word_spacing;
+    };
+
+    //! iterate through words
+    std::size_t start_pos = 0;
+    std::size_t next_pos = m_text.find_first_of(' ');
+    Text t_word = Text{m_text.substr(start_pos, next_pos - start_pos + 1)};
+    t_word.setFont(p_font);
+    t_word.setScale(m_text_scale, m_text_scale);
+
+    while (next_pos != std::string::npos)
+    {
+        t_word.setText(m_text.substr(start_pos, next_pos - start_pos + 1));
+
+        drawWordAndMoveCursor(t_word);
+
+        start_pos = next_pos + 1;
+        next_pos = m_text.find_first_of(' ', start_pos + 1);
+    }
+
+    //! draw the last word
+    t_word.setText(m_text.substr(start_pos));
+    drawWordAndMoveCursor(t_word);
+
+    return m_page_padding.y + m_line_spacing - (word_pos.y - m_page_position.y);
 }
 
 void MultiLineText::setPadding(utils::Vector2f padding)

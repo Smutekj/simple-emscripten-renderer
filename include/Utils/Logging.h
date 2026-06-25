@@ -12,12 +12,12 @@
 #else
 
 #ifndef LOG_CATEGORY
-#define LOG_CATEOGRY SDL_LOG_CATEGORY_APPLICATION
+#define LOG_CATEGORY SDL_LOG_CATEGORY_APPLICATION
 #endif
 
-#define LOGI(...) SDL_LogInfo(LOG_CATEOGRY, __VA_ARGS__)
-#define LOGW(...) SDL_LogWarn(LOG_CATEOGRY, __VA_ARGS__)
-#define LOGE(...) SDL_LogError(LOG_CATEOGRY, __VA_ARGS__)
-#define LOGD(...) SDL_LogDebug(LOG_CATEOGRY, __VA_ARGS__)
+#define LOGI(...) SDL_LogInfo(LOG_CATEGORY, __VA_ARGS__)
+#define LOGW(...) SDL_LogWarn(LOG_CATEGORY, __VA_ARGS__)
+#define LOGE(...) SDL_LogError(LOG_CATEGORY, __VA_ARGS__)
+#define LOGD(...) SDL_LogDebug(LOG_CATEGORY, __VA_ARGS__)
 
 #endif

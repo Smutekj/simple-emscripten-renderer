@@ -1,16 +1,30 @@
 #pragma once
 
-#if defined(__EMSCRIPTEN__)
+#if defined(EMSCRIPTEN)
 #include <emscripten.h>
 #include <SDL.h>
 #include <SDL_opengles2.h>
 #include <GLES3/gl3platform.h>
 #include <GLES3/gl3.h>
-#elif  defined(__ANDROID__)
-#include <glad/glad.h>
+
+#ifndef GLES
+    #define GLES
+#endif
+
+#elif  defined(ANDROID)
+#include <glad/gles2.h>
 #include <SDL2/SDL.h>
+
+#ifndef GLES
+    #define GLES
+#endif
+
 #else
 #include <glad/glad.h>
+#ifdef GLES
+    #undef GLES
+#endif
+
 #endif
 
 #include <vector>

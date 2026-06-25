@@ -41,9 +41,9 @@ class Particles
 {
 
 public:
-    explicit Particles() = default;
     explicit Particles(int n_max_particles = 100);
     virtual ~Particles() = default;
+
     void update(float dt);
 
     virtual void draw(Renderer &target);
@@ -147,14 +147,15 @@ public:
     { return ParticleData{}; };
 
     float spawn_period = 0.03; //!< m_spawn_period secs need to pass for one particle
-    bool repeats = true; //!< true if particles should be created continuously
+    bool repeats = true;       //!< true if particles should be created continuously
     utils::Vector2f spawn_pos;
+
 private:
     Sprite m_prototype;
 
     utils::VectorMap<ParticleData> m_particle_pool;
 
-    float m_spawn_timer = 0;     //!< measures frames since last spawn
-    size_t m_live_count = 0;  //!< number of live particles
+    float m_spawn_timer = 0;                   //!< measures frames since last spawn
+    size_t m_live_count = 0;                   //!< number of live particles
     std::string m_shader_id = "SpriteDefault"; //!< shader id
 };
